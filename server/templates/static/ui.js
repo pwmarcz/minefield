@@ -29,9 +29,13 @@ function set_table_stage_1(tiles, dora, east)
     $('#hand').addClass("outlined");
 
     // TODO: create tiles & add them to disposable
-    for (var i=0; i<3; i++) {
+    for (var i=0; i<9; i++) {
         $('#tiles').append(create_tile("M"+(i+1)));
     }
+    for (var i=0; i<9; i++) {
+        $('#tiles').append(create_tile("S"+(i+1)));
+    }
+    
 
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
