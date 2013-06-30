@@ -14,7 +14,7 @@ body {
 }
 
 #hand {
-    width: 1080px;
+    width: 1150px;
     height: 130px;
     list-style: none;
     vertical-align: center;
@@ -25,10 +25,11 @@ body {
     display: inline-block;
 }
 
-#dora_display {
+#dora-display {
+    list-style: none;
 }
 
-#east_display {
+#east-display {
 }
 
 .connectedSortable {
@@ -46,6 +47,12 @@ body {
 .tile {
 
 }
+
+/* Switcher */
+body > div { display: none; }
+body.state-login > #login { display: block; }
+body.state-waiting > #waiting { display: block; }
+body.state-table > #table { display: block; }
 
 #footer {
     font-size: small;
