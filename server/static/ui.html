@@ -6,9 +6,17 @@
        <TITLE>Minefield UI</TITLE>
        <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
        <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+       <script src="devel.js" type="text/javascript"></script>
        <script src="ui.js" type="text/javascript"></script>
    </HEAD>
-   <BODY>
+   <BODY class="state-login">
+      <div id="login">
+        <input name="nick">
+        <button class="login">Login</button>
+      </div>
+      <div id="waiting">
+        Awaiting challenge...
+      </div>
       <div id="table">
         <ul id="dora-display"></ul>
         <div id="east-display"></div>
