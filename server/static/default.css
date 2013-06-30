@@ -46,3 +46,9 @@ body {
 .tile {
 
 }
+
+/* Switcher */
+body > div { display: none; }
+body.state-login > #login { display: block; }
+body.state-waiting > #waiting { display: block; }
+body.state-table > #table { display: block; }
