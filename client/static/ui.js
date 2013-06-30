@@ -1,7 +1,7 @@
 function create_tile(tile_type)
 {
     var newtile = $('<li class="tile"/>');
-    newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
+    newtile.append($("<img/>").attr('src', 'static/tiles/'+tile_type+'.svg'));
     return newtile;
 }
 
