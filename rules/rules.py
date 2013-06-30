@@ -129,6 +129,8 @@ class Hand(object):
         return not any(is_terminal(t) or is_honor(t) for t in self.tiles)
 
     def yaku_fanpai(self):
+        if self.type != 'regular':
+            return False
         if 'fanpai_winds' not in self.options:
             return False
         fanpai_winds = self.options['fanpai_winds']
