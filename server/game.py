@@ -31,6 +31,7 @@ class Game(object):
                  callback=dummy_callback):
         self.callback = callback
 
+        self.player_turn = 0
         all_tiles = list(TILES)
 
         if not DEBUG:
@@ -48,8 +49,11 @@ class Game(object):
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
 
-    def start(self):
+    @property
+    def phase(self):
+        return 2 if all(self.hand) else 1
 
+    def start(self):
         for i in range(2):
             self.callback(i, 'phase_one',
                           {'nicks': self.nicks,
@@ -59,6 +63,8 @@ class Game(object):
                            'east': self.east})
 
     def on_hand(self, player, hand):
+        if self.phase != 1:
+            raise RuleViolation
         if len(hand) != 13:
             raise RuleViolation
         if self.hand[player] != None:
@@ -75,8 +81,21 @@ class Game(object):
             # start the second phase
             for i in range(2):
                 self.callback(i, 'phase_two', {})
+            self.phase = 2
         else:
             self.callback(player, 'wait', {})
+
+    def on_discard(self, player, stone):
+        if self.phase != 2:
+            raise RuleViolation
+        if self.player_turn != player:
+            raise RuleViolation
+        if not "stone in player's discard pool":
+            raise RuleViolation
+
+
+
+
 
 class GameTestCase(unittest.TestCase):
     def setUp(self):
