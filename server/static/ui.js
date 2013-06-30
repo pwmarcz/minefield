@@ -23,23 +23,14 @@ function submit_hand()
     }
     else {
         alert("You have to have 13 tiles on hand!");
-        // TODO: error message?
     }
 }
 
 function set_table_stage_1(tiles, dora, east)
-{
-    // TODO: clean table
-    $('#hand').addClass("outlined");
-
-    // TODO: create tiles & add them to disposable
-    for (var i=0; i<9; i++) {
-        $('#tiles').append(create_tile("M"+(i+1)));
-    }
-    for (var i=0; i<9; i++) {
-        $('#tiles').append(create_tile("S"+(i+1)));
-    }
-
+{    
+    $('#table').empty();
+    
+    // TODO: create tiles & add them to #tiles
 
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
@@ -48,6 +39,8 @@ function set_table_stage_1(tiles, dora, east)
         connectWith: '.connectedSortable'
     }).disableSelection();
 
+    $('#hand').addClass("outlined");
+    
     $("#hand").sortable({
         connectWith: '.connectedSortable',
         items: "li:not(.placeholder)",
@@ -56,7 +49,7 @@ function set_table_stage_1(tiles, dora, east)
             if ($(this).children().length > 13) {
                 $(ui.sender).sortable('cancel');
             }
-            if ($(this).children().length == 13) {
+            if ($(this).children().length === 13) {
                 $("#submit-hand").removeAttr('disabled')
             }
         },
@@ -80,17 +73,18 @@ function set_table_stage_1(tiles, dora, east)
 function set_table_stage_2(start)
 {
     // TODO:
-    // make tiles undraggable & sort them
-    // move disposable space & hand to make space for board
-    hand_list.removeClass("outlined");
-    // display board
+    // move disposable space & hand to make space for discarded tiles
+    $("#hand, #tiles").removeClass("connectedSortable");
+    $("#hand").removeClass("outlined");
+    // display discarded tiles
     // display turn marker
-    // hide 
 }
 
 function test()
 {
     set_table_stage_1("", "M1", true);
+    
+    
 }
 
 $(function() {
