@@ -143,6 +143,25 @@ class HandTestCase(unittest.TestCase):
                         [['iipeiko', 'tanyao']])
         self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P2 P2 X1 X1', 'M1',
                         [[]])
+        self.assertYaku('M1 M1 M1 M1 M2 M2 M2 M2 M3 M3 M3 M3 M9 M9', 'M1',
+                        [['pinfu', 'ryanpeiko', 'junchan', 'chinitsu'],
+                         ['sananko', 'chinitsu']])
+        self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
+                        [['pinfu', 'iipeiko', 'chinitsu'],
+                         ['pinfu', 'iipeiko', 'chinitsu']])
+        self.assertYaku('P1 P2 P3 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7 X7', 'S5',
+                        [['daisangen']])
+        self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
+                        [['fanpai', 'fanpai', 'shosangen']])
+        self.assertYaku('P1 P2 P3 S9 S9 S9 X5 X5 X5 X6 X6 X7 X7 X7', 'P1',
+                        [['fanpai', 'fanpai', 'chanta', 'sananko',
+                          'shosangen']])
+        self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X5 X7', 'S1',
+                        [['kokushi']])
+        self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
+                        [['chanta', 'honitsu', 'ryanpeiko']])
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P3 P3 P3 P5 P6 P7 S4 S4', 'M7',
+                        [['tanyao']])
 
 if __name__ == '__main__':
     unittest.main()
