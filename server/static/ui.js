@@ -2,6 +2,7 @@ function create_tile(tile_type)
 {
     var newtile = $('<li class="tile"/>');
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
+    newtile.attr("data-tile", tile_type);
     return newtile;
 }
 
@@ -13,12 +14,15 @@ function rotate_tile(tile, direction)
 
 function submit_hand()
 {
-    if ($("#hand_list").children().length == 13) {
+    if ($("#hand").children().length === 13) {
         var tiles = "";
-        // TODO: get all items from #hand_list
-        alert(tiles); // make clicking alert trigger set_table_stage_2 for testing purposes
+        $("#hand").children().each(function() {
+            tiles += $(this).attr("data-tile");
+        });
+        alert(tiles); // TODO: submit
     }
     else {
+        alert("You have to have 13 tiles on hand!");
         // TODO: error message?
     }
 }
@@ -53,12 +57,12 @@ function set_table_stage_1(tiles, dora, east)
                 $(ui.sender).sortable('cancel');
             }
             if ($(this).children().length == 13) {
-                $("#OK_button").removeAttr('disabled')
+                $("#submit-hand").removeAttr('disabled')
             }
         },
         remove: function(event, ui){
             if ($(this).children().length < 13) {
-                OK_button.attr('disabled','disabled');
+                $("#submit-hand").attr('disabled','disabled');
             }
         }
     }).disableSelection();
@@ -69,7 +73,7 @@ function set_table_stage_1(tiles, dora, east)
 
     $('#submit-hand').attr('disabled', 'disabled').click(
         function() {
-            submit_hand(tiles);
+            submit_hand();
         });
 }
 
@@ -81,7 +85,7 @@ function set_table_stage_2(start)
     hand_list.removeClass("outlined");
     // display board
     // display turn marker
-    // hide OK button
+    // hide 
 }
 
 function test()
