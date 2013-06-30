@@ -28,7 +28,8 @@ function submit_hand()
 
 function set_table_stage_1(tiles, dora, east)
 {    
-    $('#table').empty();
+    $("#hand").empty();
+    $("#tiles").empty();
     
     // TODO: create tiles & add them to #tiles
 
@@ -60,7 +61,9 @@ function set_table_stage_1(tiles, dora, east)
         }
     }).disableSelection();
 
-    // TODO: display & place east
+    // TODO: place east
+    $("#dora-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+
 
     $("#dora-display").append(create_tile(dora));
 
