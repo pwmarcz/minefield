@@ -15,7 +15,7 @@ app.debug = True
 
 @app.route("/")
 def hello():
-    return flask.render_template('hello.html')
+    return flask.redirect('/ui.html')
 
 @app.route("/2")
 def hello2():
