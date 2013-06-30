@@ -87,7 +87,27 @@ function test()
     
 }
 
+function login()
+{
+    var nick = $('#login input[name=nick]').val();
+    socket = connect();
+    socket.emit('hello', nick);
+}
+
+function connect()
+{
+    socket = io.connect('/minefield');
+    socket.on('wait', function() {
+        $('body').removeClass('state-login').addClass('state-waiting');
+    });
+    socket.on('phase_one', function() {
+        $('body').removeClass('state-login state-waiting').addClass('state-table');
+    });
+    return socket;
+}
+
 $(function() {
+    $('#login button').click(login);
     // TODO
     test();
 });
