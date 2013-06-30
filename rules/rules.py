@@ -144,7 +144,7 @@ class Hand(object):
         if self.type != 'regular':
             return False
         return (all(is_junchan_group(g) for g in self.groups) and
-                any(type == 'chi' for t in self.groups))
+                any(type == 'chi' for type, _ in self.groups))
 
     def yaku_chanta(self):
         if self.type != 'regular':
@@ -152,7 +152,7 @@ class Hand(object):
         if self.yaku_junchan():
             return False
         return (all(is_junchan_group(g) for g in self.groups) and
-                any(type == 'chi' for t in self.groups))
+                any(type == 'chi' for type, _ in self.groups))
 
     def yaku_honitsu(self):
         suits = suits_of_tiles(self.tiles)
