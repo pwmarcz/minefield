@@ -88,7 +88,7 @@ class Hand(object):
                        'iipeiko',
                        'tanyao',
                        'fanpai',
-                       'nikoniko',
+                       'chitoitsu',
                        'chanta',
                        'junchan',
                        'honitsu',
@@ -137,7 +137,7 @@ class Hand(object):
         return any(type == 'pon' and tile in fanpai_winds
                    for type, tile in self.groups)
 
-    def yaku_nikoniko(self):
+    def yaku_chitoitsu(self):
         return self.type == 'pairs'
 
     def yaku_junchan(self):
@@ -159,7 +159,8 @@ class Hand(object):
         return len(suits) == 2 and 'X' in suits
 
     def yaku_chinitsu(self):
-        return suits_of_tiles(self.tiles) == set(['X'])
+        suits = suits_of_tiles(self.tiles)
+        return len(suits) == 1 and 'X' not in suits
 
     def all_yaku(self):
         result = []
@@ -220,7 +221,8 @@ class HandTestCase(unittest.TestCase):
                         [[]])
         self.assertYaku('M1 M1 M1 M1 M2 M2 M2 M2 M3 M3 M3 M3 M9 M9', 'M1',
                         [['pinfu', 'ryanpeiko', 'junchan', 'chinitsu'],
-                         ['sananko', 'chinitsu']])
+                         ['sananko', 'chinitsu'],
+                         ['chitoitsu', 'chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
                         [['pinfu', 'iipeiko', 'chinitsu'],
                          ['pinfu', 'iipeiko', 'chinitsu']])
@@ -234,7 +236,8 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X5 X7', 'S1',
                         [['kokushi']])
         self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
-                        [['chanta', 'honitsu', 'ryanpeiko']])
+                        [['chanta', 'honitsu', 'ryanpeiko'],
+                         ['chitoitsu', 'honitsu']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P3 P3 P3 P5 P6 P7 S4 S4', 'M7',
                         [['tanyao']])
         self.assertYaku('X1 X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9', 'X1',
