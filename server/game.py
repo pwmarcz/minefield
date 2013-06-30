@@ -1,6 +1,7 @@
-
 import random
 import unittest
+
+import rules
 
 DEBUG = False
 
@@ -48,6 +49,8 @@ class Game(object):
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
 
+        self.waits = [None, None]
+
         self.discards = [[], []]
 
         self.finished = False
@@ -93,7 +96,9 @@ class Game(object):
                 self.tiles[player].remove(tile)
             except ValueError:
                 raise RuleViolation('on_hand: tile not found in choices')
+
         self.hand[player] = hand
+        self.waits[player] = list(rules.waits(hand))
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
@@ -120,7 +125,7 @@ class Game(object):
                            'tile': tile})
 
         # ron
-        if False:
+        if tile in self.waits[1-player]:
             self.finished = True
             for i in range(2):
                 self.callback(i, 'ron', {})
