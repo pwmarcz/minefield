@@ -1,0 +1,14 @@
+<title>Le site</title>
+
+<script src="/static/socket.io.min.js"></script>
+
+<script>
+
+var socket = io.connect('/minefield');
+socket.on('pong', function(n) {
+	alert('pong '+n);
+});
+socket.emit('ping', 10);
+
+
+</script>
