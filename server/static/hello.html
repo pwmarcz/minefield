@@ -1,0 +1,60 @@
+<title>Le site</title>
+
+<script src="/static/socket.io.min.js"></script>
+
+
+<script>
+
+var socket = io.connect('/minefield');
+socket.on('pong', function(n) {
+	console.log((n == 20) ? "we have connectivity" : "wtf?!??")
+	//alert('pong '+n);
+});
+
+socket.on('phase_one', function(x) {
+	console.log('[game]', 'phase_one', x);
+});
+socket.on('phase_two', function(x) {
+	console.log('[game]', 'phase_two', x);
+});
+socket.on('wait', function(x) {
+	console.log('[game]', 'wait', x);
+});
+
+socket.emit('ping', 10);
+
+
+</script>
+
+
+<script>
+<!-- debugging/testing stuff -->
+
+function makeid()
+{
+    var text = "";
+    var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+    for( var i=0; i < 5; i++ )
+        text += possible.charAt(Math.floor(Math.random() * possible.length));
+
+    return text;
+}
+
+function connect() {
+	var nick = makeid();
+	console.log('connecting as '+nick);
+	socket.emit('hello',nick);
+}
+
+function hand() {
+	var hand = '1M 2M 3M 1P 2P 3P 8P 7P 6P 1M 2M 3M 9X'.split()
+	socket.emit('hand', hand);
+}
+</script>
+
+
+<body>
+<div><a href="#" onclick="return connect();">Connect (with random nick)</a></div>
+<div><a href="#" onclick="return hand();">send a hand</a></div>
+</body>
