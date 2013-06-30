@@ -15,11 +15,11 @@ function rotate_tile(tile, direction)
 function submit_hand()
 {
     if ($("#hand").children().length === 13) {
-        var tiles = "";
+        var tiles = [];
         $("#hand").children().each(function() {
-            tiles += $(this).attr("data-tile");
+            tiles.push($(this).attr("data-tile"));
         });
-        alert(tiles); // TODO: submit
+        socket.emit('hand', tiles);
     }
     else {
         alert("You have to have 13 tiles on hand!");
@@ -28,15 +28,15 @@ function submit_hand()
 }
 
 function set_table_stage_1(tiles, dora, east)
-{    
+{
     $("#hand").empty();
     $("#tiles").empty();
-    
+
     // create tiles & add them to #tiles
-    for (var i=0; i < tiles.length(); ++i) {
-        $("#tiles").append(create_tile(tile_type));
+    for (var i=0; i < tiles.length; ++i) {
+        $("#tiles").append(create_tile(tiles[i]));
     }
-    
+
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
 
@@ -45,7 +45,7 @@ function set_table_stage_1(tiles, dora, east)
     }).disableSelection();
 
     $('#hand').addClass("outlined");
-    
+
     $("#hand").sortable({
         connectWith: '.connectedSortable',
         items: "li:not(.placeholder)",
@@ -101,8 +101,6 @@ function your_move()
 function test()
 {
     set_table_stage_1("", "M1", true);
-    
-    
 }
 
 function login()
@@ -118,14 +116,14 @@ function connect()
     socket.on('wait', function() {
         $('body').removeClass('state-login').addClass('state-waiting');
     });
-    socket.on('phase_one', function() {
+    socket.on('phase_one', function(data) {
         $('body').removeClass('state-login state-waiting').addClass('state-table');
+        set_table_stage_1(data.tiles, data.dora, data.east);
+        console.log('phase_one',data);
     });
     return socket;
 }
 
 $(function() {
     $('#login button').click(login);
-    // TODO
-    test();
 });
