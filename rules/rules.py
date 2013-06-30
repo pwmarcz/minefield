@@ -62,16 +62,32 @@ def is_terminal(tile):
 def is_honor(tile):
     return tile[0] == 'X'
 
+def is_junchan_group(g):
+    type, tile = g
+    if type in ['pon', 'pair']:
+        return is_terminal(tile)
+    else:
+        return tile[0] in 'MPS' and tile[1] in '17'
+
+def is_chanta_group(g):
+    type, tile = g
+    return is_junchan_group(g) or is_honor(tile)
+
 class Hand(object):
     RECOGNIZED_YAKU = ['pinfu',
                        'iipeiko',
-                       'tanyao']
+                       'tanyao',
+                       'fanpai',
+                       'nikoniko',
+                       'chanta',
+                       'junchan']
 
-    def __init__(self, tiles, wait, type, groups=None):
+    def __init__(self, tiles, wait, type, groups=None, options={}):
         self.tiles = tiles
         self.wait = wait
         self.type = type
         self.groups = groups
+        self.options = options
 
     def yaku_pinfu(self):
         return False # TBI
@@ -87,6 +103,30 @@ class Hand(object):
     def yaku_tanyao(self):
         return not any(is_terminal(t) or is_honor(t) for t in self.tiles)
 
+    def yaku_fanpai(self):
+        if 'fanpai_winds' not in self.options:
+            return False
+        fanpai_winds = self.options['fanpai_winds']
+        return any(type == 'pon' and tile in fanpai_winds
+                   for type, tile in self.groups)
+
+    def yaku_nikoniko(self):
+        return self.type == 'pairs'
+
+    def yaku_junchan(self):
+        if self.type != 'regular':
+            return False
+        return (all(is_junchan_group(g) for g in self.groups) and
+                any(type == 'chi' for t in self.groups))
+
+    def yaku_chanta(self):
+        if self.type != 'regular':
+            return False
+        if self.yaku_junchan():
+            return False
+        return (all(is_junchan_group(g) for g in self.groups) and
+                any(type == 'chi' for t in self.groups))
+
     def all_yaku(self):
         result = []
         for name in self.RECOGNIZED_YAKU:
@@ -95,11 +135,11 @@ class Hand(object):
                 result.append(name)
         return result
 
-def all_hands(tiles, wait):
+def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
-        yield Hand(tiles, wait, 'regular', groups)
+        yield Hand(tiles, wait, 'regular', groups=groups, options=options)
     if is_all_pairs(tiles):
-        yield Hand(tiles, wait, 'pairs')
+        yield Hand(tiles, wait, 'pairs', options=options)
     #if is_kokushi(tiles): # to be implemented
 
 class RulesTestCase(unittest.TestCase):
@@ -134,7 +174,8 @@ class HandTestCase(unittest.TestCase):
     def assertYaku(self, tiles_str, wait, yaku_sets):
         tiles = tiles_str.split()
         result = []
-        for hand in all_hands(tiles, wait):
+        # In the tests, we assume that East (X1) is the only fanpai wind.
+        for hand in all_hands(tiles, wait, {'fanpai_winds': ['X1']}):
             result.append(hand.all_yaku())
         self.assertEqual(result, yaku_sets)
 
@@ -143,6 +184,10 @@ class HandTestCase(unittest.TestCase):
                         [['iipeiko', 'tanyao']])
         self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P2 P2 X1 X1', 'M1',
                         [[]])
+        self.assertYaku('X1 X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9', 'X1',
+                        [['fanpai', 'honitsu']])
+        self.assertYaku('X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 M9', 'X1',
+                        [['honitsu']])
 
 if __name__ == '__main__':
     unittest.main()
