@@ -2,6 +2,7 @@ body {
 }
 
 #table {
+    background-color: green;
 }
 
 #tiles {
@@ -13,9 +14,11 @@ body {
 }
 
 #hand {
-    width: 800px;
-    height: 120px;
+    width: 1080px;
+    height: 130px;
     list-style: none;
+    vertical-align: center;
+    padding: 15px;
 }
 
 #hand li {
@@ -32,7 +35,7 @@ body {
 }
 
 .outlined {
-    border: solid 1px gray;
+    border: dashed 1px gray;
 }
 
 .placeholder {
