@@ -4,21 +4,22 @@ body {
 #table {
 }
 
-#disposable {
-    display: inline;
+#tiles {
+    list-style: none;
 }
 
-#disposable li {
-    float: left;
-    list-style: none;
+#tiles li {
+    display: inline-block;
 }
 
 #hand {
-    display: inline;
+    width: 800px;
+    height: 120px;
+    list-style: none;
 }
 
 #hand li {
-    list-style: none;
+    display: inline-block;
 }
 
 #dora_display {
@@ -31,7 +32,7 @@ body {
 }
 
 .outlined {
-    border: gray;
+    border: solid 1px gray;
 }
 
 .placeholder {
@@ -40,7 +41,5 @@ body {
 }
 
 .tile {
-    border: solid 2px red;
-    width: 60px;
-    height: 90px;
+
 }

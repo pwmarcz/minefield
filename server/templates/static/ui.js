@@ -34,7 +34,7 @@ function set_table_stage_1(tiles, dora, east)
     }
 
     // dragging tiles to hand
-    $("#tiles, #hands").addClass("connectedSortable");
+    $("#tiles, #hand").addClass("connectedSortable");
 
     $("#tiles").sortable({
         connectWith: '.connectedSortable'
