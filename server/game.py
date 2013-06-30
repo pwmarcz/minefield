@@ -82,17 +82,17 @@ class Game(object):
 
     def on_hand(self, player, hand):
         if self.phase != 1:
-            raise RuleViolation
+            raise RuleViolation('on_hand: wrong phase')
         if len(hand) != 13:
-            raise RuleViolation
+            raise RuleViolation('on_hand: len != 13')
         if self.hand[player] != None:
-            raise RuleViolation
+            raise RuleViolation('on_hand: hand already sent')
         for tile in hand:
             # this fails if a player doesn't have a tile
             try:
                 self.tiles[player].remove(tile)
             except ValueError:
-                raise RuleViolation
+                raise RuleViolation('on_hand: tile not found in choices')
         self.hand[player] = hand
 
         if self.hand[0] and self.hand[1]:
@@ -105,11 +105,11 @@ class Game(object):
 
     def on_discard(self, player, tile):
         if self.phase != 2:
-            raise RuleViolation
+            raise RuleViolation('on_discard: wrong phase')
         if self.player_turn != player:
-            raise RuleViolation
+            raise RuleViolation('on_discard: not your turn')
         if tile not in self.tiles[player]:
-            raise RuleViolation
+            raise RuleViolation('on_discard: tile not found in choices')
 
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
