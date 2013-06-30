@@ -9,10 +9,10 @@ TILES = (['M'+str(n) for n in range(1,10)] +
          ['S'+str(n) for n in range(1,10)] +
          ['X'+str(n) for n in range(1,7)])*4
 
-def next_tile(tile):
+def dora_for_tile(tile):
     n = int(tile[1])
     if tile[0] == 'X':
-        n = n % 7 + 1
+        n = [2, 3, 4, 1, 6, 7, 5][n-1]
     else:
         n = n % 9 + 1
     return tile[0]+str(n)
@@ -43,7 +43,7 @@ class Game(object):
         self.tiles = [all_tiles[:34], all_tiles[34:34*2]]
 
         self.dora_ind = all_tiles[34*2]
-        self.dora = next_tile(self.dora_ind)
+        self.dora = dora_for_tile(self.dora_ind)
 
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
@@ -125,6 +125,14 @@ class GameTestCase(unittest.TestCase):
     def test_tiles_outside_initial(self):
         self.assertRaises(RuleViolation,
                           lambda: self.g.on_hand(0, ['M1']*13))
+
+    def test_dora_for_tile(self):
+        self.assertEquals(dora_for_tile('M2'), 'M3')
+        self.assertEquals(dora_for_tile('P9'), 'P1')
+        self.assertEquals(dora_for_tile('X1'), 'X2')
+        self.assertEquals(dora_for_tile('X4'), 'X1')
+        self.assertEquals(dora_for_tile('X6'), 'X7')
+        self.assertEquals(dora_for_tile('X7'), 'X5')
 
 if __name__ == '__main__':
     unittest.main()
