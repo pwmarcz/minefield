@@ -31,8 +31,11 @@ function set_table_stage_1(tiles, dora, east)
     $("#hand").empty();
     $("#tiles").empty();
     
-    // TODO: create tiles & add them to #tiles
-
+    // create tiles & add them to #tiles
+    for (var i=0; i < tiles.length(); ++i) {
+        $("#tiles").append(create_tile(tile_type));
+    }
+    
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
 
