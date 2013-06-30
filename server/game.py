@@ -85,15 +85,13 @@ class Game(object):
         else:
             self.callback(player, 'wait', {})
 
-    def on_discard(self, player, stone):
+    def on_discard(self, player, tile):
         if self.phase != 2:
             raise RuleViolation
         if self.player_turn != player:
             raise RuleViolation
-        if not "stone in player's discard pool":
+        if not "tile in player's discard pool":
             raise RuleViolation
-
-
 
 
 
