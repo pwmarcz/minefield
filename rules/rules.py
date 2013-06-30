@@ -73,6 +73,16 @@ def is_chanta_group(g):
     type, tile = g
     return is_junchan_group(g) or is_honor(tile)
 
+def is_chi_boundary(tile, chi_tile):
+    if tile[0] != chi_tile[0]:
+        return False
+    n = int(tile[1])
+    cn = int(chi_tile[1])
+    return n == cn or n == cn+2
+
+def suits_of_tiles(tiles):
+    return set(t[0] for t in tiles)
+
 class Hand(object):
     RECOGNIZED_YAKU = ['pinfu',
                        'iipeiko',
@@ -80,7 +90,9 @@ class Hand(object):
                        'fanpai',
                        'nikoniko',
                        'chanta',
-                       'junchan']
+                       'junchan',
+                       'honitsu',
+                       'chinitsu']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
         self.tiles = tiles
@@ -90,7 +102,20 @@ class Hand(object):
         self.options = options
 
     def yaku_pinfu(self):
-        return False # TBI
+        if self.type != 'regular':
+            return False
+        pair_tile = self.groups[0][1]
+        if pair_tile[0] == 'X':
+            if pair_tile in ['X5', 'X6', 'X7']: # dragons
+                return False
+            if pair_tile in self.options.get('fanpai_winds', []):
+                return False
+        if any(type == 'pon' for type, tile in self.groups):
+            return False
+        for type, tile in self.groups[1:]:
+            if is_chi_boundary(self.wait, tile):
+                return True
+        return False
 
     def yaku_iipeiko(self):
         if self.type != 'regular':
@@ -126,6 +151,13 @@ class Hand(object):
             return False
         return (all(is_junchan_group(g) for g in self.groups) and
                 any(type == 'chi' for t in self.groups))
+
+    def yaku_honitsu(self):
+        suits = suits_of_tiles(self.tiles)
+        return len(suits) == 2 and 'X' in suits
+
+    def yaku_chinitsu(self):
+        return suits_of_tiles(self.tiles) == set(['X'])
 
     def all_yaku(self):
         result = []
@@ -188,6 +220,8 @@ class HandTestCase(unittest.TestCase):
                         [['fanpai', 'honitsu']])
         self.assertYaku('X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 M9', 'X1',
                         [['honitsu']])
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P5 P6 P7 P8 P8', 'P7',
+                        [['pinfu', 'tanyao']])
 
 if __name__ == '__main__':
     unittest.main()
