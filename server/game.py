@@ -31,7 +31,6 @@ class Game(object):
                  callback=dummy_callback):
         self.callback = callback
 
-        self.player_turn = 0
         all_tiles = list(TILES)
 
         if not DEBUG:
@@ -49,9 +48,28 @@ class Game(object):
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
 
+        self.discards = [[], []]
+
+        self.finished = False
+
     @property
     def phase(self):
-        return 2 if all(self.hand) else 1
+        # First phase - hand selection
+        if not (self.hand[0] and self.hand[1]):
+            return 1
+        # Second phase - discards
+        elif not self.finished:
+            return 2
+        # Game finished
+        else:
+            return 3
+
+    @property
+    def player_turn(self):
+        if len(self.discards[0]) == len(self.discards[1]):
+            return 0
+        else:
+            return 1
 
     def start(self):
         for i in range(2):
@@ -81,20 +99,40 @@ class Game(object):
             # start the second phase
             for i in range(2):
                 self.callback(i, 'phase_two', {})
-            self.phase = 2
+            self.callback(self.player_turn, 'your_move', {})
         else:
             self.callback(player, 'wait', {})
 
-    def on_discard(self, player, stone):
+    def on_discard(self, player, tile):
         if self.phase != 2:
             raise RuleViolation
         if self.player_turn != player:
             raise RuleViolation
-        if not "stone in player's discard pool":
+        if tile not in self.tiles[player]:
             raise RuleViolation
 
+        self.tiles[player].remove(tile)
+        self.discards[player].append(tile)
 
+        for i in range(2):
+            self.callback(i, 'discarded',
+                          {'player': player,
+                           'tile': tile})
 
+        # ron
+        if False:
+            self.finished = True
+            for i in range(2):
+                self.callback(i, 'ron', {})
+            # TODO announce hand, etc.
+        # draw
+        elif len(self.discards[0]) == len(self.discards[1]) == 17:
+            self.finished = True
+            for i in range(2):
+                self.callback(i, 'draw', {})
+        # normal turn
+        else:
+            self.callback(self.player_turn, 'your_move', {})
 
 
 class GameTestCase(unittest.TestCase):
@@ -107,10 +145,15 @@ class GameTestCase(unittest.TestCase):
         self.messages = deque()
 
         self.g = Game(callback=self.callback)
+        self.g.start()
 
     def assertMessage(self, player, msg_type, msg={}):
         our_m = self.messages.popleft()
         self.assertEqual(our_m, (player, msg_type, msg))
+
+    def assertMessageBoth(self, msg_type, msg={}):
+        self.assertMessage(0, msg_type, msg)
+        self.assertMessage(1, msg_type, msg)
 
     def callback(self, player, msg_type, msg):
         self.messages.append((player, msg_type, msg))
@@ -136,8 +179,18 @@ class GameTestCase(unittest.TestCase):
         self.g.on_hand(0, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
         self.assertMessage(0, 'wait')
         self.g.on_hand(1, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
-        self.assertMessage(0, 'phase_two')
-        self.assertMessage(1, 'phase_two')
+        self.assertMessageBoth('phase_two')
+
+        for i in range(17):
+            for j in range(2):
+                self.assertMessage(j, 'your_move')
+                # Just discard the first choice
+                t = self.g.tiles[j][0]
+                self.g.on_discard(j, t)
+                self.assertMessageBoth('discarded', {'player': j,
+                                                     'tile': t})
+        self.assertMessageBoth('draw')
+
 
     def test_short_hand(self):
         self.assertRaises(RuleViolation,

@@ -27,10 +27,14 @@ function submit_hand()
 }
 
 function set_table_stage_1(tiles, dora, east)
-{    
-    $('#table').empty();
-    
-    // TODO: create tiles & add them to #tiles
+{
+    $("#hand").empty();
+    $("#tiles").empty();
+
+    // create tiles & add them to #tiles
+    for (var i=0; i < tiles.length; ++i) {
+        $("#tiles").append(create_tile(tiles[i]));
+    }
 
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
@@ -60,7 +64,9 @@ function set_table_stage_1(tiles, dora, east)
         }
     }).disableSelection();
 
-    // TODO: display & place east
+    // TODO: place east
+    $("#dora-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+
 
     $("#dora-display").append(create_tile(dora));
 
