@@ -21,5 +21,6 @@ $(function() {
 		$(document.body)
 		.removeClass('state-login')
 		.addClass('state-table');
+		test();
 	}
 });
