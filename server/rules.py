@@ -12,6 +12,10 @@ import unittest
 ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
     if suit != 'X' or no <= 7]
 
+TERMINALS = ['%s%s' % (suit, no) for suit in 'MPS' for no in (1, 9)]
+
+HONORS = ['X%s' % no for no in xrange(1,8)]
+
 def find_pair(tiles):
     for i in range(len(tiles)-1):
         if tiles[i] == tiles[i+1]:
@@ -59,11 +63,14 @@ def decompose_regular(tiles):
 def is_all_pairs(tiles):
     return all(tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
+def is_kokushi(tiles):
+    return set(tiles) == set(TERMINALS + HONORS)
+
 def is_terminal(tile):
-    return tile[0] in 'MPS' and tile[1] in '19'
+    return tile in TERMINALS
 
 def is_honor(tile):
-    return tile[0] == 'X'
+    return tile in HONORS
 
 def is_junchan_group(g):
     type, tile = g
@@ -95,7 +102,8 @@ class Hand(object):
                        'chanta',
                        'junchan',
                        'honitsu',
-                       'chinitsu']
+                       'chinitsu',
+                       'kokushi']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
         self.tiles = tiles
@@ -165,6 +173,9 @@ class Hand(object):
         suits = suits_of_tiles(self.tiles)
         return len(suits) == 1 and 'X' not in suits
 
+    def yaku_kokushi(self):
+        return self.type == 'kokushi'
+
     def all_yaku(self):
         result = []
         for name in self.RECOGNIZED_YAKU:
@@ -178,11 +189,12 @@ def all_hands(tiles, wait, options={}):
         yield Hand(tiles, wait, 'regular', groups=groups, options=options)
     if is_all_pairs(tiles):
         yield Hand(tiles, wait, 'pairs', options=options)
-    #if is_kokushi(tiles): # to be implemented
+    if is_kokushi(tiles):
+        yield Hand(tiles, wait, 'kokushi', options=options)
 
 def waits(tiles, options={}):
     for tile in ALL_TILES:
-        hands = list(all_hands(sorted(tiles + [tile]), tile, options))
+        hands = list(all_hands(sorted(tiles + [tile]), tile, options=options))
         if hands:
             yield tile
 
@@ -242,8 +254,6 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('P1 P2 P3 S9 S9 S9 X5 X5 X5 X6 X6 X7 X7 X7', 'P1',
                         [['fanpai', 'fanpai', 'chanta', 'sananko',
                           'shosangen']])
-        self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X5 X7', 'S1',
-                        [['kokushi']])
         self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
                         [['chanta', 'honitsu', 'ryanpeiko'],
                          ['chitoitsu', 'honitsu']])
@@ -256,6 +266,11 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P5 P6 P7 P8 P8', 'P7',
                         [['pinfu', 'tanyao']])
 
+    def test_kokushi(self):
+        self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X6 X7', 'S1',
+                        [['kokushi']])
+        self.assertYaku('M1 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X5 X6 X7', 'X5',
+                        [['kokushi']])
 
 
 if __name__ == '__main__':
