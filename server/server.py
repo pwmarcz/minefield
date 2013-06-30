@@ -9,7 +9,7 @@ from socketio.mixins import RoomsMixin, BroadcastMixin
 from game import Game
 
 
-app = flask.Flask(__name__, static_folder='static', static_url_path='/static')
+app = flask.Flask(__name__, static_folder='static', static_url_path='')
 app.debug = True
 
 
