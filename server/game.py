@@ -48,6 +48,8 @@ class Game(object):
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
 
+    def start(self):
+
         for i in range(2):
             self.callback(i, 'phase_one',
                           {'nicks': self.nicks,
