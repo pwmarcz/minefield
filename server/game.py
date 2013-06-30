@@ -49,6 +49,8 @@ class Game(object):
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
 
+        self.discards = [[], []]
+
     @property
     def phase(self):
         return 2 if all(self.hand) else 1
@@ -90,9 +92,9 @@ class Game(object):
             raise RuleViolation
         if self.player_turn != player:
             raise RuleViolation
-        if not "tile in player's discard pool":
+        if tile not in self.tiles[player]:
             raise RuleViolation
-
+        self.tiles[player].remove(tile)
 
 
 class GameTestCase(unittest.TestCase):
