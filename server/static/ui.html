@@ -6,6 +6,7 @@
        <TITLE>Minefield UI</TITLE>
        <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
        <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+       <script src="socket.io.min.js" type="text/javascript"></script>
        <script src="devel.js" type="text/javascript"></script>
        <script src="ui.js" type="text/javascript"></script>
    </HEAD>
@@ -18,12 +19,15 @@
         Awaiting challenge...
       </div>
       <div id="table">
-        Dora: <div id="dora-display"></div>
+        <ul id="dora-display"></ul>
         <div id="east-display"></div>
         <ul id="tiles"></ul>
         <ul id="hand"></ul>
         <button id="submit-hand">OK</button>
         <!-- timer -->
+      </div>
+      <div id="footer">
+        The tiles came from <a href="http://blog.kanojo.de/2011/07/01/more-shirt-stuff-t-shirt-logo-ideas/">here</a> and are licensed on <a href="http://creativecommons.org/licenses/by-nc-sa/3.0/de/">CC-NC-BC-SA 3.0 DE</a>.
       </div>
    </BODY>
 </HTML>

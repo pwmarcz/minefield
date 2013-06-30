@@ -2,6 +2,7 @@ function create_tile(tile_type)
 {
     var newtile = $('<li class="tile"/>');
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
+    newtile.attr("data-tile", tile_type);
     return newtile;
 }
 
@@ -13,29 +14,24 @@ function rotate_tile(tile, direction)
 
 function submit_hand()
 {
-    if ($("#hand_list").children().length == 13) {
+    if ($("#hand").children().length === 13) {
         var tiles = "";
-        // TODO: get all items from #hand_list
-        alert(tiles); // make clicking alert trigger set_table_stage_2 for testing purposes
+        $("#hand").children().each(function() {
+            tiles += $(this).attr("data-tile");
+        });
+        alert(tiles); // TODO: submit
     }
     else {
-        // TODO: error message?
+        alert("You have to have 13 tiles on hand!");
     }
 }
 
 function set_table_stage_1(tiles, dora, east)
-{
-    // TODO: clean table
-    $('#hand').addClass("outlined");
-
-    // TODO: create tiles & add them to disposable
-    for (var i=0; i<9; i++) {
-        $('#tiles').append(create_tile("M"+(i+1)));
-    }
-    for (var i=0; i<9; i++) {
-        $('#tiles').append(create_tile("S"+(i+1)));
-    }
-
+{    
+    $("#hand").empty();
+    $("#tiles").empty();
+    
+    // TODO: create tiles & add them to #tiles
 
     // dragging tiles to hand
     $("#tiles, #hand").addClass("connectedSortable");
@@ -44,6 +40,8 @@ function set_table_stage_1(tiles, dora, east)
         connectWith: '.connectedSortable'
     }).disableSelection();
 
+    $('#hand').addClass("outlined");
+    
     $("#hand").sortable({
         connectWith: '.connectedSortable',
         items: "li:not(.placeholder)",
@@ -52,44 +50,67 @@ function set_table_stage_1(tiles, dora, east)
             if ($(this).children().length > 13) {
                 $(ui.sender).sortable('cancel');
             }
-            if ($(this).children().length == 13) {
-                $("#OK_button").removeAttr('disabled')
+            if ($(this).children().length === 13) {
+                $("#submit-hand").removeAttr('disabled')
             }
         },
         remove: function(event, ui){
             if ($(this).children().length < 13) {
-                OK_button.attr('disabled','disabled');
+                $("#submit-hand").attr('disabled','disabled');
             }
         }
     }).disableSelection();
 
-    // TODO: display & place east
+    // TODO: place east
+    $("#dora-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+
 
     $("#dora-display").append(create_tile(dora));
 
     $('#submit-hand').attr('disabled', 'disabled').click(
         function() {
-            submit_hand(tiles);
+            submit_hand();
         });
 }
 
 function set_table_stage_2(start)
 {
     // TODO:
-    // make tiles undraggable & sort them
-    // move disposable space & hand to make space for board
-    hand_list.removeClass("outlined");
-    // display board
+    // move disposable space & hand to make space for discarded tiles
+    $("#hand, #tiles").removeClass("connectedSortable");
+    $("#hand").removeClass("outlined");
+    // display discarded tiles
     // display turn marker
-    // hide OK button
 }
 
 function test()
 {
     set_table_stage_1("", "M1", true);
+    
+    
+}
+
+function login()
+{
+    var nick = $('#login input[name=nick]').val();
+    socket = connect();
+    socket.emit('hello', nick);
+}
+
+function connect()
+{
+    socket = io.connect('/minefield');
+    socket.on('wait', function() {
+        $('body').removeClass('state-login').addClass('state-waiting');
+    });
+    socket.on('phase_one', function() {
+        $('body').removeClass('state-login state-waiting').addClass('state-table');
+    });
+    return socket;
 }
 
 $(function() {
+    $('#login button').click(login);
     // TODO
     test();
 });

@@ -9,6 +9,9 @@ import unittest
 
 # We take advantage of the lexicographical ordering of tiles.
 
+ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
+    if suit != 'X' or no <= 7]
+
 def find_pair(tiles):
     for i in range(len(tiles)-1):
         if tiles[i] == tiles[i+1]:
@@ -177,6 +180,12 @@ def all_hands(tiles, wait, options={}):
         yield Hand(tiles, wait, 'pairs', options=options)
     #if is_kokushi(tiles): # to be implemented
 
+def waits(tiles, options={}):
+    for tile in ALL_TILES:
+        hands = list(all_hands(sorted(tiles + [tile]), tile, options))
+        if hands:
+            yield tile
+
 class RulesTestCase(unittest.TestCase):
     def test_find_pair(self):
         self.assertEquals(list(find_pair(['M1','M2','M3'])), [])
@@ -246,6 +255,8 @@ class HandTestCase(unittest.TestCase):
                         [['honitsu']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P5 P6 P7 P8 P8', 'P7',
                         [['pinfu', 'tanyao']])
+
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -37,7 +37,7 @@ def session_property(name):
     def fget(self):
         try:
             return self.socket.session[name]
-        except KeyError, e:
+        except KeyError:
             raise AttributeError(name)
     def fset(self, val):
         self.socket.session[name] = val
@@ -130,6 +130,10 @@ class MinefieldNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
     @forward_to_game
     def on_hand():
+        pass
+
+    @forward_to_game
+    def on_discard():
         pass
 
 
