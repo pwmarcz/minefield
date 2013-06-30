@@ -23,6 +23,7 @@ function submit_hand()
     }
     else {
         alert("You have to have 13 tiles on hand!");
+        $("#submit-hand").removeAttr('disabled');
     }
 }
 
@@ -65,14 +66,14 @@ function set_table_stage_1(tiles, dora, east)
     }).disableSelection();
 
     // TODO: place east
-    $("#dora-display").append($("<img/>").attr('src', 'tiles/E.svg'));
-
-
+    $("#east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+    
     $("#dora-display").append(create_tile(dora));
 
     $('#submit-hand').attr('disabled', 'disabled').click(
         function() {
             submit_hand();
+            $(this).attr('disabled', 'disabled');
         });
 }
 
@@ -84,6 +85,17 @@ function set_table_stage_2(start)
     $("#hand").removeClass("outlined");
     // display discarded tiles
     // display turn marker
+}
+
+function discarded(player, tile)
+{
+    // TODO
+}
+
+function your_move()
+{
+    // TODO
+    // enable discarding
 }
 
 function test()
