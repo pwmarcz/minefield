@@ -61,7 +61,8 @@ def decompose_regular(tiles):
             yield [pair] + groups
 
 def is_all_pairs(tiles):
-    return all(tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
+    return len(set(tiles)) == 7 and all(
+        tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
     return set(tiles) == set(TERMINALS + HONORS)
@@ -243,7 +244,7 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M1 M1 M1 M1 M2 M2 M2 M2 M3 M3 M3 M3 M9 M9', 'M1',
                         [['pinfu', 'ryanpeiko', 'junchan', 'chinitsu'],
                          ['sananko', 'chinitsu'],
-                         ['chitoitsu', 'chinitsu']])
+                         ['chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
                         [['pinfu', 'iipeiko', 'chinitsu'],
                          ['pinfu', 'iipeiko', 'chinitsu']])
