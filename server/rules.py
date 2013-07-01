@@ -200,7 +200,7 @@ class Hand(object):
             return False
         if self.yaku_junchan():
             return False
-        return (all(is_junchan_group(g) for g in self.groups) and
+        return (all(is_chanta_group(g) for g in self.groups) and
                 any(type == 'chi' for type, _ in self.groups))
 
     def yaku_honitsu(self):
@@ -298,15 +298,13 @@ class HandTestCase(unittest.TestCase):
                          ['sananko', 'chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
                         [['pinfu', 'iipeiko', 'chinitsu']])
-        self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
-                        [['haku', 'hatsu', 'shosangen']])
-        self.assertYaku('P1 P2 P3 S9 S9 S9 X5 X5 X5 X6 X6 X7 X7 X7', 'P1',
-                        [['haku', 'chun', 'chanta', 'sananko', 'shosangen']])
         self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
                         [['chanta', 'honitsu', 'ryanpeiko'],
                          ['chitoitsu', 'honitsu']])
+
+    def test_honitsu(self):
         self.assertYaku('M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 X5 X5 X5', 'X5',
-                        [['chun', 'honitsu']])
+                        [['haku', 'honitsu']])
         self.assertYaku('X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 M9', 'X1',
                         [['honitsu']])
 
@@ -327,6 +325,12 @@ class HandTestCase(unittest.TestCase):
                         [['toitoi', 'sananko']])
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S7 S8 S9', 'S3',
                         [[]])
+
+    def test_shousangen(self):
+        self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
+                        [['haku', 'hatsu', 'shosangen']])
+        self.assertYaku('P1 P2 P3 S9 S9 S9 X5 X5 X5 X6 X6 X7 X7 X7', 'P1',
+                        [['haku', 'chun', 'chanta', 'sananko', 'shosangen']])
 
     def test_daisangen(self):
         self.assertYaku('P1 P2 P3 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7 X7', 'S5',
