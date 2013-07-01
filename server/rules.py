@@ -125,6 +125,7 @@ class Hand(object):
                        'chitoitsu',
                        'chanta',
                        'junchan',
+                       'honroto',
                        'honitsu',
                        'chinitsu',
                        'toitoi',
@@ -132,6 +133,15 @@ class Hand(object):
                        'shosangen',
                        'daisangen',
                        'kokushi']
+    
+    YAKUMAN = ['daisangen',
+               'kokushi',
+               'suuanko',
+               'suushi',
+               'chinroto',
+               'tsuuiso',
+               'ryuuiso',
+               'chuuren']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
         self.tiles = tiles
@@ -208,6 +218,9 @@ class Hand(object):
         return (all(is_chanta_group(g) for g in self.groups) and
                 any(type == 'chi' for type, _ in self.groups))
 
+    def yaku_honroto(self):
+        return set(self.tiles).issubset(TERMINALS + HONORS)
+
     def yaku_honitsu(self):
         suits = suits_of_tiles(self.tiles)
         return len(suits) == 2 and 'X' in suits
@@ -252,6 +265,8 @@ class Hand(object):
             m = getattr(self, 'yaku_' + name)
             if m():
                 result.append(name)
+        if set(result) & set(self.YAKUMAN):
+            result = [name for name in result if name in self.YAKUMAN]
         return result
 
 def all_hands(tiles, wait, options={}):
@@ -336,12 +351,20 @@ class HandTestCase(unittest.TestCase):
                         [['haku']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 X6 X6 X6 X7 X7', 'M2',
                         [['hatsu']])
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 X1 X1 X1 X7 X7', 'M2',
+                        [['wind']])
 
     def test_toitoi(self):
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S9 S9 S9', 'S3',
                         [['toitoi', 'sananko']])
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S7 S8 S9', 'S3',
                         [[]])
+
+    def test_honroto(self):
+        self.assertYaku('M1 M1 M1 M9 M9 M9 P9 P9 P9 S1 S1 X3 X3 X3', 'X3',
+                        [['toitoi', 'sananko', 'honroto']])
+        self.assertYaku('M1 M1 M9 M9 P1 P1 P9 P9 S1 S1 X3 X3 X5 X5', 'X3',
+                        [['chitoitsu', 'honroto']])
 
     def test_shousangen(self):
         self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
