@@ -112,6 +112,7 @@ class Hand(object):
                        'junchan',
                        'honitsu',
                        'chinitsu',
+                       'toitoi',
                        'sananko',
                        'kokushi']
 
@@ -191,6 +192,11 @@ class Hand(object):
     def yaku_chinitsu(self):
         suits = suits_of_tiles(self.tiles)
         return len(suits) == 1 and 'X' not in suits
+
+    def yaku_toitoi(self):
+        if self.type != 'regular':
+            return False
+        return all(type != 'chi' for type, _ in self.groups)
 
     def yaku_sananko(self):
         if self.type != 'regular':
@@ -292,6 +298,12 @@ class HandTestCase(unittest.TestCase):
                         [['honitsu']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P5 P6 P7 P8 P8', 'P7',
                         [['pinfu', 'tanyao']])
+
+    def test_toitoi(self):
+        self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S9 S9 S9', 'S3',
+                        [['toitoi', 'sananko']])
+        self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S7 S8 S9', 'S3',
+                        [[]])
 
     def test_kokushi(self):
         self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X6 X7', 'S1',
