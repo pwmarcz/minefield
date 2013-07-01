@@ -14,7 +14,19 @@ ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
 
 TERMINALS = ['%s%s' % (suit, no) for suit in 'MPS' for no in (1, 9)]
 
-HONORS = ['X%s' % no for no in xrange(1,8)]
+WINDS = ['X%s' % no for no in xrange(1,5)]
+
+DRAGONS = ['X%s' % no for no in xrange(5,8)]
+
+HONORS = WINDS + DRAGONS
+
+# decorator
+def regular(yaku_f):
+    def fun(self):
+        if self.type != 'regular':
+            return False
+        return yaku_f(self)
+    return fun
 
 def find_pair(tiles):
     for i in range(len(tiles)-1):
@@ -117,6 +129,8 @@ class Hand(object):
                        'chinitsu',
                        'toitoi',
                        'sananko',
+                       'shosangen',
+                       'daisangen',
                        'kokushi']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
@@ -126,9 +140,8 @@ class Hand(object):
         self.groups = groups
         self.options = options
 
+    @regular
     def yaku_pinfu(self):
-        if self.type != 'regular':
-            return False
         pair_tile = self.groups[0][1]
         if pair_tile[0] == 'X':
             if pair_tile in ['X5', 'X6', 'X7']: # dragons
@@ -142,16 +155,14 @@ class Hand(object):
                 return True
         return False
 
+    @regular
     def yaku_ryanpeiko(self):
-        if self.type != 'regular':
-            return False
         g = self.groups
         if g[1] == g[2] and g[3] == g[4]:
             return True
 
+    @regular
     def yaku_iipeiko(self):
-        if self.type != 'regular':
-            return False
         if self.yaku_ryanpeiko():
             return False
         for i in range(1,len(self.groups)-1):
@@ -162,42 +173,36 @@ class Hand(object):
     def yaku_tanyao(self):
         return not any(is_terminal(t) or is_honor(t) for t in self.tiles)
 
+    @regular
     def yaku_wind(self):
-        if self.type != 'regular':
-            return False
         if 'fanpai_winds' not in self.options:
             return False
         fanpai_winds = self.options['fanpai_winds']
         return any(type == 'pon' and tile in fanpai_winds
                    for type, tile in self.groups)
 
+    @regular
     def yaku_haku(self):
-        if self.type != 'regular':
-            return False
         return any(type == 'pon' and tile == 'X5' for type, tile in self.groups)
 
+    @regular
     def yaku_hatsu(self):
-        if self.type != 'regular':
-            return False
         return any(type == 'pon' and tile == 'X6' for type, tile in self.groups)
 
+    @regular
     def yaku_chun(self):
-        if self.type != 'regular':
-            return False
         return any(type == 'pon' and tile == 'X7' for type, tile in self.groups)
 
     def yaku_chitoitsu(self):
         return self.type == 'pairs'
 
+    @regular
     def yaku_junchan(self):
-        if self.type != 'regular':
-            return False
         return (all(is_junchan_group(g) for g in self.groups) and
                 any(type == 'chi' for type, _ in self.groups))
 
+    @regular
     def yaku_chanta(self):
-        if self.type != 'regular':
-            return False
         if self.yaku_junchan():
             return False
         return (all(is_chanta_group(g) for g in self.groups) and
@@ -211,20 +216,32 @@ class Hand(object):
         suits = suits_of_tiles(self.tiles)
         return len(suits) == 1 and 'X' not in suits
 
+    @regular
     def yaku_toitoi(self):
-        if self.type != 'regular':
-            return False
         return all(type != 'chi' for type, _ in self.groups)
 
+    @regular
     def yaku_sananko(self):
-        if self.type != 'regular':
-            return False
         wait_for_pon = True
         pon_count = len([group for group in self.groups if group[0] == 'pon'])
         for group in self.groups:
             if group[0] != 'pon' and group_contains(group, self.wait):
                 wait_for_pon = False
         return pon_count - int(wait_for_pon) == 3
+
+    @regular
+    def yaku_shosangen(self):
+        if self.groups[0][1] not in DRAGONS:
+            return False
+        dragon_count = len(
+            [group for group in self.groups if group[1] in DRAGONS])
+        return dragon_count == 3
+
+    @regular
+    def yaku_daisangen(self):
+        dragon_count = len(
+            [group for group in self.groups[1:] if group[1] in DRAGONS])
+        return dragon_count == 3
 
     def yaku_kokushi(self):
         return self.type == 'kokushi'
