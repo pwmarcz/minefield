@@ -106,7 +106,10 @@ class Hand(object):
                        'iipeiko',
                        'ryanpeiko',
                        'tanyao',
-                       'fanpai',
+                       'wind',
+                       'haku',
+                       'hatsu',
+                       'chun',
                        'chitoitsu',
                        'chanta',
                        'junchan',
@@ -159,7 +162,7 @@ class Hand(object):
     def yaku_tanyao(self):
         return not any(is_terminal(t) or is_honor(t) for t in self.tiles)
 
-    def yaku_fanpai(self):
+    def yaku_wind(self):
         if self.type != 'regular':
             return False
         if 'fanpai_winds' not in self.options:
@@ -167,6 +170,21 @@ class Hand(object):
         fanpai_winds = self.options['fanpai_winds']
         return any(type == 'pon' and tile in fanpai_winds
                    for type, tile in self.groups)
+
+    def yaku_haku(self):
+        if self.type != 'regular':
+            return False
+        return any(type == 'pon' and tile == 'X5' for type, tile in self.groups)
+
+    def yaku_hatsu(self):
+        if self.type != 'regular':
+            return False
+        return any(type == 'pon' and tile == 'X6' for type, tile in self.groups)
+
+    def yaku_chun(self):
+        if self.type != 'regular':
+            return False
+        return any(type == 'pon' and tile == 'X7' for type, tile in self.groups)
 
     def yaku_chitoitsu(self):
         return self.type == 'pairs'
@@ -280,30 +298,39 @@ class HandTestCase(unittest.TestCase):
                          ['sananko', 'chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
                         [['pinfu', 'iipeiko', 'chinitsu']])
-        self.assertYaku('P1 P2 P3 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7 X7', 'S5',
-                        [['daisangen']])
         self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
-                        [['fanpai', 'fanpai', 'shosangen']])
+                        [['haku', 'hatsu', 'shosangen']])
         self.assertYaku('P1 P2 P3 S9 S9 S9 X5 X5 X5 X6 X6 X7 X7 X7', 'P1',
-                        [['fanpai', 'fanpai', 'chanta', 'sananko',
-                          'shosangen']])
+                        [['haku', 'chun', 'chanta', 'sananko', 'shosangen']])
         self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
                         [['chanta', 'honitsu', 'ryanpeiko'],
                          ['chitoitsu', 'honitsu']])
-        self.assertYaku('M2 M3 M4 M5 M6 M7 P3 P3 P3 P5 P6 P7 S4 S4', 'M7',
-                        [['tanyao']])
-        self.assertYaku('X1 X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9', 'X1',
-                        [['fanpai', 'honitsu']])
+        self.assertYaku('M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 X5 X5 X5', 'X5',
+                        [['chun', 'honitsu']])
         self.assertYaku('X1 X1 M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 M9', 'X1',
                         [['honitsu']])
+
+    def test_tanyao(self):
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P3 P3 P3 P5 P6 P7 S4 S4', 'M7',
+                        [['tanyao']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P5 P6 P7 P8 P8', 'P7',
                         [['pinfu', 'tanyao']])
+
+    def test_fanpai(self):
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 P8 P8 X5 X5 X5', 'X5',
+                        [['haku']])
+        self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 X6 X6 X6 X7 X7', 'M2',
+                        [['hatsu']])
 
     def test_toitoi(self):
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S9 S9 S9', 'S3',
                         [['toitoi', 'sananko']])
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S7 S8 S9', 'S3',
                         [[]])
+
+    def test_daisangen(self):
+        self.assertYaku('P1 P2 P3 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7 X7', 'S5',
+                        [['daisangen']])
 
     def test_kokushi(self):
         self.assertYaku('M1 M9 P1 P9 S1 S9 S9 X1 X2 X3 X4 X5 X6 X7', 'S1',
