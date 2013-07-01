@@ -26,7 +26,7 @@ def find_pair(tiles):
 
 def begin_pon(tiles):
     if len(tiles) >= 3 and tiles[0] == tiles[1] == tiles[2]:
-        yield (('pon', tiles[0]), tiles[3:])
+        return (('pon', tiles[0]), tiles[3:])
 
 def begin_chi(tiles):
     t1 = tiles[0]
@@ -42,16 +42,15 @@ def begin_chi(tiles):
         tiles.remove(t1)
         tiles.remove(t2)
         tiles.remove(t3)
-        yield (('chi', t1), tiles)
+        return (('chi', t1), tiles)
 
 def decompose_regular(tiles):
     def all_groups(tiles):
         if tiles == []:
             yield []
         else:
-            beginning_groups = itertools.chain(
-                begin_pon(tiles),
-                begin_chi(tiles))
+            beginning_groups = (g for g in (begin_pon(tiles), begin_chi(tiles))
+                if g is not None)
             for group, new_tiles in beginning_groups:
                 for groups in all_groups(new_tiles):
                     yield [group] + groups
@@ -61,7 +60,7 @@ def decompose_regular(tiles):
             yield [pair] + groups
 
 def is_all_pairs(tiles):
-    return len(set(tiles)) == 7 and all(
+    return len(set(tiles)) == len(tiles) / 2 and all(
         tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
@@ -91,12 +90,21 @@ def is_chi_boundary(tile, chi_tile):
     cn = int(chi_tile[1])
     return n == cn or n == cn+2
 
+def group_contains(group, tile):
+    if group[0] != 'chi':
+        return tile == group[0]
+    else:
+        n = int(tile[1])
+        cn = int(group[1][1])
+        return tile[0] == group[1][0] and cn <= n <= cn + 2
+
 def suits_of_tiles(tiles):
     return set(t[0] for t in tiles)
 
 class Hand(object):
     RECOGNIZED_YAKU = ['pinfu',
                        'iipeiko',
+                       'ryanpeiko',
                        'tanyao',
                        'fanpai',
                        'chitoitsu',
@@ -104,6 +112,7 @@ class Hand(object):
                        'junchan',
                        'honitsu',
                        'chinitsu',
+                       'sananko',
                        'kokushi']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
@@ -129,11 +138,20 @@ class Hand(object):
                 return True
         return False
 
+    def yaku_ryanpeiko(self):
+        if self.type != 'regular':
+            return False
+        g = self.groups
+        if g[1] == g[2] and g[3] == g[4]:
+            return True
+
     def yaku_iipeiko(self):
         if self.type != 'regular':
             return False
+        if self.yaku_ryanpeiko():
+            return False
         for i in range(1,len(self.groups)-1):
-            if self.groups[i][0] == 'chi' and self.groups[i] == self.groups[i+1]:
+            if self.groups[i] in self.groups[i+1:]:
                 return True
         return False
 
@@ -174,6 +192,16 @@ class Hand(object):
         suits = suits_of_tiles(self.tiles)
         return len(suits) == 1 and 'X' not in suits
 
+    def yaku_sananko(self):
+        if self.type != 'regular':
+            return False
+        wait_for_pon = True
+        pon_count = len([group for group in self.groups if group[0] == 'pon'])
+        for group in self.groups:
+            if group[0] != 'pon' and group_contains(group, self.wait):
+                wait_for_pon = False
+        return pon_count - int(wait_for_pon) == 3
+
     def yaku_kokushi(self):
         return self.type == 'kokushi'
 
@@ -210,12 +238,12 @@ class RulesTestCase(unittest.TestCase):
         self.assertEquals(len(list(find_pair(['M1', 'M1', 'M1', 'M1']))), 1)
 
     def test_begin_pon(self):
-        self.assertEqual(list(begin_pon('M1 M1 M1'.split())), [(('pon', 'M1'), [])])
-        self.assertEqual(list(begin_pon('M1 M1 M2'.split())), [])
+        self.assertEqual(begin_pon('M1 M1 M1'.split()), (('pon', 'M1'), []))
+        self.assertEqual(begin_pon('M1 M1 M2'.split()), None)
 
     def test_begin_chi(self):
-        self.assertEqual(list(begin_chi('M1 M2 M3 M4'.split())), [(('chi', 'M1'), ['M4'])])
-        self.assertEqual(list(begin_chi('M1 M2 M4'.split())), [])
+        self.assertEqual(begin_chi('M1 M2 M3 M4'.split()), (('chi', 'M1'), ['M4']))
+        self.assertEqual(begin_chi('M1 M2 M4'.split()), None)
 
     def test_decompose(self):
         tiles = 'M1 M1 M2 M2 M3 M3 M4 M4'.split()
@@ -243,11 +271,9 @@ class HandTestCase(unittest.TestCase):
                         [[]])
         self.assertYaku('M1 M1 M1 M1 M2 M2 M2 M2 M3 M3 M3 M3 M9 M9', 'M1',
                         [['pinfu', 'ryanpeiko', 'junchan', 'chinitsu'],
-                         ['sananko', 'chinitsu'],
-                         ['chinitsu']])
+                         ['sananko', 'chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
-                        [['pinfu', 'iipeiko', 'chinitsu'],
-                         ['pinfu', 'iipeiko', 'chinitsu']])
+                        [['pinfu', 'iipeiko', 'chinitsu']])
         self.assertYaku('P1 P2 P3 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7 X7', 'S5',
                         [['daisangen']])
         self.assertYaku('P1 P2 P3 S5 S5 S5 X5 X5 X5 X6 X6 X6 X7 X7', 'S5',
