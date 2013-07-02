@@ -122,6 +122,8 @@ class Hand(object):
                        'haku',
                        'hatsu',
                        'chun',
+                       'sanshokudojun',
+                       'sanshokudoko',
                        'chitoitsu',
                        'chanta',
                        'junchan',
@@ -202,6 +204,28 @@ class Hand(object):
     @regular
     def yaku_chun(self):
         return any(type == 'pon' and tile == 'X7' for type, tile in self.groups)
+
+    @regular
+    def yaku_sanshokudojun(self):
+        for i in xrange(1, 5):
+            groups = self.groups[1:i] + self.groups[i+1:]
+            if any(type != 'chi' for type, _ in groups):
+                continue
+            if len(set(tile[1] for _, tile in groups)) != 1:
+                continue
+            if set(tile[0] for _, tile in groups) == set('MPS'):
+                return True
+        return False
+
+    @regular
+    def yaku_sanshokudoko(self):
+        for i in xrange(1, 5):
+            groups = self.groups[1:i] + self.groups[i+1:]
+            if any(type != 'pon' for type, _ in groups):
+                continue
+            if len(set(tile[1] for _, tile in groups)) == 1:
+                return True
+        return False
 
     def yaku_chitoitsu(self):
         return self.type == 'pairs'
@@ -353,6 +377,12 @@ class HandTestCase(unittest.TestCase):
                         [['hatsu']])
         self.assertYaku('M2 M3 M4 M5 M6 M7 P2 P3 P4 X1 X1 X1 X7 X7', 'M2',
                         [['wind']])
+
+    def test_sanshoku(self):
+        self.assertYaku('M4 M5 M6 P4 P4 P4 P5 P6 S4 S5 S6 S7 S8 S9', 'M5',
+                        [['sanshokudojun']])
+        self.assertYaku('M1 M1 M1 M2 M3 M4 P1 P1 P1 S1 S1 S1 S2 S2', 'S1',
+                        [['sanshokudoko']])
 
     def test_toitoi(self):
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S9 S9 S9', 'S3',
