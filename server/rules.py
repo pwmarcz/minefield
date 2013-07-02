@@ -95,7 +95,7 @@ def is_chanta_group(g):
     type, tile = g
     return is_junchan_group(g) or is_honor(tile)
 
-def is_edge_wait(tile, group):
+def is_open_wait(tile, group):
     if group[0] != 'chi':
         return False
     chi_tile = group[1]
@@ -171,7 +171,7 @@ class Hand(object):
             return False
         if any(type == 'pon' for type, tile in self.groups):
             return False
-        return is_edge_wait(self.wait, self.wait_group)
+        return is_open_wait(self.wait, self.wait_group)
 
     @regular
     def yaku_ryanpeiko(self):
