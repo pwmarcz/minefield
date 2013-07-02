@@ -95,16 +95,19 @@ def is_chanta_group(g):
     type, tile = g
     return is_junchan_group(g) or is_honor(tile)
 
-def is_chi_boundary(tile, chi_tile):
+def is_edge_wait(tile, group):
+    if group[0] != 'chi':
+        return False
+    chi_tile = group[1]
     if tile[0] != chi_tile[0]:
         return False
     n = int(tile[1])
     cn = int(chi_tile[1])
-    return n == cn or n == cn+2
+    return (n == cn or n == cn+2) and (n, cn) not in ((3, 1), (7, 7))
 
 def group_contains(group, tile):
     if group[0] != 'chi':
-        return tile == group[0]
+        return tile == group[1]
     else:
         n = int(tile[1])
         cn = int(group[1][1])
@@ -152,9 +155,11 @@ class Hand(object):
                'ryuuiiso',
                'chuuren']
 
-    def __init__(self, tiles, wait, type, groups=None, options={}):
+    def __init__(self, tiles, wait, type, groups=None, wait_group=None,
+                 options={}):
         self.tiles = tiles
         self.wait = wait
+        self.wait_group = wait_group
         self.type = type
         self.groups = groups
         self.options = options
@@ -162,17 +167,14 @@ class Hand(object):
     @regular
     def yaku_pinfu(self):
         pair_tile = self.groups[0][1]
-        if pair_tile[0] == 'X':
-            if pair_tile in ['X5', 'X6', 'X7']: # dragons
-                return False
-            if pair_tile in self.options.get('fanpai_winds', []):
-                return False
+        if pair_tile in DRAGONS + self.options.get('fanpai_winds', []):
+            return False
         if any(type == 'pon' for type, tile in self.groups):
             return False
-        for type, tile in self.groups[1:]:
-            if is_chi_boundary(self.wait, tile):
-                return True
-        return False
+        wait_group = self.groups[self.wait_group]
+        if wait_group[0] != 'chi':
+            return False
+        return is_edge_wait(self.wait, wait_group)
 
     @regular
     def yaku_ryanpeiko(self):
@@ -262,11 +264,8 @@ class Hand(object):
 
     @regular
     def yaku_sananko(self):
-        wait_for_pon = True
+        wait_for_pon = self.groups[self.wait_group][0] == 'pon'
         pon_count = len([group for group in self.groups if group[0] == 'pon'])
-        for group in self.groups:
-            if group[0] != 'pon' and group_contains(group, self.wait):
-                wait_for_pon = False
         return pon_count - int(wait_for_pon) == 3
 
     @regular
@@ -284,8 +283,7 @@ class Hand(object):
 
     @regular
     def yaku_suuanko(self):
-        return self.wait == self.groups[0][1] and all(
-            type != 'chi' for type, _ in self.groups)
+        return self.wait == self.groups[0][1] and self.yaku_toitoi()
 
     @regular
     def yaku_suushi(self):
@@ -319,7 +317,11 @@ class Hand(object):
 
 def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
-        yield Hand(tiles, wait, 'regular', groups=groups, options=options)
+        for i, group in enumerate(groups):
+            if group_contains(group, wait):
+                yield Hand(
+                    tiles, wait, 'regular', groups=groups, options=options,
+                    wait_group=i)
     if is_all_pairs(tiles):
         yield Hand(tiles, wait, 'pairs', options=options)
     if is_kokushi(tiles):
@@ -373,14 +375,25 @@ class HandTestCase(unittest.TestCase):
                         [['iipeiko', 'tanyao']])
         self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P2 P2 X1 X1', 'M1',
                         [[]])
+        self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P3 P4 X2 X2', 'M3',
+                        [[]]) # fake pinfu
         self.assertYaku('M1 M1 M1 M1 M2 M2 M2 M2 M3 M3 M3 M3 M9 M9', 'M1',
                         [['pinfu', 'ryanpeiko', 'junchan', 'chinitsu'],
-                         ['sananko', 'chinitsu']])
+                         ['sananko', 'chinitsu'],
+                         ['chinitsu']])
         self.assertYaku('M1 M2 M2 M3 M3 M3 M3 M4 M4 M4 M5 M5 M6 M6', 'M1',
                         [['pinfu', 'iipeiko', 'chinitsu']])
         self.assertYaku('M1 M1 M2 M2 M3 M3 M7 M7 M8 M8 M9 M9 X5 X5', 'M3',
                         [['chanta', 'honitsu', 'ryanpeiko'],
                          ['chitoitsu', 'honitsu']])
+
+    def test_pinfu(self):
+        self.assertYaku('M1 M1 M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P3 P4', 'M1',
+                        [['pinfu'], []])
+        self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P3 P4 X1 X1', 'M1',
+                        [[]])
+        self.assertYaku('M1 M2 M3 M4 M5 M6 M6 M7 M8 P2 P3 P4 X2 X2', 'M3',
+                        [[]])
 
     def test_honitsu(self):
         self.assertYaku('M2 M3 M4 M5 M6 M7 M8 M8 M8 M9 M9 X5 X5 X5', 'X5',
