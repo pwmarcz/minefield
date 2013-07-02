@@ -12,11 +12,11 @@ import unittest
 ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
     if suit != 'X' or no <= 7]
 
-TERMINALS = ['%s%s' % (suit, no) for suit in 'MPS' for no in (1, 9)]
+TERMINALS = [suit + no for suit in 'MPS' for no in '19']
 
-WINDS = ['X%s' % no for no in xrange(1,5)]
+WINDS = ['X' + no for no in '1234']
 
-DRAGONS = ['X%s' % no for no in xrange(5,8)]
+DRAGONS = ['X' + no for no in '567']
 
 HONORS = WINDS + DRAGONS
 
@@ -124,6 +124,7 @@ class Hand(object):
                        'chun',
                        'sanshokudojun',
                        'sanshokudoko',
+                       'itsuu',
                        'chitoitsu',
                        'chanta',
                        'junchan',
@@ -134,15 +135,21 @@ class Hand(object):
                        'sananko',
                        'shosangen',
                        'daisangen',
-                       'kokushi']
+                       'kokushi',
+                       'suuanko',
+                       'suushi',
+                       'chinroto',
+                       'tsuuiiso',
+                       'ryuuiiso',
+                       'chuuren']
     
     YAKUMAN = ['daisangen',
                'kokushi',
                'suuanko',
                'suushi',
                'chinroto',
-               'tsuuiso',
-               'ryuuiso',
+               'tsuuiiso',
+               'ryuuiiso',
                'chuuren']
 
     def __init__(self, tiles, wait, type, groups=None, options={}):
@@ -207,25 +214,21 @@ class Hand(object):
 
     @regular
     def yaku_sanshokudojun(self):
-        for i in xrange(1, 5):
-            groups = self.groups[1:i] + self.groups[i+1:]
-            if any(type != 'chi' for type, _ in groups):
-                continue
-            if len(set(tile[1] for _, tile in groups)) != 1:
-                continue
-            if set(tile[0] for _, tile in groups) == set('MPS'):
-                return True
-        return False
+        return any(
+            all(('chi', suit + n) in self.groups for suit in 'MPS')
+            for n in '1234567')
 
     @regular
     def yaku_sanshokudoko(self):
-        for i in xrange(1, 5):
-            groups = self.groups[1:i] + self.groups[i+1:]
-            if any(type != 'pon' for type, _ in groups):
-                continue
-            if len(set(tile[1] for _, tile in groups)) == 1:
-                return True
-        return False
+        return any(
+            all(('pon', suit + n) in self.groups for suit in 'MPS')
+            for n in '123456789')
+
+    @regular
+    def yaku_itsuu(self):
+        return any(
+            all(('chi', suit + n) in self.groups for n in '147')
+            for suit in 'MPS')
 
     def yaku_chitoitsu(self):
         return self.type == 'pairs'
@@ -270,18 +273,39 @@ class Hand(object):
     def yaku_shosangen(self):
         if self.groups[0][1] not in DRAGONS:
             return False
-        dragon_count = len(
-            [group for group in self.groups if group[1] in DRAGONS])
-        return dragon_count == 3
+        return set(DRAGONS).issubset(group[1] for group in self.groups)
 
     @regular
     def yaku_daisangen(self):
-        dragon_count = len(
-            [group for group in self.groups[1:] if group[1] in DRAGONS])
-        return dragon_count == 3
+        return set(DRAGONS).issubset(group[1] for group in self.groups[1:])
 
     def yaku_kokushi(self):
         return self.type == 'kokushi'
+
+    @regular
+    def yaku_suuanko(self):
+        return self.wait == self.groups[0][1] and all(
+            type != 'chi' for type, _ in self.groups)
+
+    @regular
+    def yaku_suushi(self):
+        return set(WINDS).issubset(group[1] for group in self.groups)
+
+    def yaku_chinroto(self):
+        return set(self.tiles).issubset(TERMINALS)
+
+    def yaku_tsuuiiso(self):
+        return set(self.tiles).issubset(HONORS)
+
+    def yaku_ryuuiiso(self):
+        return set(self.tiles).issubset(['S' + no for no in '12368'] + ['X6'])
+
+    def yaku_chuuren(self):
+        if not self.yaku_chinitsu():
+            return False
+        t = self.tiles
+        return (len(set(t)) == 9 and
+            len(set(t[:3])) == 1 and len(set(t[-3:])) == 1)
 
     def all_yaku(self):
         result = []
@@ -384,6 +408,10 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M1 M1 M1 M2 M3 M4 P1 P1 P1 S1 S1 S1 S2 S2', 'S1',
                         [['sanshokudoko']])
 
+    def test_itsuu(self):
+        self.assertYaku('M1 M2 M3 S1 S2 S3 S4 S5 S6 S7 S8 S9 P5 P5', 'S5',
+                        [['itsuu']])
+
     def test_toitoi(self):
         self.assertYaku('M1 M1 M1 P2 P2 P2 S3 S3 S3 S5 S5 S9 S9 S9', 'S3',
                         [['toitoi', 'sananko']])
@@ -412,6 +440,35 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M1 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X5 X6 X7', 'X5',
                         [['kokushi']])
 
+    def test_suuanko(self):
+        self.assertYaku('M2 M2 M2 P3 P3 P3 P7 P7 P7 S5 S5 X7 X7 X7', 'S5',
+                        [['suuanko']])
+
+    def test_suushi(self):
+        self.assertYaku('M3 M4 M5 X1 X1 X1 X2 X2 X3 X3 X3 X4 X4 X4', 'X2',
+                        [['suushi']])
+        self.assertYaku('M3 M3 X1 X1 X1 X2 X2 X2 X3 X3 X3 X4 X4 X4', 'X2',
+                        [['suushi']])
+
+    def test_chinroto(self):
+        self.assertYaku('M1 M1 M1 P1 P1 P1 P9 P9 P9 S1 S1 S1 S9 S9', 'P1',
+                        [['chinroto']])
+
+    def test_tsuuiiso(self):
+        self.assertYaku('X1 X1 X1 X3 X3 X4 X4 X4 X5 X5 X5 X7 X7 X7', 'X1',
+                        [['tsuuiiso']])
+
+    def test_ryuuiiso(self):
+        self.assertYaku('S1 S1 S2 S2 S3 S3 S6 S6 S6 S8 S8 X6 X6 X6', 'X6',
+                        [['ryuuiiso']])
+        self.assertYaku('S1 S1 S1 S2 S2 S2 S3 S3 S3 S6 S6 S6 S8 S8', 'S6',
+                        [['ryuuiiso']])
+
+    def test_chuuren(self):
+        self.assertYaku('S1 S1 S1 S2 S3 S3 S4 S5 S6 S7 S8 S9 S9 S9', 'S5',
+                        [['chuuren']])
+        self.assertYaku('M1 M1 M1 M2 M3 M4 M4 M5 M6 M7 M8 M9 M9 M9', 'M4',
+                        [['chuuren']])
 
 if __name__ == '__main__':
     unittest.main()
