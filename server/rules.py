@@ -171,10 +171,7 @@ class Hand(object):
             return False
         if any(type == 'pon' for type, tile in self.groups):
             return False
-        wait_group = self.groups[self.wait_group]
-        if wait_group[0] != 'chi':
-            return False
-        return is_edge_wait(self.wait, wait_group)
+        return is_edge_wait(self.wait, self.wait_group)
 
     @regular
     def yaku_ryanpeiko(self):
@@ -264,7 +261,7 @@ class Hand(object):
 
     @regular
     def yaku_sananko(self):
-        wait_for_pon = self.groups[self.wait_group][0] == 'pon'
+        wait_for_pon = self.wait_group[0] == 'pon'
         pon_count = len([group for group in self.groups if group[0] == 'pon'])
         return pon_count - int(wait_for_pon) == 3
 
@@ -317,11 +314,11 @@ class Hand(object):
 
 def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
-        for i, group in enumerate(groups):
+        for group in groups:
             if group_contains(group, wait):
                 yield Hand(
                     tiles, wait, 'regular', groups=groups, options=options,
-                    wait_group=i)
+                    wait_group=group)
     if is_all_pairs(tiles):
         yield Hand(tiles, wait, 'pairs', options=options)
     if is_kokushi(tiles):
