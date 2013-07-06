@@ -420,6 +420,12 @@ class HandTestCase(unittest.TestCase):
             result.add(frozenset(hand.all_yaku()))
         self.assertEqual(result, set(frozenset(y) for y in yaku_sets))
 
+    def assertFu(self, tiles_str, wait, fu_values):
+        tiles = tiles_str.split()
+        result = set(hand.fu()
+            for hand in all_hands(tiles, wait, {'fanpai_winds': ['X1']}))
+        self.assertEqual(result, set(fu_values))
+
     def test_yaku(self):
         self.assertYaku('M2 M2 M3 M3 M4 M4 P2 P3 P4 P7 P7 P7 S2 S2', 'M3',
                         [['iipeiko', 'tanyao']])
