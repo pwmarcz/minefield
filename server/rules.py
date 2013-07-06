@@ -20,6 +20,37 @@ DRAGONS = ['X' + no for no in '567']
 
 HONORS = WINDS + DRAGONS
 
+YAKU = {
+    'pinfu': 1,
+    'iipeiko': 1,
+    'ryanpeiko': 3,
+    'tanyao': 1,
+    'wind': 1,
+    'haku': 1,
+    'hatsu': 1,
+    'chun': 1,
+    'sanshokudojun': 2,
+    'sanshokudoko': 2,
+    'itsuu': 2,
+    'chitoitsu': 2,
+    'chanta': 2,
+    'junchan': 3,
+    'honroto': 2,
+    'honitsu': 3,
+    'chinitsu': 5,
+    'toitoi': 2,
+    'sananko': 2,
+    'shosangen': 2,
+    'daisangen': 13,
+    'kokushi': 13,
+    'suuanko': 13,
+    'suushi': 13,
+    'chinroto': 13,
+    'tsuuiiso': 13,
+    'ryuuiiso': 13,
+    'chuuren': 13,
+}
+
 # decorator
 def regular(yaku_f):
     def fun(self):
@@ -311,6 +342,28 @@ class Hand(object):
         if set(result) & set(self.YAKUMAN):
             result = [name for name in result if name in self.YAKUMAN]
         return result
+
+    def fu(self):
+        yaku = self.all_yaku()
+        if 'pinfu' in yaku:
+            return 30
+        if 'chitoitsu' in yaku:
+            return 25
+        fu = 30
+        if self.groups[0][1] in DRAGONS + self.options.get('fanpai_winds', []):
+            fu += 2
+        open_wait = is_open_wait(self.wait, self.wait_group)
+        if self.wait_group[0] != 'pon' and not open_wait:
+            fu += 2
+        for type, tile in self.groups:
+            if type == 'pon':
+                p = 2
+                if tile in TERMINALS + self.options.get('fanpai_winds', []):
+                    p *= 2
+                if (type, tile) != self.wait_group:
+                    p *= 2
+                fu += p
+        return (fu + 9) / 10 * 10
 
 def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
