@@ -176,7 +176,7 @@ class Hand(object):
                        'tsuuiiso',
                        'ryuuiiso',
                        'chuuren']
-    
+
     YAKUMAN = ['daisangen',
                'kokushi',
                'suuanko',
@@ -538,6 +538,50 @@ class HandTestCase(unittest.TestCase):
                         [['chuuren']])
         self.assertYaku('M1 M1 M1 M2 M3 M4 M4 M5 M6 M7 M8 M9 M9 M9', 'M4',
                         [['chuuren']])
+
+    def test_fu_waits(self):
+        # pinfu
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S7 S7', 'S6', [30])
+        # not a pinfu: middle wait (2)
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S7 S7', 'S5', [40])
+        # edge wait (2)
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S7 S7', 'M3', [40])
+        # 30 + 4 + 4 + 2(open) + dual pon wait (0)
+        self.assertFu('M2 M2 M2 M4 M4 M4 M6 M6 M6 M7 M8 M9 P1 P1', 'M2', [40])
+
+    def test_fu_pons(self):
+        # 30 + 8 + 4
+        self.assertFu('M1 M1 M1 M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1', 'M9', [50])
+        # same with non-player wind, player wind, dragon
+        self.assertFu('M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1 X2 X2 X2', 'M9', [50])
+        self.assertFu('M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1 X1 X1 X1', 'M9', [50])
+        self.assertFu('M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1 X7 X7 X7', 'M9', [50])
+        # 30 + 4(open) + 4
+        self.assertFu('M1 M1 M1 M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1', 'M1', [40])
+
+    def test_fu_head(self):
+        # non-terminal
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S8 S8', 'S6', [30])
+        # terminal
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S9 S9', 'S6', [30])
+        # non-player wind
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 X2 X2', 'S6', [30])
+        # player wind
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 X1 X1', 'S6', [40])
+        # dragon
+        self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 X6 X6', 'S6', [40])
+
+    def test_fu_chitoitsu(self):
+        self.assertFu('M1 M1 P3 P3 P4 P4 P5 P5 P7 P7 X1 X1 X3 X3', 'X3', [25])
+
+    def test_fu_multiple(self):
+        # all chi (30+2=32) or three pons (30+8+4+4+2=48)
+        self.assertFu('M1 M1 M1 M2 M2 M2 M3 M3 M3 P1 P2 P3 P4 P4', 'P4', [40, 50])
+        # chitoitsu, ryan peiko pinfu, or ryan peiko middle-wait
+        self.assertFu('P2 P2 P3 P3 P4 P4 P5 P5 P6 P6 P7 P7 P8 P8', 'P7', [25, 30, 40])
+        # pon wait (30+2+8=40) or edge wait (30+4+8+2=44)
+        self.assertFu('P1 P2 P3 P3 P3 P3 S2 S2 S5 S6 S7 S9 S9 S9', 'P3', [40, 50])
+
 
 if __name__ == '__main__':
     unittest.main()
