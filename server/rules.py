@@ -1,5 +1,6 @@
 import itertools
 import unittest
+import functools
 
 # The groups are of the form:
 # ('pon', tile)
@@ -53,6 +54,7 @@ YAKU = {
 
 # decorator
 def regular(yaku_f):
+    @functools.wraps(yaku_f)
     def fun(self):
         if self.type != 'regular':
             return False
