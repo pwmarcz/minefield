@@ -358,7 +358,7 @@ class Hand(object):
         for type, tile in self.groups:
             if type == 'pon':
                 p = 2
-                if tile in TERMINALS + self.options.get('fanpai_winds', []):
+                if tile in TERMINALS + HONORS:
                     p *= 2
                 if (type, tile) != self.wait_group:
                     p *= 2
