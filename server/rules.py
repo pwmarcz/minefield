@@ -411,7 +411,7 @@ class RulesTestCase(unittest.TestCase):
         self.assertTrue(is_all_pairs('M1 M1 M2 M2'.split()))
         self.assertFalse(is_all_pairs('M1 M1 M2 M3'.split()))
 
-class HandTestCase(unittest.TestCase):
+class BaseHandTestCase(unittest.TestCase):
     def assertYaku(self, tiles_str, wait, yaku_sets):
         tiles = tiles_str.split()
         result = set()
@@ -426,6 +426,7 @@ class HandTestCase(unittest.TestCase):
             for hand in all_hands(tiles, wait, {'fanpai_winds': ['X1']}))
         self.assertEqual(result, set(fu_values))
 
+class YakuTestCase(BaseHandTestCase):
     def test_yaku(self):
         self.assertYaku('M2 M2 M3 M3 M4 M4 P2 P3 P4 P7 P7 P7 S2 S2', 'M3',
                         [['iipeiko', 'tanyao']])
@@ -539,7 +540,8 @@ class HandTestCase(unittest.TestCase):
         self.assertYaku('M1 M1 M1 M2 M3 M4 M4 M5 M6 M7 M8 M9 M9 M9', 'M4',
                         [['chuuren']])
 
-    def test_fu_waits(self):
+class FuTestCase(BaseHandTestCase):
+    def test_waits(self):
         # pinfu
         self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S7 S7', 'S6', [30])
         # not a pinfu: middle wait (2)
@@ -549,7 +551,7 @@ class HandTestCase(unittest.TestCase):
         # 30 + 4 + 4 + 2(open) + dual pon wait (0)
         self.assertFu('M2 M2 M2 M4 M4 M4 M6 M6 M6 M7 M8 M9 P1 P1', 'M2', [40])
 
-    def test_fu_pons(self):
+    def test_pons(self):
         # 30 + 8 + 4
         self.assertFu('M1 M1 M1 M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1', 'M9', [50])
         # same with non-player wind, player wind, dragon
@@ -559,7 +561,7 @@ class HandTestCase(unittest.TestCase):
         # 30 + 4(open) + 4
         self.assertFu('M1 M1 M1 M2 M2 M2 M5 M6 M7 M7 M8 M9 P1 P1', 'M1', [40])
 
-    def test_fu_head(self):
+    def test_head(self):
         # non-terminal
         self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 S8 S8', 'S6', [30])
         # terminal
@@ -571,10 +573,10 @@ class HandTestCase(unittest.TestCase):
         # dragon
         self.assertFu('M1 M2 M3 P1 P2 P3 S1 S2 S3 S4 S5 S6 X6 X6', 'S6', [40])
 
-    def test_fu_chitoitsu(self):
+    def test_chitoitsu(self):
         self.assertFu('M1 M1 P3 P3 P4 P4 P5 P5 P7 P7 X1 X1 X3 X3', 'X3', [25])
 
-    def test_fu_multiple(self):
+    def test_multiple(self):
         # all chi (30+2=32) or three pons (30+8+4+4+2=48)
         self.assertFu('M1 M1 M1 M2 M2 M2 M3 M3 M3 P1 P2 P3 P4 P4', 'P4', [40, 50])
         # chitoitsu, ryan peiko pinfu, or ryan peiko middle-wait
