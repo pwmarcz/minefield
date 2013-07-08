@@ -50,6 +50,8 @@ YAKU = {
     'tsuuiiso': 13,
     'ryuuiiso': 13,
     'chuuren': 13,
+    'ippatsu': 1,
+    'hotei': 1,
 }
 
 # decorator
@@ -149,6 +151,15 @@ def group_contains(group, tile):
 def suits_of_tiles(tiles):
     return set(t[0] for t in tiles)
 
+def count_tile(tile, tiles):
+    return len([t for t in tiles if t == tile])
+
+def interpret_dora_ind(dora_ind):
+    if dora_ind[0] == 'X':
+        dora_tile = 'X' + '-2341675'[int(dora_ind[1])]
+    else:
+        dora_tile = dora_ind[0] + str(int(dora_ind[1]) % 9 + 1)
+
 class Hand(object):
     RECOGNIZED_YAKU = ['pinfu',
                        'iipeiko',
@@ -177,7 +188,9 @@ class Hand(object):
                        'chinroto',
                        'tsuuiiso',
                        'ryuuiiso',
-                       'chuuren']
+                       'chuuren',
+                       'ippatsu',
+                       'hotei']
 
     YAKUMAN = ['daisangen',
                'kokushi',
@@ -335,6 +348,24 @@ class Hand(object):
         return (len(set(t)) == 9 and
             len(set(t[:3])) == 1 and len(set(t[-3:])) == 1)
 
+    def yaku_ippatsu(self):
+        return self.options.get('ippatsu', False)
+
+    def yaku_hotei(self):
+        return self.options.get('hotei', False)
+
+    def count_tile(tile, self):
+        return count_tile(tile, self.tiles)
+
+    def dora(self):
+        dora = 0
+        dora_ind = self.options.get('dora_ind')
+        uradora_ind = self.options.get('uradora_ind')
+        for ind in (dora_ind, uradora_ind):
+            if ind is not None:
+                dora += count_tile(interpret_dora_ind(ind))
+        return dora
+
     def all_yaku(self):
         result = []
         for name in self.RECOGNIZED_YAKU:
@@ -346,7 +377,8 @@ class Hand(object):
         return result
 
     def fan(self):
-        return sum(YAKU[yaku] for yaku in self.all_yaku())
+        fan = sum(YAKU[yaku] for yaku in self.all_yaku()) + self.dora()
+        return fan
 
     def fu(self):
         yaku = self.all_yaku()
@@ -370,6 +402,9 @@ class Hand(object):
                 fu += p
         return (fu + 9) / 10 * 10
 
+    def limit(self):
+        return limit(hand.fan(), hand.fu())
+
 def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
         for group in groups:
@@ -385,18 +420,18 @@ def all_hands(tiles, wait, options={}):
 def waits(tiles, options={}):
     for tile in ALL_TILES:
         hands = list(all_hands(sorted(tiles + [tile]), tile, options=options))
-        if hands:
+        if hands and count_tile(tile, tiles) < 4:
             yield tile
 
 def best_hand(tiles, wait, options={}):
     hands = all_hands(tiles, wait, options=options)
     return max((hand.fan(), hand.fu(), hand) for hand in hands)[2]
 
-def eval_hand(tiles, wait, options={})
+def eval_hand(tiles, wait, options={}):
     hand = best_hand(tiles, wait, options=options)
-    return hand.yaku(), hand.fan(), hand.fu()
+    return hand.yaku(), hand.limit()
 
-def limit_points(fan, fu):
+def limit(fan, fu):
     if fan < 3 or (fan == 3 and fu < 60) or (fan == 4 and fu < 30):
         return 0
     if fan <= 5: # mangan
