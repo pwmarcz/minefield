@@ -345,6 +345,9 @@ class Hand(object):
             result = [name for name in result if name in self.YAKUMAN]
         return result
 
+    def fan(self):
+        return sum(YAKU[yaku] for yaku in self.all_yaku())
+
     def fu(self):
         yaku = self.all_yaku()
         if 'pinfu' in yaku:
@@ -384,6 +387,29 @@ def waits(tiles, options={}):
         hands = list(all_hands(sorted(tiles + [tile]), tile, options=options))
         if hands:
             yield tile
+
+def best_hand(tiles, wait, options={}):
+    hands = all_hands(tiles, wait, options=options)
+    return max((hand.fan(), hand.fu(), hand) for hand in hands)[2]
+
+def eval_hand(tiles, wait, options={})
+    hand = best_hand(tiles, wait, options=options)
+    return hand.yaku(), hand.fan(), hand.fu()
+
+def limit_points(fan, fu):
+    if fan < 3 or (fan == 3 and fu < 60) or (fan == 4 and fu < 30):
+        return 0
+    if fan <= 5: # mangan
+        return 1
+    if fan <= 7: # haneman
+        return 2
+    if fan <= 10: # baiman
+        return 3
+    if fan <= 12: # sanbaiman
+        return 4
+    if fan == 13: # yakuman
+        return 5
+    return 6 # double yakuman
 
 class RulesTestCase(unittest.TestCase):
     def test_find_pair(self):
@@ -581,7 +607,7 @@ class FuTestCase(BaseHandTestCase):
     def test_multiple(self):
         # all chi (30+2=32) or three pons (30+8+4+4+2=48)
         self.assertFu('M1 M1 M1 M2 M2 M2 M3 M3 M3 P1 P2 P3 P4 P4', 'P4', [40, 50])
-        # chitoitsu, ryan peiko pinfu, or ryan peiko middle-wait
+        # chitoitsu, ryan peiko pinfu, or ryan peiko closed wait
         self.assertFu('P2 P2 P3 P3 P4 P4 P5 P5 P6 P6 P7 P7 P8 P8', 'P7', [25, 30, 40])
         # pon wait (30+2+8=40) or edge wait (30+4+8+2=44)
         self.assertFu('P1 P2 P3 P3 P3 P3 S2 S2 S5 S6 S7 S9 S9 S9', 'P3', [40, 50])
