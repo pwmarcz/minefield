@@ -13,13 +13,13 @@ import functools
 ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
     if suit != 'X' or no <= 7]
 
-TERMINALS = [suit + no for suit in 'MPS' for no in '19']
+TERMINALS = {suit + no for suit in 'MPS' for no in '19'}
 
-WINDS = ['X' + no for no in '1234']
+WINDS = {'X' + no for no in '1234'}
 
-DRAGONS = ['X' + no for no in '567']
+DRAGONS = {'X' + no for no in '567'}
 
-HONORS = WINDS + DRAGONS
+HONORS = WINDS | DRAGONS
 
 YAKU = {
     'pinfu': 1,
@@ -111,7 +111,7 @@ def is_all_pairs(tiles):
         tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
-    return set(tiles) == set(TERMINALS + HONORS)
+    return set(tiles) == TERMINALS | HONORS
 
 def is_terminal(tile):
     return tile in TERMINALS
@@ -140,19 +140,27 @@ def is_open_wait(tile, group):
     cn = int(chi_tile[1])
     return (n == cn or n == cn+2) and (n, cn) not in ((3, 1), (7, 7))
 
+def expand_group(group):
+    type, tile = group
+    if type == 'pair':
+        return [tile, tile]
+    if type == 'pon':
+        return [tile] * 3
+    if type == 'chi':
+        return list(expand_chi(tile))
+
+def expand_chi(chi_tile):
+    for i in xrange(3):
+        yield chi_tile[0] + str(int(chi_tile[1]) + i)
+
 def group_contains(group, tile):
     if group[0] != 'chi':
         return tile == group[1]
     else:
-        n = int(tile[1])
-        cn = int(group[1][1])
-        return tile[0] == group[1][0] and cn <= n <= cn + 2
+        return tile in expand_chi(group[1])
 
 def suits_of_tiles(tiles):
     return set(t[0] for t in tiles)
-
-def count_tile(tile, tiles):
-    return len([t for t in tiles if t == tile])
 
 def interpret_dora_ind(dora_ind):
     if dora_ind[0] == 'X':
@@ -209,13 +217,20 @@ class Hand(object):
         self.type = type
         self.groups = groups
         self.options = options
+        self.suits = suits_of_tiles(tiles)
+        if groups:
+            self.group_types = [type for type, tile in groups[1:]]
+            self.pair_tile = groups[0][1]
+        self.tiles_set = set(tiles)
+
+    def yakupai(self):
+        return DRAGONS | set(self.options.get('fanpai_winds', []))
 
     @regular
     def yaku_pinfu(self):
-        pair_tile = self.groups[0][1]
-        if pair_tile in DRAGONS + self.options.get('fanpai_winds', []):
+        if self.pair_tile in self.yakupai():
             return False
-        if any(type == 'pon' for type, tile in self.groups):
+        if set(self.group_types) != {'chi'}:
             return False
         return is_open_wait(self.wait, self.wait_group)
 
@@ -229,10 +244,7 @@ class Hand(object):
     def yaku_iipeiko(self):
         if self.yaku_ryanpeiko():
             return False
-        for i in range(1,len(self.groups)-1):
-            if self.groups[i] in self.groups[i+1:]:
-                return True
-        return False
+        return len(set(self.groups)) < 5
 
     def yaku_tanyao(self):
         return not any(is_terminal(t) or is_honor(t) for t in self.tiles)
@@ -281,65 +293,60 @@ class Hand(object):
     @regular
     def yaku_junchan(self):
         return (all(is_junchan_group(g) for g in self.groups) and
-                any(type == 'chi' for type, _ in self.groups))
+                'chi' in self.group_types)
 
     @regular
     def yaku_chanta(self):
         if self.yaku_junchan():
             return False
         return (all(is_chanta_group(g) for g in self.groups) and
-                any(type == 'chi' for type, _ in self.groups))
+                'chi' in self.group_types)
 
     def yaku_honroto(self):
-        return set(self.tiles).issubset(TERMINALS + HONORS)
+        return self.tiles_set <= TERMINALS | HONORS
 
     def yaku_honitsu(self):
-        suits = suits_of_tiles(self.tiles)
-        return len(suits) == 2 and 'X' in suits
+        return len(self.suits) == 2 and 'X' in self.suits
 
     def yaku_chinitsu(self):
-        suits = suits_of_tiles(self.tiles)
-        return len(suits) == 1 and 'X' not in suits
+        return len(self.suits) == 1 and 'X' not in self.suits
 
     @regular
     def yaku_toitoi(self):
-        return all(type != 'chi' for type, _ in self.groups)
+        return set(self.group_types) == {'pon'}
 
     @regular
     def yaku_sananko(self):
         wait_for_pon = self.wait_group[0] == 'pon'
-        pon_count = len([group for group in self.groups if group[0] == 'pon'])
-        return pon_count - int(wait_for_pon) == 3
+        return self.group_types.count('pon') - int(wait_for_pon) == 3
 
     @regular
     def yaku_shosangen(self):
-        if self.groups[0][1] not in DRAGONS:
-            return False
-        return set(DRAGONS).issubset(group[1] for group in self.groups)
+        return set(DRAGONS) <= self.tiles_set and self.pair_tile in DRAGONS
 
     @regular
     def yaku_daisangen(self):
-        return set(DRAGONS).issubset(group[1] for group in self.groups[1:])
+        return set(DRAGONS) <= self.tiles_set and self.pair_tile not in DRAGONS
 
     def yaku_kokushi(self):
         return self.type == 'kokushi'
 
     @regular
     def yaku_suuanko(self):
-        return self.wait == self.groups[0][1] and self.yaku_toitoi()
+        return self.wait == self.pair_tile and self.yaku_toitoi()
 
     @regular
     def yaku_suushi(self):
-        return set(WINDS).issubset(group[1] for group in self.groups)
+        return set(WINDS) <= self.tiles_set
 
     def yaku_chinroto(self):
-        return set(self.tiles).issubset(TERMINALS)
+        return self.tiles_set <= TERMINALS
 
     def yaku_tsuuiiso(self):
-        return set(self.tiles).issubset(HONORS)
+        return self.tiles_set <= HONORS
 
     def yaku_ryuuiiso(self):
-        return set(self.tiles).issubset(['S' + no for no in '12368'] + ['X6'])
+        return self.tiles_set <= {'S' + no for no in '12368'} | {'X6'}
 
     def yaku_chuuren(self):
         if not self.yaku_chinitsu():
@@ -355,7 +362,7 @@ class Hand(object):
         return self.options.get('hotei', False)
 
     def count_tile(tile, self):
-        return count_tile(tile, self.tiles)
+        return self.tiles.count(tile)
 
     def dora(self):
         dora = 0
@@ -387,7 +394,7 @@ class Hand(object):
         if 'chitoitsu' in yaku:
             return 25
         fu = 30
-        if self.groups[0][1] in DRAGONS + self.options.get('fanpai_winds', []):
+        if self.pair_tile in self.yakupai():
             fu += 2
         open_wait = is_open_wait(self.wait, self.wait_group)
         if self.wait_group[0] != 'pon' and not open_wait:
@@ -395,7 +402,7 @@ class Hand(object):
         for type, tile in self.groups:
             if type == 'pon':
                 p = 2
-                if tile in TERMINALS + HONORS:
+                if tile in TERMINALS | HONORS:
                     p *= 2
                 if (type, tile) != self.wait_group:
                     p *= 2
@@ -420,7 +427,7 @@ def all_hands(tiles, wait, options={}):
 def waits(tiles, options={}):
     for tile in ALL_TILES:
         hands = list(all_hands(sorted(tiles + [tile]), tile, options=options))
-        if hands and count_tile(tile, tiles) < 4:
+        if hands and tiles.count(tile) < 4:
             yield tile
 
 def best_hand(tiles, wait, options={}):
