@@ -5,18 +5,12 @@ import rules
 
 DEBUG = False
 
-TILES = (['M'+str(n) for n in range(1,10)] +
-         ['P'+str(n) for n in range(1,10)] +
-         ['S'+str(n) for n in range(1,10)] +
-         ['X'+str(n) for n in range(1,7)])*4
+TILES = rules.ALL_TILES * 4
+PLAYER_TILES = 34
+DISCARDS = 17
 
 def dora_for_tile(tile):
-    n = int(tile[1])
-    if tile[0] == 'X':
-        n = [2, 3, 4, 1, 6, 7, 5][n-1]
-    else:
-        n = n % 9 + 1
-    return tile[0]+str(n)
+    return rules.interpret_dora_ind(tile)
 
 def dummy_callback(player, msg_type, msg):
     import pprint
@@ -41,9 +35,10 @@ class Game(object):
         self.east = east
 
         # Tiles available for players
-        self.tiles = [all_tiles[:34], all_tiles[34:34*2]]
+        n = PLAYER_TILES
+        self.tiles = [all_tiles[:n], all_tiles[n:n*2]]
 
-        self.dora_ind = all_tiles[34*2]
+        self.dora_ind = all_tiles[n*2]
         self.dora = dora_for_tile(self.dora_ind)
 
         # Players' hands (None until they've chosen them)
@@ -131,7 +126,7 @@ class Game(object):
                 self.callback(i, 'ron', {})
             # TODO announce hand, etc.
         # draw
-        elif len(self.discards[0]) == len(self.discards[1]) == 17:
+        elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
             for i in range(2):
                 self.callback(i, 'draw', {})
@@ -165,16 +160,17 @@ class GameTestCase(unittest.TestCase):
 
     def test_init(self):
         # the game has just been created
+        n = PLAYER_TILES
         self.assertMessage(0, 'phase_one',
                            {'nicks': ['P1', 'P2'],
-                            'tiles': TILES[:34],
-                            'dora': 'M4',
+                            'tiles': TILES[:n],
+                            'dora': 'M2',
                             'you': 0,
                             'east': 0})
         self.assertMessage(1, 'phase_one',
                            {'nicks': ['P1', 'P2'],
-                            'tiles': TILES[34:34*2],
-                            'dora': 'M4',
+                            'tiles': TILES[n:n*2],
+                            'dora': 'M2',
                             'you': 1,
                             'east': 0})
 
@@ -186,7 +182,7 @@ class GameTestCase(unittest.TestCase):
         self.g.on_hand(1, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
         self.assertMessageBoth('phase_two')
 
-        for i in range(17):
+        for i in range(DISCARDS):
             for j in range(2):
                 self.assertMessage(j, 'your_move')
                 # Just discard the first choice
