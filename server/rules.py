@@ -21,6 +21,10 @@ DRAGONS = {'X' + no for no in '567'}
 
 HONORS = WINDS | DRAGONS
 
+YAOCHU = TERMINALS | HONORS
+
+BASE_POINTS = [0, 1000, 1500, 2000, 3000, 4000, 8000]
+
 YAKU = {
     'pinfu': 1,
     'iipeiko': 1,
@@ -111,7 +115,7 @@ def is_all_pairs(tiles):
         tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
-    return set(tiles) == TERMINALS | HONORS
+    return set(tiles) == YAOCHU
 
 def is_terminal(tile):
     return tile in TERMINALS
@@ -167,6 +171,7 @@ def interpret_dora_ind(dora_ind):
         dora_tile = 'X' + '-2341675'[int(dora_ind[1])]
     else:
         dora_tile = dora_ind[0] + str(int(dora_ind[1]) % 9 + 1)
+    return dora_tile
 
 class Hand(object):
     RECOGNIZED_YAKU = ['pinfu',
@@ -222,6 +227,7 @@ class Hand(object):
             self.group_types = [type for type, tile in groups[1:]]
             self.pair_tile = groups[0][1]
         self.tiles_set = set(tiles)
+        self.yaku = self.all_yaku()
 
     def yakupai(self):
         return DRAGONS | set(self.options.get('fanpai_winds', []))
@@ -303,7 +309,7 @@ class Hand(object):
                 'chi' in self.group_types)
 
     def yaku_honroto(self):
-        return self.tiles_set <= TERMINALS | HONORS
+        return self.tiles_set <= YAOCHU
 
     def yaku_honitsu(self):
         return len(self.suits) == 2 and 'X' in self.suits
@@ -361,7 +367,7 @@ class Hand(object):
     def yaku_hotei(self):
         return self.options.get('hotei', False)
 
-    def count_tile(tile, self):
+    def count_tile(self, tile):
         return self.tiles.count(tile)
 
     def dora(self):
@@ -370,7 +376,7 @@ class Hand(object):
         uradora_ind = self.options.get('uradora_ind')
         for ind in (dora_ind, uradora_ind):
             if ind is not None:
-                dora += count_tile(interpret_dora_ind(ind))
+                dora += self.count_tile(interpret_dora_ind(ind))
         return dora
 
     def all_yaku(self):
@@ -381,14 +387,19 @@ class Hand(object):
                 result.append(name)
         if set(result) & set(self.YAKUMAN):
             result = [name for name in result if name in self.YAKUMAN]
+            self.yakuman = True
+        else:
+            self.yakuman = False
         return result
 
     def fan(self):
-        fan = sum(YAKU[yaku] for yaku in self.all_yaku()) + self.dora()
-        return fan
+        if self.yakuman:
+            return sum(YAKU[yaku] for yaku in self.yaku)
+        fan = sum(YAKU[yaku] for yaku in self.yaku) + self.dora()
+        return fan if fan < 13 else 13
 
     def fu(self):
-        yaku = self.all_yaku()
+        yaku = self.yaku
         if 'pinfu' in yaku:
             return 30
         if 'chitoitsu' in yaku:
@@ -402,7 +413,7 @@ class Hand(object):
         for type, tile in self.groups:
             if type == 'pon':
                 p = 2
-                if tile in TERMINALS | HONORS:
+                if tile in YAOCHU:
                     p *= 2
                 if (type, tile) != self.wait_group:
                     p *= 2
@@ -410,7 +421,7 @@ class Hand(object):
         return (fu + 9) / 10 * 10
 
     def limit(self):
-        return limit(hand.fan(), hand.fu())
+        return limit(self.fan(), self.fu())
 
 def all_hands(tiles, wait, options={}):
     for groups in decompose_regular(tiles):
@@ -430,15 +441,25 @@ def waits(tiles, options={}):
         if hands and tiles.count(tile) < 4:
             yield tile
 
+# more optimized
+def eval_waits(tiles, options={}):
+    for tile in ALL_TILES:
+        hands = list(all_hands(sorted(tiles + [tile]), tile, options=options))
+        if hands and tiles.count(tile) < 4:
+            fan, fu = max((hand.fan(), hand.fu()) for hand in hands)
+            lim = limit(fan, fu)
+            yield tile, BASE_POINTS[lim]
+
 def best_hand(tiles, wait, options={}):
     hands = all_hands(tiles, wait, options=options)
     return max((hand.fan(), hand.fu(), hand) for hand in hands)[2]
 
 def eval_hand(tiles, wait, options={}):
     hand = best_hand(tiles, wait, options=options)
-    return hand.yaku(), hand.limit()
+    return hand.yaku, hand.limit()
 
 def limit(fan, fu):
+    fan += 1 # riichi
     if fan < 3 or (fan == 3 and fu < 60) or (fan == 4 and fu < 30):
         return 0
     if fan <= 5: # mangan
@@ -487,7 +508,7 @@ class BaseHandTestCase(unittest.TestCase):
         result = set()
         # In the tests, we assume that East (X1) is the only fanpai wind.
         for hand in all_hands(tiles, wait, {'fanpai_winds': ['X1']}):
-            result.add(frozenset(hand.all_yaku()))
+            result.add(frozenset(hand.yaku))
         self.assertEqual(result, set(frozenset(y) for y in yaku_sets))
 
     def assertFu(self, tiles_str, wait, fu_values):
