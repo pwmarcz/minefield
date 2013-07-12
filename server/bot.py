@@ -95,6 +95,7 @@ def tenpai_d(tiles):
         yield sorted(rules.YAOCHU)
 
 # TODO minimalize number of unique tiles in discards
+# TODO maximalize fan (because uradora)
 def tenpai_value(counts_values):
     # heuristics - maybe not very good
     wait_count = sum(cnt for cnt, pts in counts_values)
@@ -102,12 +103,12 @@ def tenpai_value(counts_values):
     good_count = sum(cnt for cnt, pts in good_waits)
     if good_count == 0:
         return 0
-    prob_none = 1 # probability that no waits are in 17 random tiles
+    prob_none = 1. # probability that no waits are in 17 random tiles
     for i in xrange(wait_count):
-        prob_none *= (84 - i)/101 # 101 = 136 - 34 - 1; 84 = 101 - 17
+        prob_none *= (84 - i)/101. # 101 = 136 - 34 - 1; 84 = 101 - 17
     prob_some = 1 - prob_none
     # expected points in case of ron
-    expected_win = sum(cnt*pts for cnt, pts in good_waits) / wait_count
+    expected_win = 1. * sum(cnt*pts for cnt, pts in good_waits) / wait_count
     return prob_some * expected_win * good_count/wait_count
 
 def count_waits(wait_values, tiles, options = {}):
@@ -117,10 +118,10 @@ def count_waits(wait_values, tiles, options = {}):
 
 def eval_tenpais(tenpais, tiles, options={}):
     for tenpai in tenpais:
-        wait_values = rules.eval_waits(list(tenpai), options=options)
+        wait_values = list(rules.eval_waits(list(tenpai), options=options))
         if any(pts > 0 for wait, pts in wait_values):
-            counts_values = count_waits(wait_values, tiles, options=options)
-            yield tenpai_value(list(counts_values)), tenpai
+            counts_values = list(count_waits(wait_values, tiles, options=options))
+            yield tenpai_value(counts_values), tenpai
 
 def choose_tenpai(tiles, options={}):
     #print ','.join(sorted(tiles))
@@ -140,13 +141,15 @@ def choose_tenpai(tiles, options={}):
     # iterate over all tenpais and find the best
     tenpais = set(tuple(t) for t in tenpais)
     value, tenpai = max(eval_tenpais(tenpais, tiles, options=options))
-    #for wait in rules.waits(list(tenpai)):
-    #    hand = rules.best_hand(sorted(tenpai + (wait,)), wait, options=options)
-    #    print hand.limit(), ','.join(hand.yaku),
-    #    if hand.dora():
-    #        print 'dora:', hand.dora(),
-    #    print wait
     return tenpai
+
+def print_tenpai(tenpai, options={}):
+    for wait in rules.waits(list(tenpai)):
+        hand = rules.best_hand(sorted(tenpai + (wait,)), wait, options=options)
+        print hand.limit(), ','.join(hand.yaku),
+        if hand.dora():
+            print 'dora:', hand.dora(),
+        print wait
 
 class HelperFunctionsTestCase(unittest.TestCase):
     def test_full_groups(self):
@@ -176,7 +179,7 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                 'S1 S2 S2 S3 S4 S6 S7 S7 S8 '
                 'X1 X2 X2 X4 X4 X4 X5 X6 X7'.split(),
                 options={'dora_ind': 'X4', 'fanpai_winds': ['X3']})),
-            'M6 M7 M8 P6 P7 P8 S3 S4 S6 S7 S8 X4 X4'.split())
+            'M2 M3 M6 M7 M8 P6 P7 P8 S6 S7 S8 X4 X4'.split())
         self.assertEqual(
             list(choose_tenpai(
                 'M2 M3 M4 M4 M5 M8 '
