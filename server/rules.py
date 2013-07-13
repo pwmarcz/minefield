@@ -404,6 +404,8 @@ class Hand(object):
             return 30
         if 'chitoitsu' in yaku:
             return 25
+        if 'kokushi' in yaku:
+            return 30
         fu = 30
         if self.pair_tile in self.yakupai():
             fu += 2
