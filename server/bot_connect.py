@@ -42,7 +42,10 @@ class MinefieldNamespace(BaseNamespace):
             print 'I won!'
             print 'uradora indicator:', data['uradora_ind']
             print ' '.join(data['hand'])
-            print ', '.join(['riichi'] + data['yaku'] + ['dora %s' % data['dora']])
+            desc = ['riichi'] + data['yaku']
+            if data['dora']:
+                desc.append('dora %s' % data['dora'])
+            print ', '.join(desc)
             print data['points']
         else:
             print 'I lost!'
