@@ -1,0 +1,7 @@
+Required packages (as of Ubuntu 12.04):
+python-dev
+libevent-dev
+
+Install Python libraries:
+
+# pip install -r requirements.txt
