@@ -9,6 +9,8 @@ TILES = rules.ALL_TILES * 4
 PLAYER_TILES = 34
 DISCARDS = 17
 
+SEAT_WINDS = ('X1', 'X3')
+
 def dora_for_tile(tile):
     return rules.interpret_dora_ind(tile)
 
@@ -40,6 +42,8 @@ class Game(object):
 
         self.dora_ind = all_tiles[n*2]
         self.dora = dora_for_tile(self.dora_ind)
+
+        self.uradora_ind = all_tiles[n*2+1]
 
         # Players' hands (None until they've chosen them)
         self.hand = [None, None]
@@ -103,6 +107,15 @@ class Game(object):
         else:
             self.callback(player, 'wait', {})
 
+    def options(self, player, uradora=False):
+        return {
+            'fanpai_winds': [SEAT_WINDS[player]],
+            'dora_ind': self.dora_ind,
+            'uradora_ind': self.uradora_ind if uradora else None,
+            'hotei': all(len(self.discards[i]) == 17 for i in xrange(2)),
+            'ippatsu': len(self.discards[1-player]) == 1,
+        }
+
     def furiten(self, player):
         tiles = set(self.discards[player] + self.discards[1-player][:-1])
         return any(wait in tiles for wait in self.waits[player])
@@ -125,10 +138,17 @@ class Game(object):
 
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
-            self.finished = True
-            for i in range(2):
-                self.callback(i, 'ron', {})
-            # TODO announce hand, etc.
+            full_hand = sorted(self.hand[1-player] + [tile])
+            yaku, limit = rules.eval_hand(
+                full_hand, tile, options=self.options(1-player))
+            if yaku > 0:
+                yaku, limit = rules.eval_hand(
+                    full_hand, tile,
+                    options=self.options(1-player, uradora=True))
+                self.finished = True
+                for i in xrange(2):
+                    self.callback(i, 'ron', {})
+                # TODO announce hand, etc.
         # draw
         elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
