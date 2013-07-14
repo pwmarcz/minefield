@@ -11,9 +11,6 @@ DISCARDS = 17
 
 SEAT_WINDS = ('X1', 'X3')
 
-def dora_for_tile(tile):
-    return rules.interpret_dora_ind(tile)
-
 def dummy_callback(player, msg_type, msg):
     import pprint
     pprint.pprint((player, msg_type, msg))
@@ -41,8 +38,6 @@ class Game(object):
         self.tiles = [all_tiles[:n], all_tiles[n:n*2]]
 
         self.dora_ind = all_tiles[n*2]
-        self.dora = dora_for_tile(self.dora_ind)
-
         self.uradora_ind = all_tiles[n*2+1]
 
         # Players' hands (None until they've chosen them)
@@ -78,7 +73,7 @@ class Game(object):
             self.callback(i, 'phase_one',
                           {'nicks': self.nicks,
                            'tiles': self.tiles[i],
-                           'dora': self.dora,
+                           'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
 
@@ -188,13 +183,13 @@ class GameTestCase(unittest.TestCase):
         self.assertMessage(0, 'phase_one',
                            {'nicks': ['P1', 'P2'],
                             'tiles': TILES[:n],
-                            'dora': 'M2',
+                            'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
         self.assertMessage(1, 'phase_one',
                            {'nicks': ['P1', 'P2'],
                             'tiles': TILES[n:n*2],
-                            'dora': 'M2',
+                            'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
 
@@ -224,14 +219,6 @@ class GameTestCase(unittest.TestCase):
     def test_tiles_outside_initial(self):
         self.assertRaises(RuleViolation,
                           lambda: self.g.on_hand(0, ['M1']*13))
-
-    def test_dora_for_tile(self):
-        self.assertEquals(dora_for_tile('M2'), 'M3')
-        self.assertEquals(dora_for_tile('P9'), 'P1')
-        self.assertEquals(dora_for_tile('X1'), 'X2')
-        self.assertEquals(dora_for_tile('X4'), 'X1')
-        self.assertEquals(dora_for_tile('X6'), 'X7')
-        self.assertEquals(dora_for_tile('X7'), 'X5')
 
 if __name__ == '__main__':
     unittest.main()

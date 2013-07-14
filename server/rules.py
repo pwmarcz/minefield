@@ -166,7 +166,7 @@ def group_contains(group, tile):
 def suits_of_tiles(tiles):
     return set(t[0] for t in tiles)
 
-def interpret_dora_ind(dora_ind):
+def dora_for_ind(dora_ind):
     if dora_ind[0] == 'X':
         dora_tile = 'X' + '-2341675'[int(dora_ind[1])]
     else:
@@ -376,7 +376,7 @@ class Hand(object):
         uradora_ind = self.options.get('uradora_ind')
         for ind in (dora_ind, uradora_ind):
             if ind is not None:
-                dora += self.count_tile(interpret_dora_ind(ind))
+                dora += self.count_tile(dora_for_ind(ind))
         return dora
 
     def all_yaku(self):
@@ -503,6 +503,14 @@ class RulesTestCase(unittest.TestCase):
     def test_is_all_pairs(self):
         self.assertTrue(is_all_pairs('M1 M1 M2 M2'.split()))
         self.assertFalse(is_all_pairs('M1 M1 M2 M3'.split()))
+
+    def test_dora_for_ind(self):
+        self.assertEquals(dora_for_ind('M2'), 'M3')
+        self.assertEquals(dora_for_ind('P9'), 'P1')
+        self.assertEquals(dora_for_ind('X1'), 'X2')
+        self.assertEquals(dora_for_ind('X4'), 'X1')
+        self.assertEquals(dora_for_ind('X6'), 'X7')
+        self.assertEquals(dora_for_ind('X7'), 'X5')
 
 class BaseHandTestCase(unittest.TestCase):
     def assertYaku(self, tiles_str, wait, yaku_sets):
