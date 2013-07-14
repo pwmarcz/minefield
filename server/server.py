@@ -106,7 +106,7 @@ class MinefieldNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
         for player, opponent in zip(players, players[::-1]):
             player.join(room_id) # hmm, socket.io rooms are kinda unused here
             player.game = game
-        for i in range(2):
+        for i in xrange(2):
             players[i].idx = i
         state.game_players[game] = players
         game.start()

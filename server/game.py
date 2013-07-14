@@ -72,7 +72,7 @@ class Game(object):
             return 1
 
     def start(self):
-        for i in range(2):
+        for i in xrange(2):
             self.callback(i, 'phase_one',
                           {'nicks': self.nicks,
                            'tiles': self.tiles[i],
@@ -99,7 +99,7 @@ class Game(object):
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
-            for i in range(2):
+            for i in xrange(2):
                 self.callback(i, 'phase_two', {})
             self.callback(self.player_turn, 'your_move', {})
         else:
@@ -118,7 +118,7 @@ class Game(object):
         if tile in self.waits[player]:
             self.furiten[player] == True
 
-        for i in range(2):
+        for i in xrange(2):
             self.callback(i, 'discarded',
                           {'player': player,
                            'tile': tile})
@@ -132,7 +132,7 @@ class Game(object):
         # draw
         elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
-            for i in range(2):
+            for i in xrange(2):
                 self.callback(i, 'draw', {})
         # normal turn
         else:
@@ -186,8 +186,8 @@ class GameTestCase(unittest.TestCase):
         self.g.on_hand(1, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
         self.assertMessageBoth('phase_two')
 
-        for i in range(DISCARDS):
-            for j in range(2):
+        for i in xrange(DISCARDS):
+            for j in xrange(2):
                 self.assertMessage(j, 'your_move')
                 # Just discard the first choice
                 t = self.g.tiles[j][0]
