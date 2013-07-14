@@ -27,7 +27,7 @@ class Bot(object):
         self.waits = None
         self.safe_tiles = set()
 
-    def set_tiles(tiles):
+    def set_tiles(self, tiles):
         self.tiles = tiles
         self.tiles_multiset = Multiset(tiles)
         self.all_groups = tuple(self.full_groups())
