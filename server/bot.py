@@ -8,6 +8,9 @@ class Multiset(Counter):
     def __le__(self, rhs):
         return all(v <= rhs[k] for k, v in self.iteritems())
 
+    def set(self):
+        return {k for k, v in self.iteritems() if v > 0}
+
 def expand_groups(groups):
     return sum((rules.expand_group(group) for group in groups), [])
 
@@ -180,7 +183,7 @@ class Bot(object):
         return tile in self.waits
 
     def discard(self):
-        available_safe = set(self.discard_options) & self.safe_tiles
+        available_safe = self.discard_options.set() & self.safe_tiles
         if available_safe:
             to_discard = list(available_safe)[0]
         else:
