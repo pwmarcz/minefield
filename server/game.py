@@ -48,8 +48,6 @@ class Game(object):
 
         self.discards = [[], []]
 
-        self.furiten = [False, False]
-
         self.finished = False
 
     @property
@@ -105,6 +103,10 @@ class Game(object):
         else:
             self.callback(player, 'wait', {})
 
+    def furiten(self, player):
+        tiles = set(self.discards[player] + self.discards[1-player][:-1])
+        return any(wait in tiles for wait in self.waits[player])
+
     def on_discard(self, player, tile):
         if self.phase != 2:
             raise RuleViolation('on_discard: wrong phase')
@@ -115,8 +117,6 @@ class Game(object):
 
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
-        if tile in self.waits[player]:
-            self.furiten[player] == True
 
         for i in xrange(2):
             self.callback(i, 'discarded',
@@ -124,7 +124,7 @@ class Game(object):
                            'tile': tile})
 
         # ron
-        if tile in self.waits[1-player] and not self.furiten[1-player]:
+        if tile in self.waits[1-player] and not self.furiten(1-player):
             self.finished = True
             for i in range(2):
                 self.callback(i, 'ron', {})
