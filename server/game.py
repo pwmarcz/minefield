@@ -100,7 +100,7 @@ class Game(object):
                 self.callback(i, 'phase_two', {})
             self.callback(self.player_turn, 'your_move', {})
         else:
-            self.callback(player, 'wait', {})
+            self.callback(player, 'wait_for_phase_two', {})
 
     def options(self, player, uradora=False):
         return {
