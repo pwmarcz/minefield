@@ -160,10 +160,11 @@ class Bot(object):
         )
         tenpais = set(tuple(t) for t in tenpais)
         value, tenpai = max(self.eval_tenpais(tenpais))
+        tenpai = list(tenpai)
         self.tenpai = tenpai
         self.waits = list(rules.waits(tenpai))
         self.discard_options = self.truncated_multiset(tenpai)
-        return list(tenpai)
+        return tenpai
 
     def print_tenpai(self, tenpai):
         for wait in rules.waits(tenpai):
