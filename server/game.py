@@ -104,7 +104,7 @@ class Game(object):
 
     def options(self, player, uradora=False):
         return {
-            'fanpai_winds': [SEAT_WINDS[player]],
+            'fanpai_winds': [SEAT_WINDS[player^self.east]],
             'dora_ind': self.dora_ind,
             'uradora_ind': self.uradora_ind if uradora else None,
             'hotei': all(len(self.discards[i]) == DISCARDS for i in xrange(2)),
