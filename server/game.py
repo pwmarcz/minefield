@@ -202,7 +202,7 @@ class GameTestCase(unittest.TestCase):
         self.test_init()
 
         self.g.on_hand(0, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
-        self.assertMessage(0, 'wait')
+        self.assertMessage(0, 'wait_for_phase_two')
         self.g.on_hand(1, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
         self.assertMessageBoth('phase_two')
 
