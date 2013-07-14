@@ -458,7 +458,7 @@ def best_hand(tiles, wait, options={}):
 
 def eval_hand(tiles, wait, options={}):
     hand = best_hand(tiles, wait, options=options)
-    return hand.yaku, hand.limit()
+    return hand.yaku, hand.dora(), hand.limit()
 
 def limit(fan, fu):
     fan += 1 # riichi

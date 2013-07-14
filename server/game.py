@@ -134,10 +134,10 @@ class Game(object):
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
             full_hand = sorted(self.hand[1-player] + [tile])
-            yaku, limit = rules.eval_hand(
+            yaku, dora, limit = rules.eval_hand(
                 full_hand, tile, options=self.options(1-player))
             if yaku > 0:
-                yaku, limit = rules.eval_hand(
+                yaku, dora, limit = rules.eval_hand(
                     full_hand, tile,
                     options=self.options(1-player, uradora=True))
                 self.finished = True
@@ -146,9 +146,10 @@ class Game(object):
                         'player': 1-player,
                         'hand': full_hand,
                         'yaku': yaku,
+                        'dora': dora,
                         'points': rules.BASE_POINTS[limit],
+                        'uradora_ind': self.uradora_ind,
                     })
-                # TODO announce hand, etc.
         # draw
         elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True

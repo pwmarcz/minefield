@@ -40,8 +40,9 @@ class MinefieldNamespace(BaseNamespace):
     def on_ron(self, data):
         if data['player'] == self.me:
             print 'I won!'
+            print 'uradora indicator:', data['uradora_ind']
             print ' '.join(data['hand'])
-            print ', '.join(data['yaku'])
+            print ', '.join(['riichi'] + data['yaku'] + ['dora %s' % data['dora']])
             print data['points']
         else:
             print 'I lost!'
