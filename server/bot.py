@@ -12,14 +12,28 @@ def expand_groups(groups):
     return sum((rules.expand_group(group) for group in groups), [])
 
 class Bot(object):
-    def __init__(self, tiles, options={}):
+    def __init__(self, tiles=None, options={}):
         super(Bot, self).__init__()
         self.options = options
+        self.tiles = None
+        self.tiles_multiset = None
+        self.all_groups = None
+        self.pairs = None
+        self.chi_waits = None
+        if tiles:
+            self.set_tiles(tiles)
+        self.discard_options = None
+        self.tenpai = None
+        self.waits = None
+        self.safe_tiles = set()
+
+    def set_tiles(tiles):
         self.tiles = tiles
         self.tiles_multiset = Multiset(tiles)
         self.all_groups = tuple(self.full_groups())
         self.pairs = list(self.find_pairs())
         self.chi_waits = list(self.find_chi_waits())
+        self.discard_options = None
 
     def full_groups(self):
         for i, tile in enumerate(self.tiles):
@@ -104,8 +118,8 @@ class Bot(object):
         else: # 13-way kokushi
             yield sorted(rules.YAOCHU)
 
-    # TODO minimalize number of unique tiles in discards
-    # TODO maximalize fan (because uradora)
+    # softTODO minimalize number of unique tiles in discards
+    # softTODO maximalize fan (because uradora)
     def tenpai_value(self, counts_values):
         # heuristics - maybe not very good
         wait_count = sum(cnt for cnt, pts in counts_values)
@@ -147,17 +161,37 @@ class Bot(object):
         tenpais = set(tuple(t) for t in tenpais)
         value, tenpai = max(self.eval_tenpais(tenpais))
         self.tenpai = tenpai
-        self.discards_multiset = self.truncated_multiset(tenpai)
+        self.waits = list(rules.waits(tenpai))
+        self.discard_options = self.truncated_multiset(tenpai)
         return list(tenpai)
 
     def print_tenpai(self, tenpai):
-        for wait in rules.waits(list(tenpai)):
+        for wait in rules.waits(tenpai):
             hand = rules.best_hand(
                 sorted(tenpai + (wait,)), wait, options=self.options)
             print hand.limit(), ','.join(hand.yaku),
             if hand.dora():
                 print 'dora:', hand.dora(),
             print wait
+
+    def opponent_discard(self, tile):
+        self.safe_tiles.add(tile)
+        return tile in self.waits
+
+    def discard(self):
+        available_safe = set(self.discard_options) & self.safe_tiles
+        if available_safe:
+            to_discard = list(available_safe)[0]
+        else:
+            for tile, count in self.discard_options.most_common():
+                if tile not in self.waits:
+                    to_discard = tile
+                    break
+            else: # furiten ahoy
+                to_discard = self.discard_options.most_common(1)[0][0]
+        self.safe_tiles.add(to_discard)
+        self.discard_options.subtract([to_discard])
+        return to_discard
 
 class HelperFunctionsTestCase(unittest.TestCase):
     def test_full_groups(self):
