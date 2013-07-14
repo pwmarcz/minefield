@@ -142,7 +142,12 @@ class Game(object):
                     options=self.options(1-player, uradora=True))
                 self.finished = True
                 for i in xrange(2):
-                    self.callback(i, 'ron', {})
+                    self.callback(i, 'ron', {
+                        'player': 1-player,
+                        'hand': full_hand,
+                        'yaku': yaku,
+                        'points': rules.BASE_POINTS[limit],
+                    })
                 # TODO announce hand, etc.
         # draw
         elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
