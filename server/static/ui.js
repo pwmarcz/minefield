@@ -118,7 +118,7 @@ function connect()
     });
     socket.on('phase_one', function(data) {
         $('body').removeClass('state-login state-waiting').addClass('state-table');
-        set_table_stage_1(data.tiles, data.dora, data.east);
+        set_table_stage_1(data.tiles, data.dora_ind, data.east);
         console.log('phase_one',data);
     });
     return socket;
