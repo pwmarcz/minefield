@@ -17,11 +17,6 @@ app.debug = True
 def hello():
     return flask.redirect('/ui.html')
 
-@app.route("/2")
-def hello2():
-    return flask.render_template('hello2.html')
-
-
 
 class ServerState():
     def __init__(self):
