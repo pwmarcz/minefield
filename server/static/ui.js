@@ -27,6 +27,18 @@ function submit_hand()
     }
 }
 
+function sort_tiles(container) {
+    container.children('.tile').sort(function(tile1, tile2) {
+        var code1 = $(tile1).data('tile'), code2 = $(tile2).data('tile');
+        if (code1 < code2)
+            return -1;
+        else if (code1 > code2)
+            return 1;
+        else
+            return 0;
+    }).appendTo(container);
+}
+
 function set_table_stage_1(tiles, dora, east)
 {
     $("#hand").empty();
@@ -36,6 +48,7 @@ function set_table_stage_1(tiles, dora, east)
     for (var i=0; i < tiles.length; ++i) {
         $("#tiles").append(create_tile(tiles[i]));
     }
+    sort_tiles($('#tiles'));
 
     $('#hand').addClass("outlined");
 
@@ -43,6 +56,19 @@ function set_table_stage_1(tiles, dora, east)
     $("#east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
 
     $("#dora-display").append(create_tile(dora));
+
+    $('#tiles').on('click', '.tile', function() {
+        if ($('#hand > .tile').length >= 13)
+            return;
+
+        $(this).detach().appendTo('#hand');
+        sort_tiles($('#hand'));
+    });
+
+    $('#hand').on('click', '.tile', function() {
+        $(this).detach().appendTo('#tiles');
+        sort_tiles($('#tiles'));
+    });
 
     $('#submit-hand').attr('disabled', 'disabled').click(
         function() {
@@ -74,7 +100,9 @@ function your_move()
 
 function test()
 {
-    set_table_stage_1(['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'], "M1", true);
+    set_table_stage_1(['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
+                       'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
+                      ], "M1", true);
 }
 
 function login()
