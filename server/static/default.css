@@ -1,7 +1,14 @@
-body {
+/* -*- css-indent-offset: 4 -*- */
+
+* {
+    box-sizing: border-box;
+    -moz-box-sizing: border-box;
 }
 
 #table {
+    /* as wide as the hand for now */
+    width: 720px;
+    padding: 10px;
     background-color: green;
 }
 
@@ -9,39 +16,23 @@ body {
     list-style: none;
 }
 
-#tiles li {
+.tile {
     display: inline-block;
 }
 
+.tile > img {
+    width: 50px;
+}
+
 #hand {
-    width: 1150px;
-    height: 130px;
-    list-style: none;
+    width: 700px;
+    height: 75px;
     vertical-align: center;
     padding: 15px;
 }
 
-#hand li {
-    display: inline-block;
-}
-
-#dora-display {
-    list-style: none;
-}
-
-#east-display {
-}
-
-.connectedSortable {
-}
-
 .outlined {
     border: dashed 1px gray;
-}
-
-.placeholder {
-    color: gray;
-    list-style: none;
 }
 
 .tile {

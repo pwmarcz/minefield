@@ -1,6 +1,6 @@
 function create_tile(tile_type)
 {
-    var newtile = $('<li class="tile"/>');
+    var newtile = $('<div class="tile"/>');
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
     newtile.attr("data-tile", tile_type);
     return newtile;
@@ -37,37 +37,11 @@ function set_table_stage_1(tiles, dora, east)
         $("#tiles").append(create_tile(tiles[i]));
     }
 
-    // dragging tiles to hand
-    $("#tiles, #hand").addClass("connectedSortable");
-
-    $("#tiles").sortable({
-        connectWith: '.connectedSortable'
-    }).disableSelection();
-
     $('#hand').addClass("outlined");
-
-    $("#hand").sortable({
-        connectWith: '.connectedSortable',
-        items: "li:not(.placeholder)",
-        receive : function(event, ui){
-            //ui.item.addClass("dropped");
-            if ($(this).children().length > 13) {
-                $(ui.sender).sortable('cancel');
-            }
-            if ($(this).children().length === 13) {
-                $("#submit-hand").removeAttr('disabled')
-            }
-        },
-        remove: function(event, ui){
-            if ($(this).children().length < 13) {
-                $("#submit-hand").attr('disabled','disabled');
-            }
-        }
-    }).disableSelection();
 
     // TODO: place east
     $("#east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
-    
+
     $("#dora-display").append(create_tile(dora));
 
     $('#submit-hand').attr('disabled', 'disabled').click(
@@ -100,7 +74,7 @@ function your_move()
 
 function test()
 {
-    set_table_stage_1("", "M1", true);
+    set_table_stage_1(['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'], "M1", true);
 }
 
 function login()
