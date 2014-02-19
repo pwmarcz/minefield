@@ -1,19 +1,10 @@
 /* -*- css-indent-offset: 4 -*- */
 
-* {
-    box-sizing: border-box;
-    -moz-box-sizing: border-box;
-}
-
 #table {
     /* as wide as the hand for now */
-    width: 720px;
+    width: 700px;
     padding: 10px;
     background-color: green;
-}
-
-#tiles {
-    list-style: none;
 }
 
 .tile {
@@ -25,7 +16,7 @@
 }
 
 #hand {
-    width: 700px;
+    width: 650px;
     height: 75px;
     vertical-align: center;
     padding: 15px;
@@ -33,10 +24,6 @@
 
 .outlined {
     border: dashed 1px gray;
-}
-
-.tile {
-
 }
 
 /* Switcher */
