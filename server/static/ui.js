@@ -20,10 +20,11 @@ function submit_hand()
             tiles.push($(this).attr("data-tile"));
         });
         socket.emit('hand', tiles);
+        $('#status').text('Submitting hand...');
+        $('#submit-hand').prop('disabled', true);
     }
     else {
         alert("You have to have 13 tiles on hand!");
-        $("#submit-hand").removeAttr('disabled');
     }
 }
 
@@ -70,11 +71,9 @@ function set_table_stage_1(tiles, dora, east)
         sort_tiles($('#tiles'));
     });
 
-    $('#submit-hand').attr('disabled', 'disabled').click(
-        function() {
-            submit_hand();
-            $(this).attr('disabled', 'disabled');
-        });
+    $('#submit-hand').click(function() {
+        submit_hand();
+    });
 }
 
 function set_table_stage_2(start)
@@ -122,6 +121,9 @@ function connect()
         $('body').removeClass('state-login state-waiting').addClass('state-table');
         set_table_stage_1(data.tiles, data.dora_ind, data.east);
         console.log('phase_one',data);
+    });
+    socket.on('wait_for_phase_two', function(data) {
+        $('#status').text('Waiting for opposite player...');
     });
     return socket;
 }

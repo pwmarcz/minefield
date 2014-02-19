@@ -56,7 +56,7 @@ def forward_to_game(func):
     assert fname.startswith('on_')
     @functools.wraps(func)
     def wrapped(self, *args):
-        self.logger.info('[on] %s', fname)
+        self.logger.info('[from %d] %s', self.idx, fname)
         try:
             game = self.game
         except AttributeError:
@@ -109,6 +109,7 @@ class MinefieldNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
 
 
     def game_callback(self, player_idx, msg_type, msg):
+        self.logger.info('[to %d] %s %s', player_idx, msg_type, msg)
         state.game_players[self.game][player_idx].emit(msg_type, msg)
 
 
