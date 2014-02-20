@@ -1,11 +1,23 @@
 /* -*- css-indent-offset: 4 -*- */
 
-#table {
+.ui {
     /* as wide as the hand for now */
     width: 700px;
+    height: 600px;
+    border: 1px solid gray;
+    display: table;
+}
+
+.ui .table {
+    display: table-row;
+    height: 100%;
     padding: 10px;
     background-color: green;
-    color: white;
+}
+
+.ui .status {
+    display: table-row;
+    height: 1.5em;
 }
 
 .tile {
@@ -16,7 +28,7 @@
     width: 50px;
 }
 
-#hand {
+.table .hand {
     width: 650px;
     height: 75px;
     vertical-align: center;
@@ -26,12 +38,6 @@
 .outlined {
     border: dashed 1px gray;
 }
-
-/* Switcher */
-body > div { display: none; }
-body.state-login > #login { display: block; }
-body.state-waiting > #waiting { display: block; }
-body.state-table > #table { display: block; }
 
 #footer {
     font-size: small;

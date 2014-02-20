@@ -14,14 +14,14 @@ function rotate_tile(tile, direction)
 
 function submit_hand()
 {
-    if ($("#hand").children().length === 13) {
+    if ($(".hand").children().length === 13) {
         var tiles = [];
-        $("#hand").children().each(function() {
+        $(".hand").children().each(function() {
             tiles.push($(this).attr("data-tile"));
         });
         socket.emit('hand', tiles);
-        $('#status').text('Submitting hand...');
-        $('#submit-hand').prop('disabled', true);
+        $('.status').text('Submitting hand...');
+        $('.submit-hand').prop('disabled', true);
     }
     else {
         alert("You have to have 13 tiles on hand!");
@@ -42,36 +42,39 @@ function sort_tiles(container) {
 
 function set_table_stage_1(tiles, dora, east)
 {
-    $("#hand").empty();
-    $("#tiles").empty();
+    $('.login').hide();
+    $('.table').show();
 
-    // create tiles & add them to #tiles
+    $(".hand").empty();
+    $(".tiles").empty();
+
+    // create tiles & add them to .tiles
     for (var i=0; i < tiles.length; ++i) {
-        $("#tiles").append(create_tile(tiles[i]));
+        $(".tiles").append(create_tile(tiles[i]));
     }
-    sort_tiles($('#tiles'));
+    sort_tiles($('.tiles'));
 
-    $('#hand').addClass("outlined");
+    $('.hand').addClass("outlined");
 
     // TODO: place east
-    $("#east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+    $(".east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
 
-    $("#dora-display").append(create_tile(dora));
+    $(".dora-display").append(create_tile(dora));
 
-    $('#tiles').on('click', '.tile', function() {
-        if ($('#hand > .tile').length >= 13)
+    $('.tiles').on('click', '.tile', function() {
+        if ($('.hand > .tile').length >= 13)
             return;
 
-        $(this).detach().appendTo('#hand');
-        sort_tiles($('#hand'));
+        $(this).detach().appendTo('.hand');
+        sort_tiles($('.hand'));
     });
 
-    $('#hand').on('click', '.tile', function() {
-        $(this).detach().appendTo('#tiles');
-        sort_tiles($('#tiles'));
+    $('.hand').on('click', '.tile', function() {
+        $(this).detach().appendTo('.tiles');
+        sort_tiles($('.tiles'));
     });
 
-    $('#submit-hand').click(function() {
+    $('.submit-hand').click(function() {
         submit_hand();
     });
 }
@@ -80,8 +83,8 @@ function set_table_stage_2(start)
 {
     // TODO:
     // move disposable space & hand to make space for discarded tiles
-    $("#hand, #tiles").removeClass("connectedSortable");
-    $("#hand").removeClass("outlined");
+    $(".hand, .tiles").removeClass("connectedSortable");
+    $(".hand").removeClass("outlined");
     // display discarded tiles
     // display turn marker
 }
@@ -106,7 +109,7 @@ function test()
 
 function login()
 {
-    var nick = $('#login input[name=nick]').val();
+    var nick = $('.login input[name=nick]').val();
     socket = connect();
     socket.emit('hello', nick);
 }
@@ -123,11 +126,11 @@ function connect()
         console.log('phase_one',data);
     });
     socket.on('wait_for_phase_two', function(data) {
-        $('#status').text('Waiting for opposite player...');
+        $('.status').text('Waiting for opposite player...');
     });
     return socket;
 }
 
 $(function() {
-    $('#login button').click(login);
+    $('.login button').click(login);
 });
