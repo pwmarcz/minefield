@@ -22,16 +22,16 @@ Ui.prototype.init_elements = function() {
     });
 
     this.$elt.on('click', '.tiles .tile', function() {
-        if (this.find('.hand > .tile').length >= 13)
+        if (that.find('.hand > .tile').length >= 13)
             return;
 
         $(this).detach().appendTo('.hand');
-        sort_tiles(this.find('.hand'));
+        sort_tiles(that.find('.hand'));
     });
 
-    this.$elt.on('click', '.hand tile', function() {
+    this.$elt.on('click', '.hand .tile', function() {
         $(this).detach().appendTo('.tiles');
-        sort_tiles(this.find('.tiles'));
+        sort_tiles(that.find('.tiles'));
     });
 
     this.$elt.on('click', '.submit-hand', function() {
@@ -48,10 +48,10 @@ Ui.prototype.init_network = function() {
     this.socket.on('phase_one', function(data) {
         that.set_table_stage_1(data.tiles, data.dora_ind, data.east);
         console.log('phase_one',data);
-        this.set_status('Choose your hand and press OK');
+        that.set_status('Choose your hand and press OK');
     });
     this.socket.on('wait_for_phase_two', function(data) {
-        this.set_status('Player accepted, waiting for match');
+        that.set_status('Player accepted, waiting for match');
     });
 };
 
