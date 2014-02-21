@@ -8,6 +8,11 @@
        <script src="socket.io.min.js" type="text/javascript"></script>
        <script src="ui.js" type="text/javascript"></script>
        <script src="devel.js" type="text/javascript"></script>
+       <script>
+         $(function() {
+             window.ui = new Ui($('.ui'));
+         });
+       </script>
    </HEAD>
    <BODY>
      <div class="ui">
@@ -15,7 +20,7 @@
          <input name="nick" placeholder="nick">
          <button class="login-button">Login</button>
        </div>
-       <div class="table">
+       <div class="table" style="display: none;">
          <div class="dora-display"></div>
          <div class="east-display"></div>
          <div class="tiles"></div>
