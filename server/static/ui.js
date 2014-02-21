@@ -75,7 +75,7 @@ Ui.prototype.submit_hand = function() {
             tiles.push($(this).attr("data-tile"));
         });
         this.socket.emit('hand', tiles);
-        this.find('.status').text('Submitting hand...');
+        this.set_status('Submitting hand');
         this.find('.submit-hand').prop('disabled', true);
     }
     else {
