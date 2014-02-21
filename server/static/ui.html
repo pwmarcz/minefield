@@ -13,10 +13,10 @@
          $(function() {
              var query = window.location.search.substring(1);
              if (query == 'stage1') {
-                 window.ui = new Ui($('.ui'));
+                 window.ui = Ui($('.ui'));
                  ui.test();
              } else {
-                 window.ui = new Ui($('.ui'));
+                 window.ui = Ui($('.ui'));
              };
          });
        </script>
