@@ -138,6 +138,7 @@ test('submit hand', function() {
     visible('.opponent-discards');
 });
 
+
 module(
     'phase two',
     {
@@ -173,4 +174,21 @@ test('display opponent discards', function() {
     tiles('.opponent-discards', ['S1']);
 });
 
-// TODO test winning!
+test('end game by draw', function() {
+    server.send('draw');
+    invisible('.table');
+    visible('.end-draw');
+});
+
+test('win game', function() {
+    server.send('discarded', {player: 1, tile: 'S1'});
+    server.send('ron', {
+        player: 0,
+        hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
+        yaku: 'Polish Riichi',
+        dora: 3,
+        uradora_ind: 'X1',
+    });
+    invisible('.table');
+    visible('.end-ron');
+});
