@@ -148,8 +148,8 @@ module(
     });
 
 test('deal when allowed', function() {
-    server.send('your_turn');
-    equal(ui.my_turn, true);
+    server.send('your_move');
+    equal(ui.my_move, true);
 
     $('.tiles .tile').first().click();
     tiles('.discards', ['S1']);
@@ -159,7 +159,7 @@ test('deal when allowed', function() {
 });
 
 test('not deal when not allowed', function() {
-    equal(ui.my_turn, false);
+    equal(ui.my_move, false);
 
     $('.tiles .tile').first().click();
     tiles('.discards', []);

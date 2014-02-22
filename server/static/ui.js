@@ -42,7 +42,7 @@ function Ui($elt, socket) {
 
                 self.add_tile_to_hand($(this));
                 update_submit();
-            } else if (self.state == 'phase_2' && self.my_turn) {
+            } else if (self.state == 'phase_2' && self.my_move) {
                 self.discard_tile($(this));
             }
         });
@@ -76,9 +76,9 @@ function Ui($elt, socket) {
         self.socket.on('phase_two', function(data) {
             self.set_table_phase_2();
         });
-        self.socket.on('your_turn', function(data) {
-            self.set_status('Your turn');
-            self.my_turn = true;
+        self.socket.on('your_move', function(data) {
+            self.set_status('Your turn!');
+            self.my_move = true;
         });
         self.socket.on('discarded', function(data) {
             // We display our own discards immediately
@@ -125,6 +125,7 @@ function Ui($elt, socket) {
         self.socket.emit('discard', tile_code);
         $tile.detach().appendTo(self.find('.discards'));
         // (don't sort tiles)
+        self.set_status('');
     };
 
     self.set_table_phase_1 = function(data) {
@@ -154,7 +155,7 @@ function Ui($elt, socket) {
     self.set_table_phase_2 = function ()
     {
         self.state = 'phase_2';
-        self.my_turn = false;
+        self.my_move = false;
         self.find('.table').removeClass('phase-one').addClass('phase-two');
         // TODO:
         // move disposable space & hand to make space for discarded tiles
