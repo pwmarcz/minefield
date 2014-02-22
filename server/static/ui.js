@@ -67,12 +67,20 @@ function Ui($elt, socket) {
             self.socket = io.connect('/minefield');
 
         self.socket.on('phase_one', function(data) {
-            self.set_table_phase_1(data.tiles, data.dora_ind, data.east);
+            self.set_table_phase_1(data.tiles, data.dora_ind, data.you, data.east);
             console.log('phase_one',data);
             self.set_status('Choose your hand and press OK');
         });
         self.socket.on('wait_for_phase_two', function(data) {
             self.set_status('Hand accepted, waiting for opponent\'s hand');
+        });
+        self.socket.on('phase_two', function(data) {
+            self.set_table_phase_2();
+            self.set_status('');
+        });
+        self.socket.on('your_turn', function(data) {
+            self.set_status('Your turn');
+            self.my_turn = true;
         });
     };
 
@@ -103,8 +111,9 @@ function Ui($elt, socket) {
         self.find('.submit-hand').prop('disabled', true);
     };
 
-    self.set_table_phase_1 = function(tiles, dora, east) {
+    self.set_table_phase_1 = function(tiles, dora, me, east) {
         self.state = 'phase_1';
+        self.me = me;
 
         self.find('.login').hide();
         self.find('.table').show();
@@ -129,6 +138,7 @@ function Ui($elt, socket) {
     self.set_table_phase_2 = function ()
     {
         self.state = 'phase_2';
+        self.my_turn = false;
         // TODO:
         // move disposable space & hand to make space for discarded tiles
         self.find(".hand").removeClass("outlined");
@@ -140,7 +150,7 @@ function Ui($elt, socket) {
         self.set_table_phase_1(
             ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
              'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
-            ], "M1", true);
+            ], "M1", 0, true);
     };
 
     self.test_phase_2 = function() {

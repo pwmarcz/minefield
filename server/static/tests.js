@@ -41,6 +41,10 @@ function Server() {
         }
     };
 
+    self.no_messages = function() {
+        ok(self.received.length === 0, 'not expecting any messages');
+    };
+
     return self;
 }
 
@@ -50,6 +54,14 @@ function invisible(sel) {
 
 function visible(sel) {
     ok($(sel).is(':visible'), sel+' should be visible');
+}
+
+function disabled(sel) {
+    ok($(sel).not(':enabled'), sel+' shouldn\'t be enabled');
+}
+
+function enabled(sel) {
+    ok($(sel).is(':enabled'), sel+' should be enabled');
 }
 
 function tiles(sel, expected_tile_codes) {
@@ -63,17 +75,19 @@ function tiles(sel, expected_tile_codes) {
 
 var ui, server;
 
+function init_tests() {
+    server = Server();
+    ui = Ui($('#qunit-fixture.ui'), server.socket);
+}
+
 module(
     'login stage',
     {
-        setup: function() {
-            server = Server();
-            ui = Ui($('#qunit-fixture.ui'), server.socket);
-        }
+        setup: init_tests
     });
 
 test('initialize', function() {
-    ok(true);
+    equal(ui.state, 'login');
 });
 
 test('log in', function() {
@@ -85,8 +99,69 @@ test('log in', function() {
     server.send('phase_one', {
         tiles: ['X1', 'X2', 'X3'],
         dora_ind: 'X3'});
-    visible('.table');
+    equal(ui.state, 'phase_1');
 
+    visible('.table');
     tiles('.dora-display', ['X3']);
     tiles('.tiles', ['X1', 'X2', 'X3']);
+});
+
+
+module(
+    'phase one',
+    {
+        setup: function() {
+            init_tests();
+            ui.test_phase_1();
+        }
+    });
+
+test('submit hand', function() {
+    for (var i = 0; i < 13; i++) {
+        disabled('.submit-hand');
+        $('.tiles .tile').first().click();
+    }
+    enabled('.submit-hand');
+
+    // TODO try removing (possibly split this test case?)
+
+    $('.submit-hand').click();
+    disabled('.submit-hand');
+
+    // TODO try removing again
+    server.expect('hand', ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
+                           'P1', 'P1', 'P2', 'P2', 'P3', 'P3',
+                           'S1']);
+
+    server.send('wait_for_phase_two');
+    server.send('phase_two');
+
+    equal(ui.state, 'phase_2');
+    visible('.discards');
+});
+
+module(
+    'phase two',
+    {
+        setup: function() {
+            init_tests();
+            ui.test_phase_2();
+        }
+    });
+
+test('deal when allowed', function() {
+    server.send('your_turn');
+    equal(ui.my_turn, true);
+
+    $('.tiles .tile').first().click();
+    tiles('.discards', ['S1']);
+    server.expect('discard', 'S1');
+});
+
+test('not deal when not allowed', function() {
+    equal(ui.my_turn, false);
+
+    $('.tiles .tile').first().click();
+    tiles('.discards', []);
+    server.no_messages();
 });
