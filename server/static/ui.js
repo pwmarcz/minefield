@@ -153,9 +153,9 @@ function Ui($elt, socket) {
 
         var $wind = $("<img/>");
         if (data.player == data.you)
-            $wind.attr('src', 'tiles/E.svg');
+            $wind.attr('src', 'tiles/E.svg').attr('title', 'East');
         else
-            $wind.attr('src', 'tiles/W.svg');
+            $wind.attr('src', 'tiles/W.svg').attr('title', 'West');
         self.find(".east-display").append($wind);
 
         self.find(".dora-display").append(create_tile(data.dora_ind));
