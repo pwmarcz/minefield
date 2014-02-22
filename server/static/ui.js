@@ -85,6 +85,13 @@ function Ui($elt, socket) {
                 return;
             self.find('.opponent-discards').append(create_tile(data.tile));
         });
+        self.socket.on('draw', function(data) {
+            self.find('.table').hide();
+            self.find('.end-draw').show();
+        });
+        self.socket.on('ron', function(data) {
+            self.display_ron(data);
+        });
     };
 
     self.login = function() {
@@ -138,6 +145,7 @@ function Ui($elt, socket) {
     self.set_table_phase_1 = function(data) {
         self.state = 'phase_1';
         self.player = data.you;
+        self.dora_ind = data.dora_ind;
 
         self.find('.login').hide();
         self.find('.table').show();
@@ -145,10 +153,7 @@ function Ui($elt, socket) {
         self.find(".hand").empty();
         self.find(".tiles").empty();
 
-        // create tiles & add them to .tiles
-        for (var i=0; i < data.tiles.length; ++i) {
-            self.find(".tiles").append(create_tile(data.tiles[i]));
-        }
+        add_tiles(self.find('.tiles'), data.tiles);
         sort_tiles(self.find('.tiles'));
 
         var $wind = $("<img/>");
@@ -175,6 +180,27 @@ function Ui($elt, socket) {
         self.set_status('');
     };
 
+    self.display_ron = function(data) {
+        self.find('.table').hide();
+        self.find('.end-ron').show();
+        if (data.player == self.player)
+            self.find('.end-ron .message').text('You won!');
+        else
+            self.find('.end-ron .message').text('You lost!');
+        add_tiles(self.find('.end-ron .winning-hand'), data.hand);
+        add_tiles(self.find('.end-ron .doras-ind'),
+                  [self.dora_ind, data.uradora_ind]);
+
+        function add_yaku(yaku) {
+            self.find('.end-ron .yaku').append($('<li>').text(yaku));
+        }
+        $.each(data.yaku, function(i, yaku) { add_yaku(yaku); });
+        if (data.dora > 0)
+            add_yaku('Dora '+data.dora);
+
+        $('.end-ron .points').text(data.points);
+    };
+
     self.test_phase_1 = function() {
         self.set_table_phase_1({
             tiles: ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
@@ -191,17 +217,34 @@ function Ui($elt, socket) {
         self.set_table_phase_2();
     };
 
+    self.test_ron = function() {
+        self.test_phase_2();
+        self.display_ron({
+            player: 0,
+            hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
+            yaku: ['Polish Riichi', 'Ban Tan'],
+            dora: 3,
+            uradora_ind: 'X1',
+            points: 7
+        });
+    };
+
     self.init();
     return self;
 }
 
 
-function create_tile(tile_type)
-{
+function create_tile(tile_type) {
     var newtile = $('<div class="tile"/>');
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
     newtile.attr("data-tile", tile_type);
     return newtile;
+}
+
+function add_tiles($elt, tile_codes) {
+    $.each(tile_codes, function(i, tile_code) {
+        $elt.append(create_tile(tile_code));
+    });
 }
 
 function create_tile_placeholder($tile) {

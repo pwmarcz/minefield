@@ -180,15 +180,26 @@ test('end game by draw', function() {
     visible('.end-draw');
 });
 
+var RON_DATA = {
+    player: 0,
+    hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
+    yaku: ['Polish Riichi', 'Ban Tan'],
+    dora: 3,
+    uradora_ind: 'X1',
+    points: 7
+};
+
 test('win game', function() {
     server.send('discarded', {player: 1, tile: 'S1'});
-    server.send('ron', {
-        player: 0,
-        hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
-        yaku: 'Polish Riichi',
-        dora: 3,
-        uradora_ind: 'X1',
-    });
+    server.send('ron', RON_DATA);
     invisible('.table');
     visible('.end-ron');
+    equal($('.end-ron .message').text(), 'You won!');
+    tiles('.end-ron .winning-hand', RON_DATA.hand);
+    // M1 is dora indicator from Ui.test_phase_1
+    tiles('.end-ron .doras-ind', ['M1', RON_DATA.uradora_ind]);
+    ok(/Polish Riichi/.test($('.end-ron .yaku').text()));
+    ok(/Ban Tan/.test($('.end-ron .yaku').text()));
+    ok(/Dora 3/.test($('.end-ron .yaku').text()));
+    equal($('.end-ron .points').text(), '7');
 });

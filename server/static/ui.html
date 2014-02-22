@@ -22,6 +22,9 @@
              } else if (params.phase2) {
                  window.ui = Ui($('.ui'));
                  ui.test_phase_2();
+             } else if (params.ron) {
+                 window.ui = Ui($('.ui'));
+                 ui.test_ron();
              } else if (params.test) {
                  $('body').prepend('<div id="qunit">');
                  $('.ui').wrap('<div id="qunit-fixture">');
@@ -60,9 +63,14 @@
          The game is a draw!
        </div>
        <div class="end-ron" style="display: none">
-         Ron!
+         <h2>Ron!</h2>
          <div class="message"></div>
          <div class="winning-hand"></div>
+         Dora:
+         <div class="doras-ind"></div>
+         Yaku:
+         <ul class="yaku"></ul>
+         Score: <b><span class="points"></span> fan</b>
        </div>
        <!-- to position .status at the bottom when everything is hidden -->
        <div></div>
