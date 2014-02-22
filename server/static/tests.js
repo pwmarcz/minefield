@@ -65,11 +65,7 @@ function enabled(sel) {
 }
 
 function tiles(sel, expected_tile_codes) {
-    function get_code(tile) {
-        console.log(tile, tile.src);
-        return /(..).svg/.exec(tile.src)[1];
-    }
-    var tile_codes = $.map($(sel).find('.tile img'), get_code);
+    var tile_codes = $.map($(sel).find('.tile'), function(tile) { return $(tile).data('tile'); });
     deepEqual(tile_codes, expected_tile_codes, 'expected specific tiles at '+sel);
 }
 
