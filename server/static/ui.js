@@ -136,7 +136,8 @@ function Ui($elt, socket) {
     self.discard_tile = function($tile) {
         var tile_code = $tile.data('tile');
         self.socket.emit('discard', tile_code);
-        $tile.detach().appendTo(self.find('.discards'));
+        $tile.replaceWith(create_tile_placeholder($tile));
+        $tile.appendTo(self.find('.discards'));
         // (don't sort tiles)
         self.my_move = false;
         self.set_status('');
