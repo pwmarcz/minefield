@@ -74,7 +74,7 @@ var ui, server;
 
 function init_tests() {
     server = Server();
-    ui = Ui($('#qunit-fixture.ui'), server.socket);
+    ui = Ui($('#qunit-fixture .ui'), server.socket);
 }
 
 module(
