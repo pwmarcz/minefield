@@ -154,6 +154,7 @@ test('deal when allowed', function() {
     $('.tiles .tile').first().click();
     tiles('.discards', ['S1']);
     server.expect('discard', 'S1');
+    equal(ui.my_move, false);
 
     server.send('discarded', {player: 0, tile: 'S1'});
 });

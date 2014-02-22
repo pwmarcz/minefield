@@ -125,6 +125,7 @@ function Ui($elt, socket) {
         self.socket.emit('discard', tile_code);
         $tile.detach().appendTo(self.find('.discards'));
         // (don't sort tiles)
+        self.my_move = false;
         self.set_status('');
     };
 
