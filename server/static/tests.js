@@ -134,6 +134,7 @@ test('submit hand', function() {
 
     equal(ui.state, 'phase_2');
     visible('.discards');
+    visible('.opponent-discards');
 });
 
 module(
@@ -152,6 +153,8 @@ test('deal when allowed', function() {
     $('.tiles .tile').first().click();
     tiles('.discards', ['S1']);
     server.expect('discard', 'S1');
+
+    server.send('discarded', {player: 0, tile: 'S1'});
 });
 
 test('not deal when not allowed', function() {
@@ -161,3 +164,11 @@ test('not deal when not allowed', function() {
     tiles('.discards', []);
     server.no_messages();
 });
+
+test('display opponent discards', function() {
+    tiles('.opponent-discards', []);
+    server.send('discarded', {player: 1, tile: 'S1'});
+    tiles('.opponent-discards', ['S1']);
+});
+
+// TODO test winning!
