@@ -7,6 +7,7 @@
 
 // A mock server for socket.io.
 function Server() {
+    console.log('init server');
     var self = {
         received: [],
         handlers: {}
@@ -17,7 +18,7 @@ function Server() {
             self.handlers[type] = handler;
         },
         emit: function(type, data) {
-            console.debug('send', type, data);
+            console.debug('receive', type, data);
             self.received.push({type: type, data: data});
         }
     };
