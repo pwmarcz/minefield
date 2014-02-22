@@ -51,7 +51,7 @@ function Ui($elt, socket) {
             self.socket = io.connect('/minefield');
 
         self.socket.on('phase_one', function(data) {
-            self.set_table_stage_1(data.tiles, data.dora_ind, data.east);
+            self.set_table_phase_1(data.tiles, data.dora_ind, data.east);
             console.log('phase_one',data);
             self.set_status('Choose your hand and press OK');
         });
@@ -88,7 +88,7 @@ function Ui($elt, socket) {
         }
     };
 
-    self.set_table_stage_1 = function(tiles, dora, east) {
+    self.set_table_phase_1 = function(tiles, dora, east) {
         self.find('.login').hide();
         self.find('.table').show();
 
@@ -109,7 +109,7 @@ function Ui($elt, socket) {
         self.find(".dora-display").append(create_tile(dora));
     };
 
-    self.set_table_stage_2 = function (start)
+    self.set_table_phase_2 = function (start)
     {
         // TODO:
         // move disposable space & hand to make space for discarded tiles
@@ -120,7 +120,7 @@ function Ui($elt, socket) {
     };
 
     self.test = function() {
-        self.set_table_stage_1(
+        self.set_table_phase_1(
             ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
              'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
             ], "M1", true);
