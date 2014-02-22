@@ -18,7 +18,10 @@
              var params = getParams();
              if (params.phase1) {
                  window.ui = Ui($('.ui'));
-                 ui.test();
+                 ui.test_phase_1();
+             } else if (params.phase2) {
+                 window.ui = Ui($('.ui'));
+                 ui.test_phase_2();
              } else if (params.test) {
                  $('body').prepend('<div id="qunit">');
                  $('.ui').prop('id', 'qunit-fixture');

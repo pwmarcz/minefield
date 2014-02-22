@@ -6,7 +6,8 @@
 
 function Ui($elt, socket) {
     var self = {
-        $elt: $elt
+        $elt: $elt,
+        state: 'login',
     };
 
     if (socket)
@@ -35,22 +36,27 @@ function Ui($elt, socket) {
         update_submit();
 
         self.$elt.on('click', '.tiles .tile', function() {
-            if (self.find('.hand > .tile').length >= 13)
-                return;
+            if (self.state == 'phase_1') {
+                if (self.find('.hand > .tile').length >= 13)
+                    return;
 
-            $(this).detach().appendTo('.hand');
-            sort_tiles(self.find('.hand'));
-            update_submit();
+                $(this).detach().appendTo('.hand');
+                sort_tiles(self.find('.hand'));
+                update_submit();
+            }
         });
 
         self.$elt.on('click', '.hand .tile', function() {
-            $(this).detach().appendTo('.tiles');
-            sort_tiles(self.find('.tiles'));
-            update_submit();
+            if (self.state == 'phase_1') {
+                $(this).detach().appendTo('.tiles');
+                sort_tiles(self.find('.tiles'));
+                update_submit();
+            }
         });
 
         self.$elt.on('click', '.submit-hand', function() {
-            self.submit_hand();
+            if (self.state == 'phase_1')
+                self.submit_hand();
         });
 
         self.set_status('Enter nick and press Login');
@@ -66,11 +72,13 @@ function Ui($elt, socket) {
             self.set_status('Choose your hand and press OK');
         });
         self.socket.on('wait_for_phase_two', function(data) {
-            self.set_status('Player accepted, waiting for match');
+            self.set_status('Hand accepted, waiting for opponent\'s hand');
         });
     };
 
     self.login = function() {
+        self.state = 'login_wait';
+
         var nick = self.find('.login input[name=nick]').val();
         self.socket.emit('hello', nick);
 
@@ -84,6 +92,8 @@ function Ui($elt, socket) {
     };
 
     self.submit_hand = function() {
+        self.state = 'phase_1_wait';
+
         var tiles = [];
         self.find(".hand").children().each(function() {
             tiles.push($(this).attr("data-tile"));
@@ -94,6 +104,8 @@ function Ui($elt, socket) {
     };
 
     self.set_table_phase_1 = function(tiles, dora, east) {
+        self.state = 'phase_1';
+
         self.find('.login').hide();
         self.find('.table').show();
 
@@ -114,21 +126,28 @@ function Ui($elt, socket) {
         self.find(".dora-display").append(create_tile(dora));
     };
 
-    self.set_table_phase_2 = function (start)
+    self.set_table_phase_2 = function ()
     {
+        self.state = 'phase_2';
         // TODO:
         // move disposable space & hand to make space for discarded tiles
-        self.find(".hand, .tiles").removeClass("connectedSortable");
         self.find(".hand").removeClass("outlined");
         // display discarded tiles
         // display turn marker
     };
 
-    self.test = function() {
+    self.test_phase_1 = function() {
         self.set_table_phase_1(
             ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
              'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
             ], "M1", true);
+    };
+
+    self.test_phase_2 = function() {
+        self.test_phase_1();
+        // add as many tiles as will fit
+        self.find('.tiles .tile').click();
+        self.set_table_phase_2();
     };
 
     self.init();
