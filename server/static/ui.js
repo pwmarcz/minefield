@@ -158,7 +158,7 @@ function Ui($elt, socket) {
         sort_tiles(self.find('.tiles'));
 
         var $wind = $("<img/>");
-        if (data.player == data.you)
+        if (data.east == data.you)
             $wind.attr('src', 'tiles/E.svg').attr('title', 'East');
         else
             $wind.attr('src', 'tiles/W.svg').attr('title', 'West');
