@@ -28,7 +28,7 @@ function Ui($elt, socket) {
         });
 
         function update_submit() {
-            $('.submit-hand').prop(
+            self.find('.submit-hand').prop(
                 'disabled',
                 self.find('.hand > .tile').length < 13);
         }
@@ -40,9 +40,10 @@ function Ui($elt, socket) {
                 if (self.find('.hand > .tile').length >= 13)
                     return;
 
-                $(this).detach().appendTo('.hand');
-                sort_tiles(self.find('.hand'));
+                self.add_tile_to_hand($(this));
                 update_submit();
+            } else if (self.state == 'phase_2' && self.my_turn) {
+                self.discard_tile($(this));
             }
         });
 
@@ -79,6 +80,12 @@ function Ui($elt, socket) {
             self.set_status('Your turn');
             self.my_turn = true;
         });
+        self.socket.on('discarded', function(data) {
+            // We display our own discards immediately
+            if (data.player == self.player)
+                return;
+            self.find('.opponent-discards').append(create_tile(data.tile));
+        });
     };
 
     self.login = function() {
@@ -108,9 +115,21 @@ function Ui($elt, socket) {
         self.find('.submit-hand').prop('disabled', true);
     };
 
+    self.add_tile_to_hand = function($tile) {
+        $tile.detach().appendTo(self.find('.hand'));
+        sort_tiles(self.find('.hand'));
+    };
+
+    self.discard_tile = function($tile) {
+        var tile_code = $tile.data('tile');
+        self.socket.emit('discard', tile_code);
+        $tile.detach().appendTo(self.find('.discards'));
+        // (don't sort tiles)
+    };
+
     self.set_table_phase_1 = function(data) {
         self.state = 'phase_1';
-        self.me = data.you;
+        self.player = data.you;
 
         self.find('.login').hide();
         self.find('.table').show();
@@ -124,8 +143,6 @@ function Ui($elt, socket) {
         }
         sort_tiles(self.find('.tiles'));
 
-        self.find('.hand').addClass("outlined");
-
         // TODO: place east
         self.find(".east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
 
@@ -138,9 +155,9 @@ function Ui($elt, socket) {
     {
         self.state = 'phase_2';
         self.my_turn = false;
+        self.find('.table').removeClass('phase-one').addClass('phase-two');
         // TODO:
         // move disposable space & hand to make space for discarded tiles
-        self.find(".hand").removeClass("outlined");
         // display discarded tiles
         // display turn marker
         self.set_status('');

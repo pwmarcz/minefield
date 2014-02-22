@@ -12,7 +12,16 @@
     display: table-row;
     height: 100%;
     padding: 10px;
+    color: white;
     background-color: green;
+}
+
+.phase-one .only-phase-two {
+    display: none;
+}
+
+.phase-two .only-phase-one {
+    display: none;
 }
 
 .ui .status {
@@ -35,7 +44,7 @@
     padding: 15px;
 }
 
-.outlined {
+.phase-one .hand {
     border: dashed 1px gray;
 }
 
