@@ -49,8 +49,7 @@ function Ui($elt, socket) {
 
         self.$elt.on('click', '.hand .tile', function() {
             if (self.state == 'phase_1') {
-                $(this).detach().appendTo('.tiles');
-                sort_tiles(self.find('.tiles'));
+                self.remove_tile_from_hand($(this));
                 update_submit();
             }
         });
@@ -116,8 +115,15 @@ function Ui($elt, socket) {
     };
 
     self.add_tile_to_hand = function($tile) {
-        $tile.detach().appendTo(self.find('.hand'));
+        $tile.replaceWith(create_tile_placeholder($tile));
+        $tile.appendTo(self.find('.hand'));
         sort_tiles(self.find('.hand'));
+    };
+
+    self.remove_tile_from_hand = function($tile) {
+        var tile_code = $tile.data('tile');
+        $tile.detach();
+        $tile.replaceAll(self.find('.tiles .tile-placeholder[data-tile='+tile_code+']').first());
     };
 
     self.discard_tile = function($tile) {
@@ -192,6 +198,11 @@ function create_tile(tile_type)
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
     newtile.attr("data-tile", tile_type);
     return newtile;
+}
+
+function create_tile_placeholder($tile) {
+    var tile_code = $tile.data('tile');
+    return $('<div class="tile-placeholder">').attr('data-tile', tile_code);
 }
 
 function sort_tiles(container) {
