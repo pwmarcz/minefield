@@ -32,7 +32,33 @@ function Server() {
         return self.received.shift();
     };
 
+    self.expect = function(type, data) {
+        var message = self.receive();
+        ok(message, 'expecting a message: '+type);
+        if (message) {
+            equal(message.type, type, type);
+            deepEqual(message.data, data, data);
+        }
+    };
+
     return self;
+}
+
+function invisible(sel) {
+    ok($(sel).not(':visible'), sel+' shouldn\'t be visible');
+}
+
+function visible(sel) {
+    ok($(sel).is(':visible'), sel+' should be visible');
+}
+
+function tiles(sel, expected_tile_codes) {
+    function get_code(tile) {
+        console.log(tile, tile.src);
+        return /(..).svg/.exec(tile.src)[1];
+    }
+    var tile_codes = $.map($(sel).find('.tile img'), get_code);
+    deepEqual(tile_codes, expected_tile_codes, 'expected specific tiles at '+sel);
 }
 
 var ui, server;
@@ -53,6 +79,14 @@ test('initialize', function() {
 test('log in', function() {
     $('input[name=nick]').val('Akagi');
     $('.login-button').click();
-    ok($('.login').not('visible'));
-    deepEqual(server.receive(), {type: 'hello', data: 'Akagi'});
+    invisible('.login');
+    server.expect('hello', 'Akagi');
+
+    server.send('phase_one', {
+        tiles: ['X1', 'X2', 'X3'],
+        dora_ind: 'X3'});
+    visible('.table');
+
+    tiles('.dora-display', ['X3']);
+    tiles('.tiles', ['X1', 'X2', 'X3']);
 });
