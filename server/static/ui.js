@@ -67,16 +67,13 @@ function Ui($elt, socket) {
             self.socket = io.connect('/minefield');
 
         self.socket.on('phase_one', function(data) {
-            self.set_table_phase_1(data.tiles, data.dora_ind, data.you, data.east);
-            console.log('phase_one',data);
-            self.set_status('Choose your hand and press OK');
+            self.set_table_phase_1(data);
         });
         self.socket.on('wait_for_phase_two', function(data) {
             self.set_status('Hand accepted, waiting for opponent\'s hand');
         });
         self.socket.on('phase_two', function(data) {
             self.set_table_phase_2();
-            self.set_status('');
         });
         self.socket.on('your_turn', function(data) {
             self.set_status('Your turn');
@@ -111,9 +108,9 @@ function Ui($elt, socket) {
         self.find('.submit-hand').prop('disabled', true);
     };
 
-    self.set_table_phase_1 = function(tiles, dora, me, east) {
+    self.set_table_phase_1 = function(data) {
         self.state = 'phase_1';
-        self.me = me;
+        self.me = data.you;
 
         self.find('.login').hide();
         self.find('.table').show();
@@ -122,8 +119,8 @@ function Ui($elt, socket) {
         self.find(".tiles").empty();
 
         // create tiles & add them to .tiles
-        for (var i=0; i < tiles.length; ++i) {
-            self.find(".tiles").append(create_tile(tiles[i]));
+        for (var i=0; i < data.tiles.length; ++i) {
+            self.find(".tiles").append(create_tile(data.tiles[i]));
         }
         sort_tiles(self.find('.tiles'));
 
@@ -132,7 +129,9 @@ function Ui($elt, socket) {
         // TODO: place east
         self.find(".east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
 
-        self.find(".dora-display").append(create_tile(dora));
+        self.find(".dora-display").append(create_tile(data.dora_ind));
+
+        self.set_status('Choose your hand and press OK');
     };
 
     self.set_table_phase_2 = function ()
@@ -144,13 +143,16 @@ function Ui($elt, socket) {
         self.find(".hand").removeClass("outlined");
         // display discarded tiles
         // display turn marker
+        self.set_status('');
     };
 
     self.test_phase_1 = function() {
-        self.set_table_phase_1(
-            ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
-             'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
-            ], "M1", 0, true);
+        self.set_table_phase_1({
+            tiles: ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
+                    'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'],
+            dora_ind: 'M1',
+            east: 0,
+            you: 0});
     };
 
     self.test_phase_2 = function() {
