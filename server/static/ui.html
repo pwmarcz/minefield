@@ -21,7 +21,7 @@
                  ui.test();
              } else if (params.test) {
                  $('body').prepend('<div id="qunit">');
-                 $('ui').prop('id', 'qunit-fixture');
+                 $('.ui').prop('id', 'qunit-fixture');
                  QUnit.start();
              } else {
                  window.ui = Ui($('.ui'));

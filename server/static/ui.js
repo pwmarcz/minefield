@@ -4,10 +4,13 @@
 /* global $ */
 /* global io */
 
-function Ui($elt) {
+function Ui($elt, socket) {
     var self = {
         $elt: $elt
     };
+
+    if (socket)
+        self.socket = socket;
 
     self.init = function() {
         self.init_elements();
@@ -44,7 +47,9 @@ function Ui($elt) {
     };
 
     self.init_network = function() {
-        self.socket = io.connect('/minefield');
+        if (!self.socket)
+            self.socket = io.connect('/minefield');
+
         self.socket.on('phase_one', function(data) {
             self.set_table_stage_1(data.tiles, data.dora_ind, data.east);
             console.log('phase_one',data);
