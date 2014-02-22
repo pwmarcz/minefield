@@ -151,8 +151,12 @@ function Ui($elt, socket) {
         }
         sort_tiles(self.find('.tiles'));
 
-        // TODO: place east
-        self.find(".east-display").append($("<img/>").attr('src', 'tiles/E.svg'));
+        var $wind = $("<img/>");
+        if (data.player == data.you)
+            $wind.attr('src', 'tiles/E.svg');
+        else
+            $wind.attr('src', 'tiles/W.svg');
+        self.find(".east-display").append($wind);
 
         self.find(".dora-display").append(create_tile(data.dora_ind));
 
