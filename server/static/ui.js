@@ -26,17 +26,27 @@ function Ui($elt, socket) {
             self.login();
         });
 
+        function update_submit() {
+            $('.submit-hand').prop(
+                'disabled',
+                self.find('.hand > .tile').length < 13);
+        }
+
+        update_submit();
+
         self.$elt.on('click', '.tiles .tile', function() {
             if (self.find('.hand > .tile').length >= 13)
                 return;
 
             $(this).detach().appendTo('.hand');
             sort_tiles(self.find('.hand'));
+            update_submit();
         });
 
         self.$elt.on('click', '.hand .tile', function() {
             $(this).detach().appendTo('.tiles');
             sort_tiles(self.find('.tiles'));
+            update_submit();
         });
 
         self.$elt.on('click', '.submit-hand', function() {
@@ -74,18 +84,13 @@ function Ui($elt, socket) {
     };
 
     self.submit_hand = function() {
-        if (self.find(".hand").children().length === 13) {
-            var tiles = [];
-            self.find(".hand").children().each(function() {
-                tiles.push($(this).attr("data-tile"));
-            });
-            self.socket.emit('hand', tiles);
-            self.set_status('Submitting hand');
-            self.find('.submit-hand').prop('disabled', true);
-        }
-        else {
-            alert("You have to have 13 tiles on hand!");
-        }
+        var tiles = [];
+        self.find(".hand").children().each(function() {
+            tiles.push($(this).attr("data-tile"));
+        });
+        self.socket.emit('hand', tiles);
+        self.set_status('Submitting hand');
+        self.find('.submit-hand').prop('disabled', true);
     };
 
     self.set_table_phase_1 = function(tiles, dora, east) {
