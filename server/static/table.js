@@ -7,7 +7,8 @@
 function Table($elt, data, complete) {
     var self = {
         $elt: $elt,
-        find: function(sel) { return self.$elt.find(sel); }
+        find: function(sel) { return self.$elt.find(sel); },
+        state: null
     };
 
     self.init = function() {
@@ -24,6 +25,79 @@ function Table($elt, data, complete) {
         self.find(".east-display").append($wind);
 
         self.find(".dora-display").append(Tiles.create(data.dora_ind));
+
+        self.init_events();
+    };
+
+    self.init_events = function() {
+        function update_submit() {
+            self.find('.submit-hand').prop(
+                'disabled',
+                self.find('.hand > .tile').length < 13);
+        }
+
+        update_submit();
+
+        self.$elt.on('click', '.tiles .tile', function() {
+            if (self.state == 'select_hand') {
+                if (self.find('.hand > .tile').length >= 13)
+                    return;
+
+                self.add_tile_to_hand($(this));
+                update_submit();
+            } else if (self.state == 'discard') {
+                self.discard_complete($(this));
+            }
+        });
+
+        self.$elt.on('click', '.hand .tile', function() {
+            if (self.state == 'select_hand') {
+                self.remove_tile_from_hand($(this));
+                update_submit();
+            }
+        });
+
+        self.$elt.on('click', '.submit-hand', function() {
+            if (self.state == 'select_hand') {
+                self.select_hand_complete();
+            }
+        });
+    };
+
+    self.select_hand = function(handler) {
+        self.state = 'select_hand';
+        self.find('.submit-hand').show();
+        self.on_select_hand = handler;
+    };
+
+    self.select_hand_complete = function() {
+        self.state = null;
+        self.find('.submit-hand').hide();
+        self.on_select_hand(Tiles.list(self.find('.hand')));
+    };
+
+    self.discard = function(handler) {
+        self.state = 'discard';
+        self.on_discard = handler;
+    };
+
+    self.discard_complete = function($tile) {
+        var tile_code = $tile.data('tile');
+        $tile.replaceWith(Tiles.create_placeholder($tile));
+        $tile.appendTo(self.find('.discards'));
+        self.on_discard(tile_code);
+    };
+
+    self.add_tile_to_hand = function($tile) {
+        $tile.replaceWith(Tiles.create_placeholder($tile));
+        $tile.appendTo(self.find('.hand'));
+        Tiles.sort(self.find('.hand'));
+    };
+
+    self.remove_tile_from_hand = function($tile) {
+        var tile_code = $tile.data('tile');
+        $tile.detach();
+        $tile.replaceAll(self.find('.tiles .tile-placeholder[data-tile='+tile_code+']').first());
     };
 
     self.init();

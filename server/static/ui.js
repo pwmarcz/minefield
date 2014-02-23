@@ -27,39 +27,6 @@ function Ui($elt, socket) {
         self.$elt.on('click', '.login button', function() {
             self.login();
         });
-
-        function update_submit() {
-            self.find('.submit-hand').prop(
-                'disabled',
-                self.find('.hand > .tile').length < 13);
-        }
-
-        update_submit();
-
-        self.$elt.on('click', '.tiles .tile', function() {
-            if (self.state == 'phase_1') {
-                if (self.find('.hand > .tile').length >= 13)
-                    return;
-
-                self.add_tile_to_hand($(this));
-                update_submit();
-            } else if (self.state == 'phase_2' && self.my_move) {
-                self.discard_tile($(this));
-            }
-        });
-
-        self.$elt.on('click', '.hand .tile', function() {
-            if (self.state == 'phase_1') {
-                self.remove_tile_from_hand($(this));
-                update_submit();
-            }
-        });
-
-        self.$elt.on('click', '.submit-hand', function() {
-            if (self.state == 'phase_1')
-                self.submit_hand();
-        });
-
         self.set_status('Enter nick and press Login');
     };
 
@@ -79,6 +46,7 @@ function Ui($elt, socket) {
         self.socket.on('your_move', function(data) {
             self.set_status('Your turn!');
             self.my_move = true;
+            self.table.discard(self.discard_tile);
         });
         self.socket.on('discarded', function(data) {
             // We display our own discards immediately
@@ -110,36 +78,15 @@ function Ui($elt, socket) {
         self.find('.status').text(status);
     };
 
-    self.submit_hand = function() {
+    self.submit_hand = function(tiles) {
         self.state = 'phase_1_wait';
-
-        var tiles = [];
-        self.find(".hand").children().each(function() {
-            tiles.push($(this).attr("data-tile"));
-        });
         self.socket.emit('hand', tiles);
         self.set_status('Submitting hand');
         self.find('.submit-hand').prop('disabled', true);
     };
 
-    self.add_tile_to_hand = function($tile) {
-        $tile.replaceWith(Tiles.create_placeholder($tile));
-        $tile.appendTo(self.find('.hand'));
-        Tiles.sort(self.find('.hand'));
-    };
-
-    self.remove_tile_from_hand = function($tile) {
-        var tile_code = $tile.data('tile');
-        $tile.detach();
-        $tile.replaceAll(self.find('.tiles .tile-placeholder[data-tile='+tile_code+']').first());
-    };
-
-    self.discard_tile = function($tile) {
-        var tile_code = $tile.data('tile');
+    self.discard_tile = function(tile_code) {
         self.socket.emit('discard', tile_code);
-        $tile.replaceWith(Tiles.create_placeholder($tile));
-        $tile.appendTo(self.find('.discards'));
-        // (don't sort tiles)
         self.my_move = false;
         self.set_status('');
     };
@@ -160,6 +107,7 @@ function Ui($elt, socket) {
             });
         self.find('.table').show();
 
+        self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
     };
 

@@ -32,3 +32,9 @@ Tiles.sort = function(container) {
             return 0;
     }).appendTo(container);
 };
+
+Tiles.list = function($elt) {
+    return $.map($elt.find('.tile'), function(tile) {
+        return $(tile).data('tile');
+    });
+};
