@@ -3,7 +3,7 @@
 /* global console, alert */
 /* global $ */
 /* global io */
-/* global Table */
+/* global Table, Tiles */
 
 function Ui($elt, socket) {
     var self = {
@@ -84,7 +84,7 @@ function Ui($elt, socket) {
             // We display our own discards immediately
             if (data.player == self.player)
                 return;
-            self.find('.opponent-discards').append(create_tile(data.tile));
+            self.find('.opponent-discards').append(Tiles.create(data.tile));
         });
         self.socket.on('draw', function(data) {
             self.find('.table').hide();
@@ -123,9 +123,9 @@ function Ui($elt, socket) {
     };
 
     self.add_tile_to_hand = function($tile) {
-        $tile.replaceWith(create_tile_placeholder($tile));
+        $tile.replaceWith(Tiles.create_placeholder($tile));
         $tile.appendTo(self.find('.hand'));
-        sort_tiles(self.find('.hand'));
+        Tiles.sort(self.find('.hand'));
     };
 
     self.remove_tile_from_hand = function($tile) {
@@ -137,7 +137,7 @@ function Ui($elt, socket) {
     self.discard_tile = function($tile) {
         var tile_code = $tile.data('tile');
         self.socket.emit('discard', tile_code);
-        $tile.replaceWith(create_tile_placeholder($tile));
+        $tile.replaceWith(Tiles.create_placeholder($tile));
         $tile.appendTo(self.find('.discards'));
         // (don't sort tiles)
         self.my_move = false;
@@ -182,8 +182,8 @@ function Ui($elt, socket) {
             self.find('.end-ron .message').text('You won!');
         else
             self.find('.end-ron .message').text('You lost!');
-        add_tiles(self.find('.end-ron .winning-hand'), data.hand);
-        add_tiles(self.find('.end-ron .doras-ind'),
+        Tiles.add(self.find('.end-ron .winning-hand'), data.hand);
+        Tiles.add(self.find('.end-ron .doras-ind'),
                   [self.dora_ind, data.uradora_ind]);
 
         function add_yaku(yaku) {
@@ -226,35 +226,4 @@ function Ui($elt, socket) {
 
     self.init();
     return self;
-}
-
-
-function create_tile(tile_type) {
-    var newtile = $('<div class="tile"/>');
-    newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
-    newtile.attr("data-tile", tile_type);
-    return newtile;
-}
-
-function add_tiles($elt, tile_codes) {
-    $.each(tile_codes, function(i, tile_code) {
-        $elt.append(create_tile(tile_code));
-    });
-}
-
-function create_tile_placeholder($tile) {
-    var tile_code = $tile.data('tile');
-    return $('<div class="tile-placeholder">').attr('data-tile', tile_code);
-}
-
-function sort_tiles(container) {
-    container.children('.tile').sort(function(tile1, tile2) {
-        var code1 = $(tile1).data('tile'), code2 = $(tile2).data('tile');
-        if (code1 < code2)
-                return -1;
-        else if (code1 > code2)
-            return 1;
-        else
-            return 0;
-    }).appendTo(container);
 }
