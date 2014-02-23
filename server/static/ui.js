@@ -27,9 +27,15 @@ function Ui($elt, socket) {
     };
 
     self.init_network = function() {
-        if (!self.socket)
+        if (!self.socket) {
             self.socket = io.connect('/minefield');
+            self.set_overlay('Connecting to server');
+            self.socket.on('connect', self.clear_overlay);
+        }
 
+        self.socket.on('disconnect', function(data) {
+            self.set_overlay('Connection lost :(');
+        });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
         });
@@ -70,6 +76,15 @@ function Ui($elt, socket) {
 
     self.set_status = function(status) {
         self.find('.status').text(status);
+    };
+
+    self.set_overlay = function(status) {
+        self.find('.overlay').show();
+        self.find('.overlay div').text(status);
+    };
+
+    self.clear_overlay = function() {
+        self.find('.overlay').hide();
     };
 
     self.submit_hand = function(tiles) {

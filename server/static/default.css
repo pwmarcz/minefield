@@ -7,11 +7,33 @@
 
 .ui {
     display: inline-block;
+    position: relative;
 }
 
 .ui .main-part {
     width: 600px;
     height: 506px;
+}
+
+/* Prevent margin collapsing */
+.ui .main-part:before {
+    content: "\00a0"; /* No-break space character */
+    display: block;
+    overflow: hidden;
+    height: 0;
+}
+
+.ui .overlay {
+    position: absolute;
+    top: 24px;
+    background: rgba(128, 128, 128, 0.5);
+    z-index: 44;
+}
+
+.ui .overlay div {
+    text-align: center;
+    margin-top: 220px;
+    font-size: 30px;
 }
 
 .table {
