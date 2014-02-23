@@ -101,8 +101,10 @@ function Ui($elt, socket) {
             });
         self.find('.table').show();
 
-        self.find('.nicks .you').text(data.nicks[self.player]);
-        self.find('.nicks .opponent').text(data.nicks[1-self.player]);
+        self.find('.nicks .you').text(
+            data.nicks[self.player] || 'Anonymous');
+        self.find('.nicks .opponent').text(
+            data.nicks[1-self.player] || 'Anonymous');
         self.find('.nicks').show();
 
         self.table.select_hand(self.submit_hand);
