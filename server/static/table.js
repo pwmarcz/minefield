@@ -88,6 +88,10 @@ function Table($elt, data, complete) {
         self.on_discard(tile_code);
     };
 
+    self.opponent_discard = function(tile_code) {
+        self.find('.opponent-discards').append(Tiles.create(tile_code));
+    };
+
     self.add_tile_to_hand = function($tile) {
         $tile.replaceWith(Tiles.create_placeholder($tile));
         $tile.appendTo(self.find('.hand'));

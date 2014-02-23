@@ -52,7 +52,7 @@ function Ui($elt, socket) {
             // We display our own discards immediately
             if (data.player == self.player)
                 return;
-            self.find('.opponent-discards').append(Tiles.create(data.tile));
+            self.table.opponent_discard(data.tile);
         });
         self.socket.on('draw', function(data) {
             self.find('.table').hide();
