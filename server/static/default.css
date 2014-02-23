@@ -9,9 +9,12 @@
     display: inline-block;
 }
 
-.ui .table {
+.ui .main-part {
     width: 600px;
     height: 506px;
+}
+
+.table {
     position: relative;
     background-color: green;
     background: url(table.svg);
@@ -19,6 +22,8 @@
     border: solid 5px darkgreen;
     color: white;
     overflow: hidden;
+    /* Prevent vertical spacing between tiles */
+    font-size: 0;
 }
 
 .ui .status {
@@ -44,11 +49,6 @@
 
 .table .hand.outlined {
     border: dashed 1px white;
-}
-
-.table {
-    /* Prevent vertical spacing between tiles */
-    font-size: 0;
 }
 
 .tiles-clickable .tile {
