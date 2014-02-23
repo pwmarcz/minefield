@@ -7,6 +7,7 @@ Tiles.create = function(tile_type) {
     var newtile = $('<div class="tile"/>');
     newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
     newtile.attr("data-tile", tile_type);
+    newtile.attr("title", Tiles.describe(tile_type));
     return newtile;
 };
 
@@ -37,4 +38,20 @@ Tiles.list = function($elt) {
     return $.map($elt.find('.tile'), function(tile) {
         return $(tile).data('tile');
     });
+};
+
+Tiles.describe = function(tile_code) {
+    var suit = tile_code[0];
+    var number = tile_code[1];
+
+    switch (suit) {
+    case 'M':
+        return number + ' Man';
+    case 'P':
+        return number + ' Pin';
+    case 'S':
+        return number + ' Sou';
+    case 'X':
+        return ['Ton', 'Nan', 'Xia', 'Pei', 'Haku', 'Hatsu', 'Chun'][number];
+    }
 };
