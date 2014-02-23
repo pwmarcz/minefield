@@ -11,7 +11,8 @@ from game import Game
 
 app = flask.Flask(__name__, static_folder='static', static_url_path='')
 app.debug = True
-
+# Turn off Cache-Control to prevent aggressive caching during development
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route("/")
 def hello():
