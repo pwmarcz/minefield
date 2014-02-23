@@ -99,6 +99,18 @@
     transform: rotate(180deg);
 }
 
+.any-discards .tile:nth-child(1) {
+    -webkit-transform: translateX(7px) rotate(90deg);
+}
+.any-discards .tile:nth-child(2),
+.any-discards .tile:nth-child(3),
+.any-discards .tile:nth-child(4),
+.any-discards .tile:nth-child(5),
+.any-discards .tile:nth-child(6) {
+    -webkit-transform: translateX(14px);
+}
+
+
 .table .east-display {
     width: 75px;
     height: 38px;
