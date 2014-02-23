@@ -178,7 +178,7 @@ test('end game by draw', function() {
 var RON_DATA = {
     player: 0,
     hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
-    yaku: ['Polish Riichi', 'Ban Tan'],
+    yaku: ['ban tan', 'tao tao'],
     dora: 3,
     uradora_ind: 'X1',
     points: 7
@@ -193,8 +193,9 @@ test('win game', function() {
     tiles('.end-ron .winning-hand', RON_DATA.hand);
     // M1 is dora indicator from Ui.test_phase_1
     tiles('.end-ron .doras-ind', ['M1', RON_DATA.uradora_ind]);
-    ok(/Polish Riichi/.test($('.end-ron .yaku').text()));
-    ok(/Ban Tan/.test($('.end-ron .yaku').text()));
-    ok(/Dora 3/.test($('.end-ron .yaku').text()));
+    ok(/riichi/.test($('.end-ron .yaku').text()));
+    ok(/ban tan/.test($('.end-ron .yaku').text()));
+    ok(/tao tao/.test($('.end-ron .yaku').text()));
+    ok(/dora 3/.test($('.end-ron .yaku').text()));
     equal($('.end-ron .points').text(), '7');
 });

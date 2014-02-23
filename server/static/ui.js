@@ -127,9 +127,10 @@ function Ui($elt, socket) {
         function add_yaku(yaku) {
             self.find('.end-ron .yaku').append($('<li>').text(yaku));
         }
+        add_yaku('riichi');
         $.each(data.yaku, function(i, yaku) { add_yaku(yaku); });
         if (data.dora > 0)
-            add_yaku('Dora '+data.dora);
+            add_yaku('dora '+data.dora);
 
         $('.end-ron .points').text(data.points);
     };
