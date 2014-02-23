@@ -628,6 +628,8 @@ class YakuTestCase(BaseHandTestCase):
     def test_tsuuiiso(self):
         self.assertYaku('X1 X1 X1 X3 X3 X4 X4 X4 X5 X5 X5 X7 X7 X7', 'X1',
                         [['tsuuiiso']])
+        self.assertYaku('X1 X1 X2 X2 X3 X3 X4 X4 X5 X5 X6 X6 X7 X7', 'X1',
+                        [['tsuuiiso']])
 
     def test_ryuuiiso(self):
         self.assertYaku('S1 S1 S2 S2 S3 S3 S6 S6 S6 S8 S8 X6 X6 X6', 'X6',
