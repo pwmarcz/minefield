@@ -402,7 +402,7 @@ class Hand(object):
         yaku = self.yaku
         if 'pinfu' in yaku:
             return 30
-        if 'chitoitsu' in yaku:
+        if self.type == 'pairs':
             return 25
         if 'kokushi' in yaku:
             return 30
@@ -678,6 +678,8 @@ class FuTestCase(BaseHandTestCase):
 
     def test_chitoitsu(self):
         self.assertFu('M1 M1 P3 P3 P4 P4 P5 P5 P7 P7 X1 X1 X3 X3', 'X3', [25])
+        # yakuman, but we still want to compute fu
+        self.assertFu('X1 X1 X2 X2 X3 X3 X4 X4 X5 X5 X6 X6 X7 X7', 'X3', [25])
 
     def test_multiple(self):
         # all chi (30+2=32) or three pons (30+8+4+4+2=48)
