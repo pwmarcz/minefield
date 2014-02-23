@@ -101,6 +101,10 @@ function Ui($elt, socket) {
             });
         self.find('.table').show();
 
+        self.find('.nicks .you').text(data.nicks[self.player]);
+        self.find('.nicks .opponent').text(data.nicks[1-self.player]);
+        self.find('.nicks').show();
+
         self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
     };
@@ -146,6 +150,7 @@ function Ui($elt, socket) {
 
     self.test_phase_1 = function() {
         self.set_table_phase_1({
+            nicks: ['Akagi', 'Washizu'],
             tiles: ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
                     'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'],
             dora_ind: 'M1',

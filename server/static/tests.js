@@ -94,12 +94,19 @@ test('log in', function() {
     server.expect('hello', 'Akagi');
 
     server.send('phase_one', {
+        nicks: ['Akagi', 'Washizu'],
         tiles: ['X1', 'X2', 'X3'],
-        dora_ind: 'X3'});
+        dora_ind: 'X3',
+        east: 0,
+        you: 1
+    });
 
     visible('.table');
     tiles('.dora-display', ['X3']);
     tiles('.tiles', ['X1', 'X2', 'X3']);
+    visible('.nicks');
+    equal($('.nicks .you').text(), 'Washizu');
+    equal($('.nicks .opponent').text(), 'Akagi');
 });
 
 
