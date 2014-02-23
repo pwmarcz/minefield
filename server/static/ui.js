@@ -3,6 +3,7 @@
 /* global console, alert */
 /* global $ */
 /* global io */
+/* global Table */
 
 function Ui($elt, socket) {
     var self = {
@@ -149,22 +150,15 @@ function Ui($elt, socket) {
         self.dora_ind = data.dora_ind;
 
         self.find('.login').hide();
+        self.table = Table(
+            self.find('.table'),
+            {
+                tiles: data.tiles,
+                dora_ind: data.dora_ind,
+                east: data.east,
+                you: data.you
+            });
         self.find('.table').show();
-
-        self.find(".hand").empty();
-        self.find(".tiles").empty();
-
-        add_tiles(self.find('.tiles'), data.tiles);
-        sort_tiles(self.find('.tiles'));
-
-        var $wind = $("<img/>");
-        if (data.east == data.you)
-            $wind.attr('src', 'tiles/E.svg').attr('title', 'East');
-        else
-            $wind.attr('src', 'tiles/W.svg').attr('title', 'West');
-        self.find(".east-display").append($wind);
-
-        self.find(".dora-display").append(create_tile(data.dora_ind));
 
         self.set_status('Choose your hand and press OK');
     };
