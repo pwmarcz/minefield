@@ -88,7 +88,7 @@ test('initialize', function() {
 test('log in', function() {
     $('input[name=nick]').val('Akagi');
     $('.login-button').click();
-    invisible('.login');
+    disabled('.login');
     server.expect('hello', 'Akagi');
 
     server.send('phase_one', {

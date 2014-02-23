@@ -63,7 +63,7 @@ function Ui($elt, socket) {
         var nick = self.find('.login input[name=nick]').val();
         self.socket.emit('hello', nick);
 
-        self.find('.login').hide();
+        self.find('.login button').prop('disabled', true);
 
         self.set_status('Waiting for opponent');
     };
@@ -154,7 +154,8 @@ function Ui($elt, socket) {
                     'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'],
             dora_ind: 'M1',
             east: 0,
-            you: 0});
+            you: 0
+        });
     };
 
     self.test_phase_2 = function() {
