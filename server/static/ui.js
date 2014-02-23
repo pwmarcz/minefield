@@ -102,7 +102,6 @@ function Ui($elt, socket) {
             data.nicks[self.player] || 'Anonymous');
         self.find('.nicks .opponent').text(
             data.nicks[1-self.player] || 'Anonymous');
-        self.find('.nicks').show();
 
         self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
