@@ -67,19 +67,22 @@ function Table($elt, data, complete) {
     self.select_hand = function(handler) {
         self.state = 'select_hand';
         self.find('.submit-hand').show();
-        self.find('.hand').addClass('outlined');
+        self.find('.tiles').addClass('tiles-clickable');
+        self.find('.hand').addClass('outlined tiles-clickable');
         self.on_select_hand = handler;
     };
 
     self.select_hand_complete = function() {
         self.state = null;
         self.find('.submit-hand').hide();
-        self.find('.hand').removeClass('outlined');
+        self.find('.tiles').removeClass('tiles-clickable');
+        self.find('.hand').removeClass('outlined tiles-clickable');
         self.on_select_hand(Tiles.list(self.find('.hand')));
     };
 
     self.discard = function(handler) {
         self.state = 'discard';
+        self.find('.tiles').addClass('tiles-clickable');
         self.on_discard = handler;
     };
 
@@ -88,6 +91,7 @@ function Table($elt, data, complete) {
         var tile_code = $tile.data('tile');
         $tile.replaceWith(Tiles.create_placeholder($tile));
         $tile.appendTo(self.find('.discards'));
+        self.find('.tiles').removeClass('tiles-clickable');
         self.on_discard(tile_code);
     };
 

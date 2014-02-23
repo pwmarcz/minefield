@@ -43,6 +43,10 @@
     border: dashed 1px gray;
 }
 
+.tiles-clickable .tile {
+    cursor: pointer;
+}
+
 #footer {
     font-size: small;
 }
