@@ -35,6 +35,8 @@ function Ui($elt, socket) {
 
         self.socket.on('disconnect', function(data) {
             self.set_overlay('Connection lost :(');
+            // don't reconnect - we're not able to restart a game
+            self.socket.disconnect();
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
