@@ -67,12 +67,14 @@ function Table($elt, data, complete) {
     self.select_hand = function(handler) {
         self.state = 'select_hand';
         self.find('.submit-hand').show();
+        self.find('.hand').addClass('outlined');
         self.on_select_hand = handler;
     };
 
     self.select_hand_complete = function() {
         self.state = null;
         self.find('.submit-hand').hide();
+        self.find('.hand').removeClass('outlined');
         self.on_select_hand(Tiles.list(self.find('.hand')));
     };
 
@@ -82,6 +84,7 @@ function Table($elt, data, complete) {
     };
 
     self.discard_complete = function($tile) {
+        self.state = null;
         var tile_code = $tile.data('tile');
         $tile.replaceWith(Tiles.create_placeholder($tile));
         $tile.appendTo(self.find('.discards'));

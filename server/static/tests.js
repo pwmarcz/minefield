@@ -84,7 +84,7 @@ module(
     });
 
 test('initialize', function() {
-    equal(ui.state, 'login');
+    ok(true);
 });
 
 test('log in', function() {
@@ -96,7 +96,6 @@ test('log in', function() {
     server.send('phase_one', {
         tiles: ['X1', 'X2', 'X3'],
         dora_ind: 'X3'});
-    equal(ui.state, 'phase_1');
 
     visible('.table');
     tiles('.dora-display', ['X3']);
@@ -132,10 +131,6 @@ test('submit hand', function() {
 
     server.send('wait_for_phase_two');
     server.send('phase_two');
-
-    equal(ui.state, 'phase_2');
-    visible('.discards');
-    visible('.opponent-discards');
 });
 
 
@@ -150,18 +145,18 @@ module(
 
 test('deal when allowed', function() {
     server.send('your_move');
-    equal(ui.my_move, true);
+    equal(ui.table.state, 'discard');
 
     $('.tiles .tile').first().click();
     tiles('.discards', ['S1']);
     server.expect('discard', 'S1');
-    equal(ui.my_move, false);
+    equal(ui.table.state, null);
 
     server.send('discarded', {player: 0, tile: 'S1'});
 });
 
 test('not deal when not allowed', function() {
-    equal(ui.my_move, false);
+    equal(ui.table.state, null);
 
     $('.tiles .tile').first().click();
     tiles('.discards', []);

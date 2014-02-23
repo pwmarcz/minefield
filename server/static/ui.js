@@ -8,7 +8,6 @@
 function Ui($elt, socket) {
     var self = {
         $elt: $elt,
-        state: 'login',
     };
 
     if (socket)
@@ -45,7 +44,6 @@ function Ui($elt, socket) {
         });
         self.socket.on('your_move', function(data) {
             self.set_status('Your turn!');
-            self.my_move = true;
             self.table.discard(self.discard_tile);
         });
         self.socket.on('discarded', function(data) {
@@ -64,8 +62,6 @@ function Ui($elt, socket) {
     };
 
     self.login = function() {
-        self.state = 'login_wait';
-
         var nick = self.find('.login input[name=nick]').val();
         self.socket.emit('hello', nick);
 
@@ -79,7 +75,6 @@ function Ui($elt, socket) {
     };
 
     self.submit_hand = function(tiles) {
-        self.state = 'phase_1_wait';
         self.socket.emit('hand', tiles);
         self.set_status('Submitting hand');
         self.find('.submit-hand').prop('disabled', true);
@@ -87,12 +82,10 @@ function Ui($elt, socket) {
 
     self.discard_tile = function(tile_code) {
         self.socket.emit('discard', tile_code);
-        self.my_move = false;
         self.set_status('');
     };
 
     self.set_table_phase_1 = function(data) {
-        self.state = 'phase_1';
         self.player = data.you;
         self.dora_ind = data.dora_ind;
 
@@ -113,9 +106,6 @@ function Ui($elt, socket) {
 
     self.set_table_phase_2 = function ()
     {
-        self.state = 'phase_2';
-        self.my_move = false;
-        self.find('.table').removeClass('phase-one').addClass('phase-two');
         // TODO:
         // move disposable space & hand to make space for discarded tiles
         // display discarded tiles
@@ -157,7 +147,8 @@ function Ui($elt, socket) {
         self.test_phase_1();
         // add as many tiles as will fit
         self.find('.tiles .tile').click();
-        self.set_table_phase_2();
+        self.table.on_select_hand = function () {};
+        self.table.select_hand_complete();
     };
 
     self.test_ron = function() {

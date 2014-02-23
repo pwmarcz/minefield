@@ -16,14 +16,6 @@
     background-color: green;
 }
 
-.phase-one .only-phase-two {
-    display: none;
-}
-
-.phase-two .only-phase-one {
-    display: none;
-}
-
 .ui .status {
     display: table-row;
     height: 1.5em;
@@ -47,7 +39,7 @@
     padding: 15px;
 }
 
-.phase-one .hand {
+.outlined {
     border: dashed 1px gray;
 }
 
