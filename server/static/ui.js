@@ -68,7 +68,7 @@ function Ui($elt, socket) {
 
         self.find('.login').hide();
 
-        self.set_status('Logging in');
+        self.set_status('Waiting for opponent');
     };
 
     self.set_status = function(status) {
