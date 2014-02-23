@@ -52,6 +52,6 @@ Tiles.describe = function(tile_code) {
     case 'S':
         return number + ' Sou';
     case 'X':
-        return ['Ton', 'Nan', 'Xia', 'Pei', 'Haku', 'Hatsu', 'Chun'][number];
+        return ['Ton', 'Nan', 'Xia', 'Pei', 'Haku', 'Hatsu', 'Chun'][number-1];
     }
 };
