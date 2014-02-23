@@ -42,7 +42,7 @@ YAKU = {
     'junchan': 3,
     'honroto': 2,
     'honitsu': 3,
-    'chinitsu': 5,
+    'chinitsu': 6,
     'toitoi': 2,
     'sananko': 2,
     'shosangen': 2,
