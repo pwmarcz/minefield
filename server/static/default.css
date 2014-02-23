@@ -1,46 +1,54 @@
 /* -*- css-indent-offset: 4 -*- */
 
+/*
+  See table.svg for source of all measurements and positions.
+  Right now we assume tiles are 30px x 44px.
+*/
+
 .ui {
-    /* as wide as the hand for now */
-    width: 700px;
-    height: 600px;
-    border: 1px solid gray;
-    display: table;
+    display: inline-block;
 }
 
 .ui .table {
-    display: table-row;
-    height: 100%;
-    padding: 10px;
-    color: white;
+    width: 600px;
+    height: 506px;
+    position: relative;
     background-color: green;
+    background: url(table.svg);
+    background-position: bottom;
+    border: solid 5px darkgreen;
+    color: white;
+    overflow: hidden;
 }
 
 .ui .status {
-    display: table-row;
-    height: 1.5em;
+    height: 23px;
+    border: 1px solid black;
 }
 
 .tile, .tile-placeholder {
     display: inline-block;
-    width: 50px;
-    height: 73px;
+    width: 30px;
+    height: 44px;
 }
 
 .tile img {
-    width: 50px;
-    height: 73px;
+    width: 100%;
+    height: 100%;
 }
 
 .table .hand {
-    width: 650px;
-    height: 75px;
-    vertical-align: center;
-    padding: 15px;
+    margin: -1px;
+    border: solid 1px green;
 }
 
-.outlined {
-    border: dashed 1px gray;
+.table .hand.outlined {
+    border: dashed 1px white;
+}
+
+.table {
+    /* Prevent vertical spacing between tiles */
+    font-size: 0;
 }
 
 .tiles-clickable .tile {
@@ -49,4 +57,63 @@
 
 #footer {
     font-size: small;
+}
+
+/* Table elements */
+
+.table .hand {
+    width: 390px;
+    height: 44px;
+    position: absolute;
+    left: 105px;
+    bottom: 0px;
+}
+
+.table .tiles {
+    width: 510px;
+    height: 88px;
+    position: absolute;
+    left: 45px;
+    bottom: 66px;
+}
+
+.table .discards {
+    width: 180px;
+    height: 132px;
+    position: absolute;
+    left: 210px;
+    bottom: 176px;
+}
+
+.table .opponent-discards {
+    width: 180px;
+    height: 132px;
+    position: absolute;
+    left: 210px;
+    bottom: 352px;
+}
+
+.table .east-display {
+    width: 75px;
+    height: 38px;
+    position: absolute;
+    left: 0px;
+    bottom: 0px
+}
+
+.table .east-display img {
+    width: 100%;
+    height: 100%;
+}
+
+.submit-hand {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+}
+
+.dora-display {
+    position: absolute;
+    left: 15px;
+    bottom: 308px;
 }
