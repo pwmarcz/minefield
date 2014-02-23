@@ -1,9 +1,7 @@
 
-/* jshint undef: true */
-/* global $, console */
-/* global Ui */
 /* global module, test */
 /* global ok, equal, deepEqual */
+/* global Ui */
 
 // A mock server for socket.io.
 function Server() {

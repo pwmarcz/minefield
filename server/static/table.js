@@ -1,6 +1,4 @@
 
-/* jshint undef: true */
-/* global $ */
 /* global Tiles */
 
 // data: {tiles, dora_ind, east, you}

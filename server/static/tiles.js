@@ -1,4 +1,4 @@
-/* jshint undef: true */
+
 /* global $ */
 
 var Tiles = {};
@@ -26,7 +26,7 @@ Tiles.sort = function(container) {
     container.children('.tile').sort(function(tile1, tile2) {
         var code1 = $(tile1).data('tile'), code2 = $(tile2).data('tile');
         if (code1 < code2)
-                return -1;
+            return -1;
         else if (code1 > code2)
             return 1;
         else

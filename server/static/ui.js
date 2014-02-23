@@ -1,7 +1,4 @@
 
-/* jshint undef: true */
-/* global console, alert */
-/* global $ */
 /* global io */
 /* global Table, Tiles */
 

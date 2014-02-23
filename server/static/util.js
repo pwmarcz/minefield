@@ -9,6 +9,6 @@ function getParams() {
     var params = {};
 
     while ((match = search.exec(query)))
-       params[decode(match[1])] = decode(match[2]);
+        params[decode(match[1])] = decode(match[2]);
     return params;
 }
