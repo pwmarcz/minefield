@@ -47,6 +47,7 @@ function Ui($elt, socket) {
             self.table.discard(self.discard_tile);
         });
         self.socket.on('discarded', function(data) {
+            self.last_discard = data.tile;
             // We display our own discards immediately
             if (data.player == self.player)
                 return;
@@ -121,6 +122,14 @@ function Ui($elt, socket) {
         else
             self.find('.end-ron .message').text('You lost!');
         Tiles.add(self.find('.end-ron .winning-hand'), data.hand);
+        /* Display winning tile next to winning hand */
+        var $winning_tile = self.find(
+            '.end-ron .winning-hand ' +
+                '.tile[data-tile='+self.last_discard+']').first();
+        $winning_tile.detach();
+        self.find('.end-ron .winning-hand').
+            append($('<div class="tile placeholder">')).
+            append($winning_tile);
         Tiles.add(self.find('.end-ron .doras-ind'),
                   [self.dora_ind, data.uradora_ind]);
 
@@ -154,6 +163,7 @@ function Ui($elt, socket) {
 
     self.test_ron = function() {
         self.test_phase_2();
+        self.last_discard = 'S1';
         self.display_ron({
             player: 0,
             hand: ['S1', 'S1', 'S2', 'S3', 'S4'],

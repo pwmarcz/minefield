@@ -190,7 +190,8 @@ test('win game', function() {
     invisible('.table');
     visible('.end-ron');
     equal($('.end-ron .message').text(), 'You won!');
-    tiles('.end-ron .winning-hand', RON_DATA.hand);
+    // winning tile should be displayed next to the hand
+    tiles('.end-ron .winning-hand', ['S1', 'S2', 'S3', 'S4', 'S1']);
     // M1 is dora indicator from Ui.test_phase_1
     tiles('.end-ron .doras-ind', ['M1', RON_DATA.uradora_ind]);
     ok(/riichi/.test($('.end-ron .yaku').text()));
