@@ -1,0 +1,5 @@
+#!/bin/sh
+
+# TODO add QUnit tests somehow
+
+nosetests --all-modules server -v
