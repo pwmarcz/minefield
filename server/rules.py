@@ -461,7 +461,9 @@ def eval_hand(tiles, wait, options={}):
     return hand.yaku, hand.dora(), hand.limit()
 
 def limit(fan, fu):
-    fan += 1 # riichi
+    if fan < 13:
+        fan += 1 # riichi
+
     if fan < 3 or (fan == 3 and fu < 60) or (fan == 4 and fu < 30):
         return 0
     if fan <= 5: # mangan
