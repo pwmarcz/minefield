@@ -184,6 +184,7 @@ var RON_DATA = {
     player: 0,
     hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
     yaku: ['ban tan', 'tao tao'],
+    yakuman: false,
     dora: 3,
     uradora_ind: 'X1',
     points: 7
@@ -204,4 +205,20 @@ test('win game', function() {
     ok(/tao tao/.test($('.end-ron .yaku').text()));
     ok(/dora 3/.test($('.end-ron .yaku').text()));
     equal($('.end-ron .points').text(), '7');
+});
+
+test('win game with yakuman', function() {
+    server.send('discarded', {player: 0, tile: 'S1'});
+    server.send('ron', {
+        player: 1,
+        hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
+        yaku: ['rising sun'],
+        yakuman: true,
+        dora: 3,
+        uradora_ind: 'X1',
+        points: 42
+    });
+    ok(/rising sun/.test($('.end-ron .yaku').text()));
+    ok(!/dora/.test($('.end-ron .yaku').text()), "shouldn't list dora");
+    ok(!/riichi/.test($('.end-ron .yaku').text()), "shouldn't list riichi");
 });
