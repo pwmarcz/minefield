@@ -257,6 +257,26 @@ class GameTestCase(unittest.TestCase):
         })
 
 
+    def test_furiten(self):
+        # P0: junk
+        # P1: riichi tanyao sanshoku on S5, but only riichi tanyao on S8
+        self.start_game('M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7',
+                        'M6 M7 M8 P6 P7 P8 S2 S3 S4 S5 S6 S7 S8')
+        self.assertMessage(0, 'your_move')
+
+        # P1's winning tile - there should be no 'ron' message
+        # riichi ippatsu tanyao - no mangan
+        self.discard(0, 'S8')
+        self.assertMessage(1, 'your_move')
+
+        self.discard(1, 'P1')
+        self.assertMessage(0, 'your_move')
+
+        # P1 would win now, but she's in furiten
+        self.discard(0, 'S5')
+        self.assertMessage(1, 'your_move')
+
+
     def test_short_hand(self):
         self.assertRaises(RuleViolation,
                           lambda: self.g.on_hand(0, 'M1 M2 M3'.split()))
