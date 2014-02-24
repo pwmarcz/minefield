@@ -133,31 +133,41 @@ class Game(object):
 
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
-            full_hand = sorted(self.hand[1-player] + [tile])
-            yaku, dora, limit = rules.eval_hand(
-                full_hand, tile, options=self.options(1-player))
-            if yaku > 0:
-                yaku, dora, limit = rules.eval_hand(
-                    full_hand, tile,
-                    options=self.options(1-player, uradora=True))
-                self.finished = True
-                for i in xrange(2):
-                    self.callback(i, 'ron', {
-                        'player': 1-player,
-                        'hand': full_hand,
-                        'yaku': yaku,
-                        'dora': dora,
-                        'points': rules.BASE_POINTS[limit],
-                        'uradora_ind': self.uradora_ind,
-                    })
+            if self.check_ron(player, tile):
+                return
+
         # draw
-        elif len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
+        if len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
             for i in xrange(2):
                 self.callback(i, 'draw', {})
         # normal turn
         else:
             self.callback(self.player_turn, 'your_move', {})
+
+    def check_ron(self, player, tile):
+        full_hand = sorted(self.hand[1-player] + [tile])
+        hand = rules.best_hand(full_hand, tile, options=self.options(1-player))
+        # Check mangan limit
+        if hand.limit() == 0:
+            return False
+
+        # Compute again, with uradora
+        hand = rules.best_hand(full_hand, tile,
+                               options=self.options(1-player, uradora=True))
+        self.finished = True
+        for i in xrange(2):
+            self.callback(i, 'ron', {
+                'player': 1-player,
+                'hand': full_hand,
+                'yaku': hand.yaku,
+                'yakuman': hand.yakuman,
+                'dora': hand.dora(),
+                'points': rules.BASE_POINTS[hand.limit()],
+                'uradora_ind': self.uradora_ind,
+            })
+
+        return True
 
 
 class GameTestCase(unittest.TestCase):
@@ -199,23 +209,52 @@ class GameTestCase(unittest.TestCase):
                             'you': 1,
                             'east': 0})
 
-    def test_game_scenario(self):
+    def start_game(self, s1, s2):
         self.test_init()
-
-        self.g.on_hand(0, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
+        self.g.on_hand(0, s1.split())
         self.assertMessage(0, 'wait_for_phase_two')
-        self.g.on_hand(1, 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4'.split())
+        self.g.on_hand(1, s2.split())
         self.assertMessageBoth('phase_two')
+
+    def test_draw_scenario(self):
+        self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
+                        'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
 
         for i in xrange(DISCARDS):
             for j in xrange(2):
                 self.assertMessage(j, 'your_move')
                 # Just discard the first choice
                 t = self.g.tiles[j][0]
-                self.g.on_discard(j, t)
-                self.assertMessageBoth('discarded', {'player': j,
-                                                     'tile': t})
+                self.discard(j, t)
         self.assertMessageBoth('draw')
+
+    def discard(self, player, tile):
+        self.g.on_discard(player, tile)
+        self.assertMessageBoth('discarded', {'player': player,
+                                             'tile': tile})
+
+    def test_win(self):
+        # P0: 13-sided kokushi
+        # P1: riichi ippatsu dora - 3 fan, not enough for mangan
+        self.start_game('M1 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7',
+                        'M1 M2 M3 M4 M5 M6 P7 P8 P9 S1 S2 S3 S4')
+        self.assertMessage(0, 'your_move')
+
+        # P1's winning tile - there should be no 'ron' message
+        self.discard(0, 'S4')
+        self.assertMessage(1, 'your_move')
+
+        # Rising Sun!
+        self.discard(1, 'P1')
+        self.assertMessageBoth('ron', {
+            'player': 0,
+            'yaku': ['kokushi'],
+            'yakuman': True,
+            'hand': 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(),
+            'points': 8000,
+            'dora': 0,
+            'uradora_ind': 'M2'
+        })
 
 
     def test_short_hand(self):
