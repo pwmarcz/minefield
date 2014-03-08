@@ -62,10 +62,20 @@ class GameRoom(object):
                          callback=self.game_callback)
         players[0].set_room(self, 0)
         players[1].set_room(self, 1)
+        self.logger = app.logger
         self.game.start()
 
     def game_callback(self, idx, msg_type, msg):
+        self.logger.info('[%X] [to %d] %s %r', id(self), idx, msg_type, msg)
         self.players[idx].emit(msg_type, msg)
+
+    def to_game(self, idx, msg_type, msg):
+        self.logger.info('[%X] [from %d] %s %r', id(self), idx, msg_type, msg)
+        try:
+            getattr(self.game, 'on_'+msg_type)(idx, msg)
+        except:
+            self.logger.exception('[%X] exception in Game', id(self))
+            self.shutdown()
 
     def shutdown(self):
         for i in xrange(2):
@@ -92,11 +102,11 @@ class MinefieldNamespace(BaseNamespace):
         self.logger.info("[disconnect] %s", self.nick)
         SERVER.remove_player(self)
 
-    def on_hand(self, *args):
-        self.room.game.on_hand(self.idx, *args)
+    def on_hand(self, msg):
+        self.room.to_game(self.idx, 'hand', msg)
 
-    def on_discard(self, *args):
-        self.room.game.on_discard(self.idx, *args)
+    def on_discard(self, msg):
+        self.room.to_game(self.idx, 'discard', msg)
 
 
 @app.route('/socket.io/<path:remaining>')
