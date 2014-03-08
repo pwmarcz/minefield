@@ -5,6 +5,8 @@
 function Ui($elt, socket) {
     var self = {
         $elt: $elt,
+        // How long to wait with "your turn / win / lose" after dealing a tile
+        discard_delay: 1000,
     };
 
     if (socket)
@@ -48,8 +50,10 @@ function Ui($elt, socket) {
             self.set_table_phase_2();
         });
         self.socket.on('your_move', function(data) {
-            self.set_status('Your turn!');
-            self.table.discard(self.discard_tile);
+            setTimeout(function() {
+                self.set_status('Your turn!');
+                self.table.discard(self.discard_tile);
+            }, self.discard_delay);
         });
         self.socket.on('discarded', function(data) {
             self.last_discard = data.tile;
@@ -59,11 +63,15 @@ function Ui($elt, socket) {
             self.table.opponent_discard(data.tile);
         });
         self.socket.on('draw', function(data) {
-            self.find('.table').hide();
-            self.find('.end-draw').show();
+            setTimeout(function() {
+                self.find('.table').hide();
+                self.find('.end-draw').show();
+            }, self.discard_delay);
         });
         self.socket.on('ron', function(data) {
-            self.display_ron(data);
+            setTimeout(function() {
+                self.display_ron(data);
+            }, self.discard_delay);
         });
     };
 

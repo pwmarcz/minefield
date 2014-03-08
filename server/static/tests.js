@@ -1,6 +1,7 @@
 
 /* global module, test */
 /* global ok, equal, deepEqual */
+/* global sinon */
 /* global Ui */
 
 // A mock server for socket.io.
@@ -68,17 +69,23 @@ function tiles(sel, expected_tile_codes) {
     deepEqual(tile_codes, expected_tile_codes, 'expected specific tiles at '+sel);
 }
 
-var ui, server;
+var ui, server, clock;
 
-function init_tests() {
+function setup_test() {
     server = Server();
     ui = Ui($('#qunit-fixture .ui'), server.socket);
+    clock = sinon.useFakeTimers();
+}
+
+function teardown_test() {
+    clock.restore();
 }
 
 module(
     'login stage',
     {
-        setup: init_tests
+        setup: setup_test,
+        teardown: teardown_test
     });
 
 test('initialize', function() {
@@ -112,9 +119,10 @@ module(
     'phase one',
     {
         setup: function() {
-            init_tests();
+            setup_test();
             ui.test_phase_1();
-        }
+        },
+        teardown: teardown_test
     });
 
 test('submit hand', function() {
@@ -143,13 +151,16 @@ module(
     'phase two',
     {
         setup: function() {
-            init_tests();
+            setup_test();
             ui.test_phase_2();
-        }
+        },
+        teardown: teardown_test
     });
 
 test('deal when allowed', function() {
     server.send('your_move');
+    equal(ui.table.state, null);
+    clock.tick(ui.discard_delay);
     equal(ui.table.state, 'discard');
 
     $('.tiles .tile').first().click();
@@ -176,6 +187,8 @@ test('display opponent discards', function() {
 
 test('end game by draw', function() {
     server.send('draw');
+    visible('.table');
+    clock.tick(ui.discard_delay);
     invisible('.table');
     visible('.end-draw');
 });
@@ -193,6 +206,8 @@ var RON_DATA = {
 test('win game', function() {
     server.send('discarded', {player: 1, tile: 'S1'});
     server.send('ron', RON_DATA);
+    visible('.table');
+    clock.tick(ui.discard_delay);
     invisible('.table');
     visible('.end-ron');
     equal($('.end-ron .message').text(), 'You won!');
@@ -218,6 +233,7 @@ test('win game with yakuman', function() {
         uradora_ind: 'X1',
         points: 42
     });
+    clock.tick(ui.discard_delay);
     ok(/rising sun/.test($('.end-ron .yaku').text()));
     ok(!/dora/.test($('.end-ron .yaku').text()), "shouldn't list dora");
     ok(!/riichi/.test($('.end-ron .yaku').text()), "shouldn't list riichi");
