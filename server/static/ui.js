@@ -9,6 +9,7 @@ function Ui($elt, socket) {
         discard_delay: 1000,
 
         discard_time_limit: 30 * 1000,
+        hand_time_limit: 3 * 60 * 1000,
         clock: null,
     };
 
@@ -102,7 +103,7 @@ function Ui($elt, socket) {
     self.submit_hand = function(tiles) {
         self.socket.emit('hand', tiles);
         self.set_status('Submitting hand');
-        self.find('.submit-hand').prop('disabled', true);
+        self.hide_clock();
     };
 
     self.discard_tile = function(tile_code) {
@@ -133,6 +134,13 @@ function Ui($elt, socket) {
 
         self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
+
+        self.show_clock(self.hand_time_limit, function() {
+            // Just add as many tiles as will fit
+            self.find('.table .tiles .tile').click();
+            // Submit the hand manually
+            self.find('.table .submit-hand').click();
+        });
     };
 
     self.set_table_phase_2 = function ()
@@ -149,7 +157,6 @@ function Ui($elt, socket) {
         self.table.discard(self.discard_tile);
         self.show_clock(self.discard_time_limit, function() {
             // On timeout, just discard the first available tile.
-            console.log('aaa');
             self.find('.table .tiles .tile').first().click();
         });
     };
@@ -190,12 +197,16 @@ function Ui($elt, socket) {
         self.clock.start = new Date();
         self.clock.time_limit = time_limit;
         self.clock.on_timeout = on_timeout;
-        self.clock.timer_id = setTimeout(self.update_clock, 0);
         self.find('.clock').show();
+        self.update_clock();
     };
 
     self.update_clock = function() {
-        self.clock.timer_id = setTimeout(self.update_clock, 100);
+        console.log('update clock');
+        if (!self.clock)
+            return;
+
+        setTimeout(self.update_clock, 100);
 
         var now = new Date();
         var remaining_ms =
@@ -229,7 +240,6 @@ function Ui($elt, socket) {
     self.hide_clock = function() {
         if (!self.clock)
             return;
-        clearTimeout(self.clock.timer_id);
         self.clock = null;
         self.find('.clock').hide();
     };

@@ -78,6 +78,9 @@ var ui, server, clock;
 function setup_test() {
     server = Server();
     ui = Ui($('#qunit-fixture .main.ui'), server.socket);
+    ui.discard_time_limit = 30 * 1000;
+    ui.hand_time_limit = 3 * 60 * 1000;
+
     clock = sinon.useFakeTimers();
 }
 
@@ -139,7 +142,7 @@ test('submit hand', function() {
     // TODO try removing (possibly split this test case?)
 
     ui.find('.submit-hand').click();
-    disabled('.submit-hand');
+    invisible('.submit-hand');
 
     // TODO try removing again
     server.expect('hand', ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
@@ -150,6 +153,26 @@ test('submit hand', function() {
     server.send('phase_two');
 });
 
+test('display clock while selecting hand', function() {
+    visible('.clock');
+    equal(ui.find('.clock').text(), '3:00');
+
+    clock.tick(15*1000);
+    equal(ui.find('.clock').text(), '2:45');
+    for (var i = 0; i < 13; i++)
+        ui.find('.tiles .tile').click();
+    ui.find('.submit-hand').click();
+    invisible('.clock');
+});
+
+test('auto-submit hand on timeout', function() {
+    visible('.clock');
+    clock.tick(ui.hand_time_limit);
+    invisible('.clock');
+    server.expect('hand', ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
+                           'P1', 'P1', 'P2', 'P2', 'P3', 'P3',
+                           'S1']);
+});
 
 module(
     'phase two',
@@ -176,8 +199,6 @@ test('deal when allowed', function() {
 });
 
 test('show clock while dealing', function() {
-    ui.discard_time_limit = 30*1000;
-
     invisible('.clock');
     server.send('your_move');
     clock.tick(ui.discard_delay);
@@ -193,8 +214,6 @@ test('show clock while dealing', function() {
 });
 
 test('auto-deal on timeout', function() {
-    ui.discard_time_limit = 30*1000;
-
     server.send('your_move');
     clock.tick(ui.discard_delay);
     visible('.clock');
