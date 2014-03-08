@@ -103,7 +103,7 @@ function Ui($elt, socket) {
     self.submit_hand = function(tiles) {
         self.socket.emit('hand', tiles);
         self.set_status('Submitting hand');
-        self.hide_clock();
+        self.on_clock_timeout(null);
     };
 
     self.discard_tile = function(tile_code) {
@@ -135,7 +135,8 @@ function Ui($elt, socket) {
         self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
 
-        self.show_clock(self.hand_time_limit, function() {
+        self.show_clock(self.hand_time_limit);
+        self.on_clock_timeout(function() {
             // Just add as many tiles as will fit
             self.find('.table .tiles .tile').click();
             // Submit the hand manually
@@ -145,17 +146,15 @@ function Ui($elt, socket) {
 
     self.set_table_phase_2 = function ()
     {
-        // TODO:
-        // move disposable space & hand to make space for discarded tiles
-        // display discarded tiles
-        // display turn marker
+        self.hide_clock();
         self.set_status('');
     };
 
     self.start_move = function() {
         self.set_status('Your turn!');
         self.table.discard(self.discard_tile);
-        self.show_clock(self.discard_time_limit, function() {
+        self.show_clock(self.discard_time_limit);
+        self.on_clock_timeout(function() {
             // On timeout, just discard the first available tile.
             self.find('.table .tiles .tile').first().click();
         });
@@ -194,17 +193,23 @@ function Ui($elt, socket) {
             ['?', 'mangan', 'haneman', 'baiman', 'sanbaiman', 'yakuman'][data.limit]);
     };
 
-    self.show_clock = function(time_limit, on_timeout) {
+    self.show_clock = function(time_limit) {
         self.clock = {};
         self.clock.start = new Date();
         self.clock.time_limit = time_limit;
-        self.clock.on_timeout = on_timeout;
+        self.clock.on_timeout = null;
         self.find('.clock').show();
         self.update_clock();
     };
 
+    self.on_clock_timeout = function(on_timeout) {
+        if (!self.clock)
+            return;
+
+        self.clock.on_timeout = on_timeout;
+    };
+
     self.update_clock = function() {
-        console.log('update clock');
         if (!self.clock)
             return;
 
@@ -235,7 +240,8 @@ function Ui($elt, socket) {
         } else {
             var on_timeout = self.clock.on_timeout;
             self.hide_clock();
-            on_timeout();
+            if (on_timeout)
+                on_timeout();
         }
     };
 

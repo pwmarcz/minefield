@@ -162,13 +162,17 @@ test('display clock while selecting hand', function() {
     for (var i = 0; i < 13; i++)
         ui.find('.tiles .tile').click();
     ui.find('.submit-hand').click();
+    server.send('wait_for_phase_two');
+
+    // The clock is still counting down, until the opponent finishes as well.
+    visible('.clock');
+    server.send('phase_two');
     invisible('.clock');
 });
 
 test('auto-submit hand on timeout', function() {
     visible('.clock');
     clock.tick(ui.hand_time_limit);
-    invisible('.clock');
     server.expect('hand', ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
                            'P1', 'P1', 'P2', 'P2', 'P3', 'P3',
                            'S1']);
