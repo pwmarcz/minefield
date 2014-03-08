@@ -13,6 +13,8 @@ function Ui($elt, socket) {
         self.socket = socket;
 
     self.init = function() {
+        self.$elt.html($('#templates > .ui').html());
+
         self.init_elements();
         self.init_network();
     };
@@ -169,7 +171,7 @@ function Ui($elt, socket) {
         if (!data.yakuman && data.dora > 0)
             add_yaku('dora '+data.dora);
 
-        $('.end-ron .points').text(data.points);
+        self.find('.end-ron .points').text(data.points);
     };
 
     self.test_phase_1 = function() {

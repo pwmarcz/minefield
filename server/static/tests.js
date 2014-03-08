@@ -73,7 +73,7 @@ var ui, server, clock;
 
 function setup_test() {
     server = Server();
-    ui = Ui($('#qunit-fixture .ui'), server.socket);
+    ui = Ui($('#qunit-fixture .main.ui'), server.socket);
     clock = sinon.useFakeTimers();
 }
 
@@ -93,8 +93,8 @@ test('initialize', function() {
 });
 
 test('log in', function() {
-    $('input[name=nick]').val('Akagi');
-    $('.login-button').click();
+    ui.find('input[name=nick]').val('Akagi');
+    ui.find('.login-button').click();
     disabled('.login');
     server.expect('hello', 'Akagi');
 
@@ -110,8 +110,8 @@ test('log in', function() {
     tiles('.dora-display', ['X3']);
     tiles('.tiles', ['X1', 'X2', 'X3']);
     visible('.nicks');
-    equal($('.nicks .you').text(), 'Washizu');
-    equal($('.nicks .opponent').text(), 'Akagi');
+    equal(ui.find('.nicks .you').text(), 'Washizu');
+    equal(ui.find('.nicks .opponent').text(), 'Akagi');
 });
 
 
@@ -128,13 +128,13 @@ module(
 test('submit hand', function() {
     for (var i = 0; i < 13; i++) {
         disabled('.submit-hand');
-        $('.tiles .tile').first().click();
+        ui.find('.tiles .tile').first().click();
     }
     enabled('.submit-hand');
 
     // TODO try removing (possibly split this test case?)
 
-    $('.submit-hand').click();
+    ui.find('.submit-hand').click();
     disabled('.submit-hand');
 
     // TODO try removing again
@@ -163,7 +163,7 @@ test('deal when allowed', function() {
     clock.tick(ui.discard_delay);
     equal(ui.table.state, 'discard');
 
-    $('.tiles .tile').first().click();
+    ui.find('.tiles .tile').first().click();
     tiles('.discards', ['S1']);
     server.expect('discard', 'S1');
     equal(ui.table.state, null);
@@ -178,7 +178,7 @@ test('show riichi stick after first discard', function() {
     invisible('.stick');
     invisible('.opponent-stick');
 
-    $('.tiles .tile').first().click();
+    ui.find('.tiles .tile').first().click();
     server.send('discarded', {player: 0, tile: 'S1'});
     visible('.stick');
     invisible('.opponent-stick');
@@ -191,7 +191,7 @@ test('show riichi stick after first discard', function() {
 test('not deal when not allowed', function() {
     equal(ui.table.state, null);
 
-    $('.tiles .tile').first().click();
+    ui.find('.tiles .tile').first().click();
     tiles('.discards', []);
     server.no_messages();
 });
@@ -227,16 +227,16 @@ test('win game', function() {
     clock.tick(ui.discard_delay);
     invisible('.table');
     visible('.end-ron');
-    equal($('.end-ron .message').text(), 'You won!');
+    equal(ui.find('.end-ron .message').text(), 'You won!');
     // winning tile should be displayed next to the hand
     tiles('.end-ron .winning-hand', ['S1', 'S2', 'S3', 'S4', 'S1']);
     // M1 is dora indicator from Ui.test_phase_1
     tiles('.end-ron .doras-ind', ['M1', RON_DATA.uradora_ind]);
-    ok(/riichi/.test($('.end-ron .yaku').text()));
-    ok(/ban tan/.test($('.end-ron .yaku').text()));
-    ok(/tao tao/.test($('.end-ron .yaku').text()));
-    ok(/dora 3/.test($('.end-ron .yaku').text()));
-    equal($('.end-ron .points').text(), '7');
+    ok(/riichi/.test(ui.find('.end-ron .yaku').text()));
+    ok(/ban tan/.test(ui.find('.end-ron .yaku').text()));
+    ok(/tao tao/.test(ui.find('.end-ron .yaku').text()));
+    ok(/dora 3/.test(ui.find('.end-ron .yaku').text()));
+    equal(ui.find('.end-ron .points').text(), '7');
 });
 
 test('win game with yakuman', function() {
@@ -251,7 +251,7 @@ test('win game with yakuman', function() {
         points: 42
     });
     clock.tick(ui.discard_delay);
-    ok(/rising sun/.test($('.end-ron .yaku').text()));
-    ok(!/dora/.test($('.end-ron .yaku').text()), "shouldn't list dora");
-    ok(!/riichi/.test($('.end-ron .yaku').text()), "shouldn't list riichi");
+    ok(/rising sun/.test(ui.find('.end-ron .yaku').text()));
+    ok(!/dora/.test(ui.find('.end-ron .yaku').text()), "shouldn't list dora");
+    ok(!/riichi/.test(ui.find('.end-ron .yaku').text()), "shouldn't list riichi");
 });
