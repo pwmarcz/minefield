@@ -209,13 +209,12 @@ function Ui($elt, socket) {
             return s;
         }
 
-        if (remaining_seconds >= 0) {
+        if (remaining_seconds > 0) {
             var $clock = self.find('.clock');
             $clock.text(
                 Math.floor(remaining_seconds / 60) +
                 ':' +
                 pad_zeros(remaining_seconds % 60, 2));
-            $clock.data('seconds', remaining_seconds);
             if (remaining_seconds <= 10)
                 $clock.addClass('warning');
             else
@@ -228,6 +227,8 @@ function Ui($elt, socket) {
     };
 
     self.hide_clock = function() {
+        if (!self.clock)
+            return;
         clearTimeout(self.clock.timer_id);
         self.clock = null;
         self.find('.clock').hide();
@@ -250,7 +251,6 @@ function Ui($elt, socket) {
         self.find('.tiles .tile').click();
         self.table.on_select_hand = function () {};
         self.table.select_hand_complete();
-        self.start_move();
     };
 
     self.test_ron = function() {

@@ -175,6 +175,35 @@ test('deal when allowed', function() {
     server.send('discarded', {player: 0, tile: 'S1'});
 });
 
+test('show clock while dealing', function() {
+    ui.discard_time_limit = 30*1000;
+
+    invisible('.clock');
+    server.send('your_move');
+    clock.tick(ui.discard_delay);
+
+    visible('.clock');
+    equal(ui.find('.clock').text(), '0:30');
+
+    clock.tick(15*1000);
+    equal(ui.find('.clock').text(), '0:15');
+
+    ui.find('.tiles .tile').first().click();
+    invisible('.clock');
+});
+
+test('auto-deal on timeout', function() {
+    ui.discard_time_limit = 30*1000;
+
+    server.send('your_move');
+    clock.tick(ui.discard_delay);
+    visible('.clock');
+
+    clock.tick(ui.discard_time_limit);
+    invisible('.clock');
+    server.expect('discard', 'S1');
+});
+
 test('show riichi stick after first discard', function() {
     server.send('your_move');
     clock.tick(ui.discard_delay);
