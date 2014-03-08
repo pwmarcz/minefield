@@ -164,6 +164,7 @@ class Game(object):
                 'yakuman': hand.yakuman,
                 'dora': hand.dora(),
                 'points': rules.BASE_POINTS[hand.limit()],
+                'limit': hand.limit(),
                 'uradora_ind': self.uradora_ind,
             })
 
@@ -252,6 +253,7 @@ class GameTestCase(unittest.TestCase):
             'yakuman': True,
             'hand': 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(),
             'points': 4000,
+            'limit': 5,
             'dora': 0,
             'uradora_ind': 'M2'
         })

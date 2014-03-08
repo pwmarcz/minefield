@@ -190,6 +190,8 @@ function Ui($elt, socket) {
             add_yaku('dora '+data.dora);
 
         self.find('.end-ron .points').text(data.points);
+        self.find('.end-ron .limit').text(
+            ['?', 'mangan', 'haneman', 'baiman', 'sanbaiman', 'yakuman'][data.limit]);
     };
 
     self.show_clock = function(time_limit, on_timeout) {
@@ -272,7 +274,8 @@ function Ui($elt, socket) {
             yaku: ['Polish Riichi', 'Ban Tan'],
             dora: 3,
             uradora_ind: 'X1',
-            points: 7
+            points: 7,
+            limit: 3
         });
     };
 
