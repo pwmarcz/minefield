@@ -36,7 +36,7 @@ function Ui($elt, socket) {
 
     self.init_network = function() {
         if (!self.socket) {
-            self.socket = io.connect('/minefield', { reconnection: false });
+            self.socket = io.connect('/minefield', { reconnect: false });
             self.set_overlay('Connecting to server');
             self.socket.on('connect', self.clear_overlay);
         }
