@@ -171,6 +171,23 @@ test('deal when allowed', function() {
     server.send('discarded', {player: 0, tile: 'S1'});
 });
 
+test('show riichi stick after first discard', function() {
+    server.send('your_move');
+    clock.tick(ui.discard_delay);
+
+    invisible('.stick');
+    invisible('.opponent-stick');
+
+    $('.tiles .tile').first().click();
+    server.send('discarded', {player: 0, tile: 'S1'});
+    visible('.stick');
+    invisible('.opponent-stick');
+
+    server.send('discarded', {player: 1, tile: 'S1'});
+    visible('.stick');
+    visible('.opponent-stick');
+});
+
 test('not deal when not allowed', function() {
     equal(ui.table.state, null);
 

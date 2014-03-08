@@ -88,12 +88,19 @@ function Table($elt, data, complete) {
         self.state = null;
         var tile_code = $tile.data('tile');
         $tile.replaceWith(Tiles.create_placeholder($tile));
+
+        if (self.find('.discards .tile').length === 0)
+            self.find('.stick').show();
+
         $tile.appendTo(self.find('.discards'));
         self.find('.tiles').removeClass('tiles-clickable');
         self.on_discard(tile_code);
     };
 
     self.opponent_discard = function(tile_code) {
+        if (self.find('.opponent-discards .tile').length === 0)
+            self.find('.opponent-stick').show();
+
         self.find('.opponent-discards').append(Tiles.create(tile_code));
     };
 

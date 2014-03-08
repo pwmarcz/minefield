@@ -142,6 +142,24 @@
     height: 100%;
 }
 
+.table .any-stick {
+    width: 120px;
+    height: 10px;
+    background: url(stick.svg);
+}
+
+.table .stick {
+    position: absolute;
+    left: 240px;
+    bottom: 314px;
+}
+
+.table .opponent-stick {
+    position: absolute;
+    left: 240px;
+    bottom: 336px;
+}
+
 .submit-hand {
     position: absolute;
     right: 10px;
