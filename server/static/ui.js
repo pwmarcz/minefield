@@ -28,9 +28,15 @@ function Ui($elt, socket) {
     };
 
     self.init_elements = function() {
-        self.$elt.on('click', '.login button', function() {
-            self.login();
+        self.find('.login button').click(self.login);
+        self.find('.login input').keyup(function(e) {
+            if (e.which == 13) {
+                e.preventDefault();
+                this.blur();
+                self.login();
+            }
         });
+
         self.set_status('Enter nick and press Login');
     };
 
