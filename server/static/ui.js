@@ -7,6 +7,9 @@ function Ui($elt, socket) {
         $elt: $elt,
         // How long to wait with "your turn / win / lose" after dealing a tile
         discard_delay: 1000,
+
+        discard_time_limit: 30 * 1000,
+        clock: null,
     };
 
     if (socket)
@@ -52,10 +55,7 @@ function Ui($elt, socket) {
             self.set_table_phase_2();
         });
         self.socket.on('your_move', function(data) {
-            setTimeout(function() {
-                self.set_status('Your turn!');
-                self.table.discard(self.discard_tile);
-            }, self.discard_delay);
+            setTimeout(self.start_move, self.discard_delay);
         });
         self.socket.on('discarded', function(data) {
             self.last_discard = data.tile;
@@ -87,7 +87,7 @@ function Ui($elt, socket) {
     };
 
     self.set_status = function(status) {
-        self.find('.status').text(status);
+        self.find('.status .status-text').text(status);
     };
 
     self.set_overlay = function(status) {
@@ -108,6 +108,7 @@ function Ui($elt, socket) {
     self.discard_tile = function(tile_code) {
         self.socket.emit('discard', tile_code);
         self.set_status('');
+        self.hide_clock();
     };
 
     self.set_table_phase_1 = function(data) {
@@ -143,6 +144,16 @@ function Ui($elt, socket) {
         self.set_status('');
     };
 
+    self.start_move = function() {
+        self.set_status('Your turn!');
+        self.table.discard(self.discard_tile);
+        self.show_clock(self.discard_time_limit, function() {
+            // On timeout, just discard the first available tile.
+            console.log('aaa');
+            self.find('.table .tiles .tile').first().click();
+        });
+    };
+
     self.display_ron = function(data) {
         self.find('.table').hide();
         self.find('.end-ron').show();
@@ -174,6 +185,54 @@ function Ui($elt, socket) {
         self.find('.end-ron .points').text(data.points);
     };
 
+    self.show_clock = function(time_limit, on_timeout) {
+        self.clock = {};
+        self.clock.start = new Date();
+        self.clock.time_limit = time_limit;
+        self.clock.on_timeout = on_timeout;
+        self.clock.timer_id = setTimeout(self.update_clock, 0);
+        self.find('.clock').show();
+    };
+
+    self.update_clock = function() {
+        self.clock.timer_id = setTimeout(self.update_clock, 100);
+
+        var now = new Date();
+        var remaining_ms =
+            self.clock.start.getTime() + self.clock.time_limit - now.getTime();
+        var remaining_seconds = Math.ceil(remaining_ms / 1000);
+
+        function pad_zeros(number, n) {
+            var s = number.toString();
+            while (s.length < n)
+                s = '0' + s;
+            return s;
+        }
+
+        if (remaining_seconds >= 0) {
+            var $clock = self.find('.clock');
+            $clock.text(
+                Math.floor(remaining_seconds / 60) +
+                ':' +
+                pad_zeros(remaining_seconds % 60, 2));
+            $clock.data('seconds', remaining_seconds);
+            if (remaining_seconds <= 10)
+                $clock.addClass('warning');
+            else
+                $clock.removeClass('warning');
+        } else {
+            var on_timeout = self.clock.on_timeout;
+            self.hide_clock();
+            on_timeout();
+        }
+    };
+
+    self.hide_clock = function() {
+        clearTimeout(self.clock.timer_id);
+        self.clock = null;
+        self.find('.clock').hide();
+    };
+
     self.test_phase_1 = function() {
         self.set_table_phase_1({
             nicks: ['Akagi', 'Washizu'],
@@ -191,6 +250,7 @@ function Ui($elt, socket) {
         self.find('.tiles .tile').click();
         self.table.on_select_hand = function () {};
         self.table.select_hand_complete();
+        self.start_move();
     };
 
     self.test_ron = function() {

@@ -50,7 +50,23 @@
 
 .ui .status, .ui .nicks {
     height: 23px;
+    line-height: 23px;
     border: 1px solid black;
+}
+
+.ui .status .status-text,
+.ui .status .clock {
+    display: inline-block;
+}
+
+.ui .status .clock {
+    float: right;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.ui .status .clock.warning {
+    color: red;
 }
 
 .tile, .tile-placeholder {
