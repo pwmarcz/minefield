@@ -36,15 +36,16 @@ function Ui($elt, socket) {
 
     self.init_network = function() {
         if (!self.socket) {
-            self.socket = io.connect('/minefield');
+            self.socket = io.connect('/minefield', { reconnection: false });
             self.set_overlay('Connecting to server');
             self.socket.on('connect', self.clear_overlay);
         }
 
         self.socket.on('disconnect', function(data) {
-            self.set_overlay('Connection lost :(');
-            // don't reconnect - we're not able to restart a game
-            self.socket.disconnect();
+            self.hide_clock();
+            // Show overlay after some time - don't show it if the browser is
+            // just leaving the page
+            setTimeout(function() { self.set_overlay('Connection lost'); }, 500);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);

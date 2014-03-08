@@ -27,113 +27,76 @@ class ServerState():
         self.game_players = {}
         '''Game -> (player, player) mapping for socket lookup'''
 
-state = ServerState()
+        self.logger = app.logger
 
-def session_property(name):
-    def fget(self):
-        try:
-            return self.socket.session[name]
-        except KeyError:
-            raise AttributeError(name)
-    def fset(self, val):
-        self.socket.session[name] = val
-    def fdel(self):
-        del self.socket.session[name]
-    return property(fget=fget, fset=fset, fdel=fdel)
+    def add_player(self, player):
+        '''Adds a player to the server.
+        Returns True if a game has started.'''
 
-def forward_to_game(func):
-    '''
-    translates a client call like:
+        if self.waiting_player:
+            players = (self.waiting_player, player)
+            room = GameRoom(players)
+            self.waiting_player = None
+            self.logger.info('[game start] %s vs %s', players[0].nick, players[1].nick)
+            return True
+        else:
+            self.waiting_player = player
+            return False
 
-        socket.emit('msg', arg1, arg2);
+    def remove_player(self, player):
+        if player == self.waiting_player:
+            self.waiting_player = None
+            player.disconnect()
+        elif player.room:
+            player.room.shutdown()
+        else:
+            player.disconnect()
 
-    to the given player's Game, in the following way:
-
-        game.on_msg(player, arg1, arg2)
-
-    '''
-    import functools
-    fname = func.__name__
-    assert fname.startswith('on_')
-    @functools.wraps(func)
-    def wrapped(self, *args):
-        self.logger.info('[from %d] %s', self.idx, fname)
-        try:
-            game = self.game
-        except AttributeError:
-            # player has no game, meh
-            return
-        getattr(game, fname)(self.idx, *args)
-    return wrapped
+SERVER = ServerState()
 
 
-class MinefieldNamespace(BaseNamespace, RoomsMixin, BroadcastMixin):
+class GameRoom(object):
+    def __init__(self, players):
+        self.players = players
+        self.game = Game(nicks=[p.nick for p in players],
+                         callback=self.game_callback)
+        players[0].set_room(self, 0)
+        players[1].set_room(self, 1)
+        self.game.start()
 
-    # BTW wouldn't regular instance object work here?
-    # -- probably they would, but things get complicated when one socket has several namespaces
-    nick = session_property('nick')
-    idx = session_property('idx')
-    game = session_property('game')
+    def game_callback(self, idx, msg_type, msg):
+        self.players[idx].emit(msg_type, msg)
 
+    def shutdown(self):
+        for i in xrange(2):
+            self.players[i].disconnect()
+
+
+class MinefieldNamespace(BaseNamespace):
     def initialize(self):
-        MinefieldNamespace.logger = app.logger
-
-
-    def on_ping(self, n):
-        self.emit('pong', n*2)
-
+        self.logger = app.logger
+        self.nick = ''
+        self.room = None
+        self.idx = None
 
     def on_hello(self, nick):
         self.nick = nick
-        if state.waiting_player is None:
-            self.logger.info('[join] %s (waiting)', nick)
-            state.waiting_player = self
+        if not SERVER.add_player(self):
             self.emit('wait')
-        else:
-            self.logger.info('[join] %s (match)', nick)
-            self.start_game((state.waiting_player, self))
-            state.waiting_player = None
 
-
-    def start_game(self, players):
-        # TODO stay safe, check for duplicate rooms
-        room_id = str(random.randint(10, 100000))
-        game = Game(nicks=[p.nick for p in players], callback=self.game_callback)
-        for player, opponent in zip(players, players[::-1]):
-            player.join(room_id) # hmm, socket.io rooms are kinda unused here
-            player.game = game
-        for i in xrange(2):
-            players[i].idx = i
-        state.game_players[game] = players
-        game.start()
-        self.logger.info('[game start] %s vs %s, room %s', players[0].nick, players[1].nick, room_id)
-
-
-    def game_callback(self, player_idx, msg_type, msg):
-        self.logger.info('[to %d] %s %s', player_idx, msg_type, msg)
-        state.game_players[self.game][player_idx].emit(msg_type, msg)
-
+    def set_room(self, room, idx):
+        self.room = room
+        self.idx = idx
 
     def recv_disconnect(self):
-        if hasattr(self, 'game'):
-            # TODO kill the game, notify the other player
-            pass
-        if self is state.waiting_player:
-            state.waiting_player = None
-        nick = getattr(self, 'nick', '((anonymous))')
-        self.logger.info("[disconnect] %s", nick)
-        self.disconnect(silent=True) # btw why is that needed?
+        self.logger.info("[disconnect] %s", self.nick)
+        SERVER.remove_player(self)
 
+    def on_hand(self, *args):
+        self.room.game.on_hand(self.idx, *args)
 
-    @forward_to_game
-    def on_hand():
-        pass
-
-    @forward_to_game
-    def on_discard():
-        pass
-
-
+    def on_discard(self, *args):
+        self.room.game.on_discard(self.idx, *args)
 
 
 @app.route('/socket.io/<path:remaining>')
