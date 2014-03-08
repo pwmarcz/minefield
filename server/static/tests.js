@@ -48,24 +48,28 @@ function Server() {
     return self;
 }
 
+function find(sel) {
+    return $('#qunit-fixture').find(sel);
+}
+
 function invisible(sel) {
-    ok($(sel).not(':visible'), sel+' shouldn\'t be visible');
+    ok(find(sel).not(':visible'), sel+' shouldn\'t be visible');
 }
 
 function visible(sel) {
-    ok($(sel).is(':visible'), sel+' should be visible');
+    ok(find(sel).is(':visible'), sel+' should be visible');
 }
 
 function disabled(sel) {
-    ok($(sel).not(':enabled'), sel+' shouldn\'t be enabled');
+    ok(find(sel).not(':enabled'), sel+' shouldn\'t be enabled');
 }
 
 function enabled(sel) {
-    ok($(sel).is(':enabled'), sel+' should be enabled');
+    ok(find(sel).is(':enabled'), sel+' should be enabled');
 }
 
 function tiles(sel, expected_tile_codes) {
-    var tile_codes = $.map($(sel).find('.tile'), function(tile) { return $(tile).data('tile'); });
+    var tile_codes = $.map(find(sel).find('.tile'), function(tile) { return $(tile).data('tile'); });
     deepEqual(tile_codes, expected_tile_codes, 'expected specific tiles at '+sel);
 }
 
