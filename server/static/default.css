@@ -32,9 +32,9 @@
 
 .ui .overlay {
     position: absolute;
-    top: 24px;
+    top: 25px;
     background: rgba(128, 128, 128, 0.5);
-    z-index: 44;
+
 }
 
 .ui .overlay div {
@@ -58,6 +58,7 @@
 .ui .status, .ui .nicks {
     height: 23px;
     line-height: 23px;
+    padding: 0 5px;
     border: 1px solid black;
 }
 
