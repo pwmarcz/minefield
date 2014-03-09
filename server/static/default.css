@@ -5,6 +5,12 @@
   Right now we assume tiles are 30px x 44px.
 */
 
+.page {
+    width: 610px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 .ui {
     display: inline-block;
     position: relative;
@@ -13,6 +19,7 @@
 .ui .main-part {
     width: 600px;
     height: 506px;
+    border: solid 5px transparent;
 }
 
 /* Prevent margin collapsing */
@@ -36,7 +43,7 @@
     font-size: 30px;
 }
 
-.table {
+.ui .table {
     position: relative;
     background-color: green;
     background: url(table.svg);
