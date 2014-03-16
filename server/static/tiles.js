@@ -5,7 +5,6 @@ var Tiles = {};
 
 Tiles.create = function(tile_type) {
     var newtile = $('<div class="tile"/>');
-    newtile.append($("<img/>").attr('src', 'tiles/'+tile_type+'.svg'));
     newtile.attr("data-tile", tile_type);
     newtile.attr("title", Tiles.describe(tile_type));
     return newtile;

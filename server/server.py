@@ -18,6 +18,13 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 def hello():
     return flask.redirect('/ui.html')
 
+@app.route("/sprites.css")
+def sprites():
+    suits = enumerate('MPSX')
+    return flask.Response(
+        flask.render_template('sprites.css', suits=suits),
+        mimetype='text/css')
+
 
 class ServerState():
     def __init__(self):
