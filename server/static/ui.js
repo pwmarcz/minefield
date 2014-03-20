@@ -178,7 +178,7 @@ function Ui($elt, socket) {
                 '.tile[data-tile='+self.last_discard+']').first();
         $winning_tile.detach();
         self.find('.end-ron .winning-hand').
-            append($('<div class="tile placeholder">')).
+            append($('<div class="tile-placeholder">')).
             append($winning_tile);
         Tiles.add(self.find('.end-ron .doras-ind'),
                   [self.dora_ind, data.uradora_ind]);
@@ -281,7 +281,8 @@ function Ui($elt, socket) {
         self.last_discard = 'S1';
         self.display_ron({
             player: 0,
-            hand: ['S1', 'S1', 'S2', 'S3', 'S4'],
+            hand: ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
+                   'P1', 'P1', 'P2', 'P2', 'P3', 'P3', 'S1', 'S1'],
             yaku: ['Polish Riichi', 'Ban Tan'],
             dora: 3,
             uradora_ind: 'X1',
