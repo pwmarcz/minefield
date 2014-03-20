@@ -5,6 +5,10 @@
   Right now we assume tiles are 30px x 44px.
 */
 
+body {
+    font-family: Tahoma, Geneva, sans-serif;
+}
+
 .page {
     width: 610px;
     margin-left: auto;
@@ -16,25 +20,13 @@
     position: relative;
 }
 
-.ui .main-part {
-    width: 600px;
-    height: 506px;
-    border: solid 5px transparent;
-}
-
-/* Prevent margin collapsing */
-.ui .main-part:before {
-    content: "\00a0"; /* No-break space character */
-    display: block;
-    overflow: hidden;
-    height: 0;
-}
-
 .ui .overlay {
     position: absolute;
     top: 25px;
     background: rgba(128, 128, 128, 0.5);
-
+    width: 600px;
+    height: 506px;
+    border: solid 5px transparent;
 }
 
 .ui .overlay div {
@@ -43,7 +35,34 @@
     font-size: 30px;
 }
 
+.ui .popup {
+    position: absolute;
+    top: 75px;
+    left: 50px;
+    width: 500px;
+    height: 400px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 5px;
+    box-shadow: 0 0 20px darkgreen;
+}
+
+.ui .popup h2 {
+    text-align: center;
+    margin: 5px 0;
+}
+
+/* Prevent margin collapsing */
+.ui .table:before {
+    content: "\00a0"; /* No-break space character */
+    display: block;
+    overflow: hidden;
+    height: 0;
+}
+
 .ui .table {
+    width: 600px;
+    height: 506px;
     position: relative;
     background-color: green;
     background: url(table.svg);

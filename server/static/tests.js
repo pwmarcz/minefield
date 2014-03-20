@@ -53,7 +53,7 @@ function find(sel) {
 }
 
 function invisible(sel) {
-    ok(find(sel).not(':visible'), sel+' shouldn\'t be visible');
+    ok(!find(sel).is(':visible'), sel+' shouldn\'t be visible');
 }
 
 function visible(sel) {
@@ -61,7 +61,7 @@ function visible(sel) {
 }
 
 function disabled(sel) {
-    ok(find(sel).not(':enabled'), sel+' shouldn\'t be enabled');
+    ok(!find(sel).is(':enabled'), sel+' shouldn\'t be enabled');
 }
 
 function enabled(sel) {
@@ -113,7 +113,6 @@ test('log in', function() {
         you: 1
     });
 
-    visible('.table');
     tiles('.dora-display', ['X3']);
     tiles('.tiles', ['X1', 'X2', 'X3']);
     visible('.nicks');
@@ -260,9 +259,8 @@ test('display opponent discards', function() {
 
 test('end game by draw', function() {
     server.send('draw');
-    visible('.table');
+    invisible('.end-draw');
     clock.tick(ui.discard_delay);
-    invisible('.table');
     visible('.end-draw');
 });
 
@@ -279,9 +277,8 @@ var RON_DATA = {
 test('win game', function() {
     server.send('discarded', {player: 1, tile: 'S1'});
     server.send('ron', RON_DATA);
-    visible('.table');
+    invisible('.end-ron');
     clock.tick(ui.discard_delay);
-    invisible('.table');
     visible('.end-ron');
     equal(ui.find('.end-ron .message').text(), 'You won!');
     // winning tile should be displayed next to the hand

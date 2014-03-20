@@ -74,7 +74,6 @@ function Ui($elt, socket) {
         });
         self.socket.on('draw', function(data) {
             setTimeout(function() {
-                self.find('.table').hide();
                 self.find('.end-draw').show();
             }, self.discard_delay);
         });
@@ -132,7 +131,6 @@ function Ui($elt, socket) {
                 east: data.east,
                 you: data.you
             });
-        self.find('.table').show();
 
         self.find('.nicks .you').text(
             data.nicks[self.player] || 'Anonymous');
@@ -168,7 +166,6 @@ function Ui($elt, socket) {
     };
 
     self.display_ron = function(data) {
-        self.find('.table').hide();
         self.find('.end-ron').show();
         if (data.player == self.player)
             self.find('.end-ron .message').text('You won!');
@@ -276,6 +273,7 @@ function Ui($elt, socket) {
         self.find('.tiles .tile').click();
         self.table.on_select_hand = function () {};
         self.table.select_hand_complete();
+        self.set_table_phase_2();
     };
 
     self.test_ron = function() {
