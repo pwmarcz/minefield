@@ -16,7 +16,7 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 @app.route("/")
 def hello():
-    return flask.redirect('/ui.html')
+    return flask.redirect('/index.html')
 
 class ServerState():
     def __init__(self):
