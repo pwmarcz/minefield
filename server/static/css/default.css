@@ -65,7 +65,7 @@ body {
     height: 506px;
     position: relative;
     background-color: green;
-    background: url(table.svg);
+    background: url(../img/table.svg);
     background-position: bottom;
     border: solid 5px darkgreen;
     color: white;
@@ -183,7 +183,7 @@ body {
 .table .any-stick {
     width: 120px;
     height: 10px;
-    background: url(stick.svg);
+    background: url(../img/stick.svg);
 }
 
 .table .stick {
