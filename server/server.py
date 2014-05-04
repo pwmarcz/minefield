@@ -1,5 +1,6 @@
 import random
 import flask
+import argparse
 
 import socketio
 import socketio.server
@@ -10,7 +11,6 @@ from game import Game
 
 
 app = flask.Flask(__name__, static_folder='static', static_url_path='')
-app.debug = True
 # Turn off Cache-Control to prevent aggressive caching during development
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
@@ -118,9 +118,21 @@ def run_socketio(remaining):
     return flask.Response()
 
 
-if __name__ == '__main__':
+def main():
+    parser = argparse.ArgumentParser(description='Serve the Minefield Mahjong application.')
+    parser.add_argument('--host', metavar='IP', type=str, default='127.0.0.1')
+    parser.add_argument('--port', metavar='PORT', type=int, default=8080)
+    parser.add_argument('--debug', action='store_true', default=False, help='Run Flask in debug mode')
+
+    args = parser.parse_args()
+
     from gevent import monkey
     monkey.patch_all()
 
-    server = socketio.server.SocketIOServer(('', 8080), app, resource="socket.io")
+    app.debug = args.debug
+    print 'Starting server:', args
+    server = socketio.server.SocketIOServer((args.host, args.port), app, resource="socket.io")
     server.serve_forever()
+
+if __name__ == '__main__':
+    main()

@@ -8,8 +8,16 @@ Install Python libraries:
 
   $ pip install -r requirements.txt
 
+To develop:
+
+  $ make watch  # watch SCSS for changes
+  $ make serve
+
+  then browse to localhost:8080.
+
 Server make targets are:
 
   - make css - recompile SCSS
   - make watch - recompiles CSS on each change
-  - make serve - serve the website on 0.0.0.0: 8080
+  - make serve - serve the website in development mode
+  - make serve_prod - serve the website in production mode
