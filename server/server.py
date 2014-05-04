@@ -18,6 +18,11 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 def hello():
     return flask.redirect('/index.html')
 
+# Legacy redirect
+@app.route("/ui.html")
+def ui():
+    return flask.redirect('/index.html')
+
 class ServerState():
     def __init__(self):
         self.waiting_player = None
