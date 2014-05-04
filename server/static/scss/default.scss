@@ -39,8 +39,9 @@ body {
   box-shadow: 0 0 30px 30px $dark;
 }
 
-#footer {
-  font-size: small;
+.footer {
+  margin-top: 2em;
+  font-size: 11px;
 }
 
 // Don't let page box-shadow overlap the qunit output
