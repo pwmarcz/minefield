@@ -37,6 +37,10 @@ function Ui($elt, socket) {
             }
         });
 
+        self.$elt.on('click', '.reload', function() {
+            window.location.reload();
+        });
+
         self.set_status('Enter nick and press Login');
     };
 
@@ -54,7 +58,9 @@ function Ui($elt, socket) {
             self.hide_clock();
             // Show overlay after some time - don't show it if the browser is
             // just leaving the page
-            setTimeout(function() { self.set_overlay('Connection lost'); }, 500);
+            setTimeout(function() {
+                self.set_overlay('Connection lost', true);
+            }, 500);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
@@ -100,9 +106,11 @@ function Ui($elt, socket) {
         self.find('.status .status-text').text(status);
     };
 
-    self.set_overlay = function(status) {
+    self.set_overlay = function(status, show_reload) {
         self.find('.overlay').show();
-        self.find('.overlay div').text(status);
+        self.find('.overlay .message').text(status);
+        if (show_reload)
+            self.find('.overlay .reload').show();
     };
 
     self.clear_overlay = function() {
