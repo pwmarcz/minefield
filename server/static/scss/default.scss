@@ -1,222 +1,219 @@
-/* -*- css-indent-offset: 4 -*- */
-
 /*
   See table.svg for source of all measurements and positions.
   Right now we assume tiles are 30px x 44px.
-*/
+  */
 
 // Global styles
 
 body {
-    font-family: Tahoma, Geneva, sans-serif;
+  font-family: Tahoma, Geneva, sans-serif;
 }
 
 // * { box-sizing: border-box; }
 
 .page {
-    width: 610px;
-    margin-left: auto;
-    margin-right: auto;
+  width: 610px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 #footer {
-    font-size: small;
+  font-size: small;
 }
 
 // UI
 
 .ui {
-    display: inline-block;
-    position: relative;
+  display: inline-block;
+  position: relative;
 
-    .overlay {
-        position: absolute;
-        top: 25px;
-        background: rgba(128, 128, 128, 0.5);
-        width: 600px;
-        height: 506px;
-        border: solid 5px transparent;
+  .overlay {
+    position: absolute;
+    top: 25px;
+    background: rgba(128, 128, 128, 0.5);
+    width: 600px;
+    height: 506px;
+    border: solid 5px transparent;
 
-        > div {
-            text-align: center;
-            margin-top: 220px;
-            font-size: 30px;
-        }
+    > div {
+      text-align: center;
+      margin-top: 220px;
+      font-size: 30px;
+    }
+  }
+
+  .popup {
+    position: absolute;
+    top: 75px;
+    left: 50px;
+    width: 500px;
+    height: 400px;
+    padding: 5px 10px;
+    background: rgba(255,255,255,0.8);
+    border-radius: 5px;
+    box-shadow: 0 0 20px darkgreen;
+
+    h2 {
+      text-align: center;
+      margin: 5px 0;
+    }
+  }
+
+  .status, .nicks {
+    height: 23px;
+    line-height: 23px;
+    padding: 0 5px;
+    border: 1px solid black;
+  }
+
+  .status {
+    .status-text, .clock {
+      display: inline-block;
     }
 
-    .popup {
-        position: absolute;
-        top: 75px;
-        left: 50px;
-        width: 500px;
-        height: 400px;
-        padding: 5px 10px;
-        background: rgba(255,255,255,0.8);
-        border-radius: 5px;
-        box-shadow: 0 0 20px darkgreen;
-
-        h2 {
-            text-align: center;
-            margin: 5px 0;
-        }
+    .clock {
+      float: right;
+      font-family: monospace;
+      font-weight: bold;
+      &.warning {
+        color: red;
+      }
     }
-
-    .status, .nicks {
-        height: 23px;
-        line-height: 23px;
-        padding: 0 5px;
-        border: 1px solid black;
-    }
-
-    .status {
-        .status-text, .clock {
-            display: inline-block;
-        }
-
-        .clock {
-            float: right;
-            font-family: monospace;
-            font-weight: bold;
-            &.warning {
-                color: red;
-            }
-        }
-    }
+  }
 }
 
 // Table
 
 .table {
-    // Prevent margin collapsing
-    &:before {
-        content: "\00a0"; // No-break space character
-        display: block;
-        overflow: hidden;
-        height: 0;
-    }
-
-    width: 600px;
-    height: 506px;
-    position: relative;
-    background-color: green;
-    background: url(../img/table.svg);
-    background-position: bottom;
-    border: solid 5px darkgreen;
-    color: white;
+  // Prevent margin collapsing
+  &:before {
+    content: "\00a0"; // No-break space character
+    display: block;
     overflow: hidden;
-    // Prevent vertical spacing between tiles
-    font-size: 0;
+    height: 0;
+  }
 
-    .hand {
-        margin: -1px;
-        border: solid 1px green;
+  width: 600px;
+  height: 506px;
+  position: relative;
+  background-color: green;
+  background: url(../img/table.svg);
+  background-position: bottom;
+  border: solid 5px darkgreen;
+  color: white;
+  overflow: hidden;
+  // Prevent vertical spacing between tiles
+  font-size: 0;
 
-        &.outlined {
-            border: dashed 1px white;
-        }
+  .hand {
+    margin: -1px;
+    border: solid 1px green;
+
+    &.outlined {
+      border: dashed 1px white;
+    }
+  }
+
+  // Elements - see table.svg for measurements
+
+  .hand {
+    width: 390px;
+    height: 44px;
+    position: absolute;
+    left: 105px;
+    bottom: 0px;
+  }
+
+  .tiles {
+    width: 510px;
+    height: 88px;
+    position: absolute;
+    left: 45px;
+    bottom: 66px;
+  }
+
+  .discards {
+    width: 180px;
+    height: 132px;
+    position: absolute;
+    left: 210px;
+    bottom: 176px;
+  }
+
+  .opponent-discards {
+    width: 180px;
+    height: 132px;
+    position: absolute;
+    left: 210px;
+    bottom: 352px;
+
+    transform: rotate(180deg);
+  }
+
+  .any-discards {
+    .tile:nth-child(1) {
+      transform: translateX(7px) rotate(90deg);
     }
 
-    // Elements - see table.svg for measurements
-
-    .hand {
-        width: 390px;
-        height: 44px;
-        position: absolute;
-        left: 105px;
-        bottom: 0px;
+    @for $i from 2 through 6 {
+      .tile:nth-child($i) {
+        transform: translateX(14px);
+      }
     }
+  }
 
-    .tiles {
-        width: 510px;
-        height: 88px;
-        position: absolute;
-        left: 45px;
-        bottom: 66px;
-    }
+  .east-display {
+    width: 75px;
+    height: 38px;
+    position: absolute;
+    left: 0px;
+    bottom: 0px
+  }
 
-    .discards {
-        width: 180px;
-        height: 132px;
-        position: absolute;
-        left: 210px;
-        bottom: 176px;
-    }
+  .east-display img {
+    width: 100%;
+    height: 100%;
+  }
 
-    .opponent-discards {
-        width: 180px;
-        height: 132px;
-        position: absolute;
-        left: 210px;
-        bottom: 352px;
+  .any-stick {
+    width: 120px;
+    height: 10px;
+    background: url(../img/stick.svg);
+  }
 
-        transform: rotate(180deg);
-    }
+  .stick {
+    position: absolute;
+    left: 240px;
+    bottom: 314px;
+  }
 
-    .any-discards {
-        .tile:nth-child(1) {
-            transform: translateX(7px) rotate(90deg);
-        }
+  .opponent-stick {
+    position: absolute;
+    left: 240px;
+    bottom: 336px;
+  }
 
-        @for $i from 2 through 6 {
-            .tile:nth-child($i) {
-                transform: translateX(14px);
-            }
-        }
-    }
+  .submit-hand {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+  }
 
-
-    .east-display {
-        width: 75px;
-        height: 38px;
-        position: absolute;
-        left: 0px;
-        bottom: 0px
-    }
-
-    .east-display img {
-        width: 100%;
-        height: 100%;
-    }
-
-    .any-stick {
-        width: 120px;
-        height: 10px;
-        background: url(../img/stick.svg);
-    }
-
-    .stick {
-        position: absolute;
-        left: 240px;
-        bottom: 314px;
-    }
-
-    .opponent-stick {
-        position: absolute;
-        left: 240px;
-        bottom: 336px;
-    }
-
-    .submit-hand {
-        position: absolute;
-        right: 10px;
-        bottom: 10px;
-    }
-
-    .dora-display {
-        position: absolute;
-        left: 15px;
-        bottom: 308px;
-    }
+  .dora-display {
+    position: absolute;
+    left: 15px;
+    bottom: 308px;
+  }
 }
 
-// Tiles (see also sprites.scss
+// Tiles (see also sprites.scss)
 
 .tile, .tile-placeholder {
-    display: inline-block;
-    width: 30px;
-    height: 44px;
+  display: inline-block;
+  width: 30px;
+  height: 44px;
 }
 
 .tiles-clickable .tile {
-    cursor: pointer;
+  cursor: pointer;
 }
