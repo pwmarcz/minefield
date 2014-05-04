@@ -1,20 +1,15 @@
 Required packages (as of Ubuntu 12.04):
-python-dev
-libevent-dev
-libpcre3-dev
+
+  python-dev
+  libevent-dev
+  libpcre3-dev
 
 Install Python libraries:
 
   $ pip install -r requirements.txt
 
-Recompile SCSS:
+Server make targets are:
 
-  $ cd server
-  $ make
-
-(During development, `make watch` should recompile SCSS on change.)
-
-Run server:
-
-  $ cd server
-  $ python server.py
+  - make css - recompile SCSS
+  - make watch - recompiles CSS on each change
+  - make serve - serve the website on 0.0.0.0: 8080
