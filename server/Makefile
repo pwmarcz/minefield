@@ -3,9 +3,9 @@
 
 all: css
 
-css: static/css/default.auto.css
+css: static/css/default.auto.css static/css/sprites.auto.css
 
-watch:
+watch: css
 	pyscss --no-compress --suffix=auto -w static/scss/ -o static/css/
 
 static/css/%.auto.css: static/scss/%.scss
