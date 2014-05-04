@@ -42,10 +42,10 @@ function Ui($elt, socket) {
 
     self.init_network = function() {
         if (!self.socket) {
-            var path = window.location.href;
-            path = path.substring(0, path.lastIndexOf('/'));
+            var path = window.location.pathname;
+            path = path.substring(1, path.lastIndexOf('/')+1);
 
-            self.socket = io.connect(path + '/minefield', { reconnect: false });
+            self.socket = io.connect('/minefield', { reconnect: false, resource: path+'socket.io' });
             self.set_overlay('Connecting to server');
             self.socket.on('connect', self.clear_overlay);
         }
