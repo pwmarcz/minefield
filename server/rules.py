@@ -352,7 +352,7 @@ class Hand(object):
         return self.tiles_set <= HONORS
 
     def yaku_ryuuiiso(self):
-        return self.tiles_set <= {'S' + no for no in '12368'} | {'X6'}
+        return self.tiles_set <= {'S' + no for no in '23468'} | {'X6'}
 
     def yaku_chuuren(self):
         if not self.yaku_chinitsu():
@@ -634,9 +634,9 @@ class YakuTestCase(BaseHandTestCase):
                         [['tsuuiiso']])
 
     def test_ryuuiiso(self):
-        self.assertYaku('S1 S1 S2 S2 S3 S3 S6 S6 S6 S8 S8 X6 X6 X6', 'X6',
+        self.assertYaku('S2 S2 S3 S3 S4 S4 S6 S6 S6 S8 S8 X6 X6 X6', 'X6',
                         [['ryuuiiso']])
-        self.assertYaku('S1 S1 S1 S2 S2 S2 S3 S3 S3 S6 S6 S6 S8 S8', 'S6',
+        self.assertYaku('S2 S2 S2 S3 S3 S3 S4 S4 S4 S6 S6 S6 S8 S8', 'S6',
                         [['ryuuiiso']])
 
     def test_chuuren(self):
