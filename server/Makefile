@@ -1,0 +1,12 @@
+
+.PHONY: all css watch
+
+all: css
+
+css: static/css/default.auto.css
+
+watch:
+	pyscss --no-compress --suffix=auto -w static/scss/ -o static/css/
+
+static/css/%.auto.css: static/scss/%.scss
+	pyscss --no-compress -o $@ $<
