@@ -43,6 +43,12 @@ body {
   font-size: small;
 }
 
+// Don't let page box-shadow overlap the qunit output
+#qunit {
+  position: relative;
+  z-index: 1;
+}
+
 // UI
 
 .ui {
