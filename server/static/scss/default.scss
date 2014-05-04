@@ -5,16 +5,35 @@
 
 // Global styles
 
+$dark: #242;
+$light: #ccc;
+
+$table-width: 600px;
+$table-height: 506px;
+
 body {
   font-family: Tahoma, Geneva, sans-serif;
+  font-size: 16px;
+  padding: 0;
+  margin: 0;
+
+  background: black;
+  color: $light;
+  a {
+    color: $light;
+  }
 }
 
 // * { box-sizing: border-box; }
 
 .page {
-  width: 610px;
+  width: $table-width + 10px;
+  padding: 10px 0;
   margin-left: auto;
   margin-right: auto;
+
+  background: $dark;
+  box-shadow: 0 0 30px 30px $dark;
 }
 
 #footer {
@@ -26,6 +45,7 @@ body {
 .ui {
   display: inline-block;
   position: relative;
+  margin: 10px 0;
 
   .overlay {
     position: absolute;
@@ -50,8 +70,9 @@ body {
     height: 400px;
     padding: 5px 10px;
     background: rgba(255,255,255,0.8);
+    color: black;
     border-radius: 5px;
-    box-shadow: 0 0 20px darkgreen;
+    box-shadow: 0 0 10px 10px darkgreen;
 
     h2 {
       text-align: center;
@@ -59,12 +80,15 @@ body {
     }
   }
 
-  .status, .nicks {
-    height: 23px;
-    line-height: 23px;
-    padding: 0 5px;
-    border: 1px solid black;
+  .nicks, .status {
+    height: 20px;
+    line-height: 20px;
+    background: darkgreen;
+    padding: 5px 7px;
   }
+
+  .nicks { padding-bottom: 0px; }
+  .status { padding-top: 0px; }
 
   .status {
     .status-text, .clock {
@@ -93,8 +117,8 @@ body {
     height: 0;
   }
 
-  width: 600px;
-  height: 506px;
+  width: $table-width;
+  height: $table-height;
   position: relative;
   background-color: green;
   background: url(../img/table.svg);
