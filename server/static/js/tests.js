@@ -80,6 +80,7 @@ function setup_test() {
     ui = Ui($('#qunit-fixture .main.ui'), server.socket);
     ui.discard_time_limit = 30 * 1000;
     ui.hand_time_limit = 3 * 60 * 1000;
+    ui.testing = true;
 
     clock = sinon.useFakeTimers();
 }

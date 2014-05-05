@@ -41,6 +41,8 @@ function Ui($elt, socket) {
             window.location.reload();
         });
 
+        self.find('.login input[name=nick]').val(localStorage.getItem('nick') || '');
+
         self.set_status('Enter nick and press Login');
     };
 
@@ -95,6 +97,8 @@ function Ui($elt, socket) {
 
     self.login = function() {
         var nick = self.find('.login input[name=nick]').val();
+        if (!ui.testing)
+            localStorage.setItem('nick', nick);
         self.socket.emit('hello', nick);
 
         self.find('.login button').prop('disabled', true);
