@@ -16,6 +16,13 @@ def dummy_callback(player, msg_type, msg):
     pprint.pprint((player, msg_type, msg))
 
 class Game(object):
+    # Time limits, in seconds
+    DISCARD_TIME_LIMIT = 30
+    HAND_TIME_LIMIT = 3*60
+
+    # Additional leeway to accomodate connection problems and UI updates
+    EXTRA_TIME = 10
+
     def __init__(self,
                  nicks=['P1','P2'],
                  east=0,
@@ -44,6 +51,10 @@ class Game(object):
 
         self.discards = [[], []]
 
+        # Elapsed time in seconds (see beat() for details)
+        self.t = 0
+        self.deadlines = [None, None]
+
         self.finished = False
 
     @property
@@ -71,7 +82,24 @@ class Game(object):
         for i in xrange(2):
             self.callback(i, 'abort',
                           {'culprit': culprit, 'description': description})
-            self.finished = True
+        self.finished = True
+        self.deadlines = [None, None]
+
+    def beat(self):
+        '''Make time advance by 1 second in the game, handling possible timeouts.
+        To be called by external code. Optional.'''
+        self.t += 1
+        for i in xrange(2):
+            if self.deadlines[i] is not None and self.t >= self.deadlines[i]:
+                self.abort(i, 'time limit exceeded')
+                return
+
+    def set_time_limit(self, player, time_limit):
+        assert self.deadlines[player] is None
+        self.deadlines[player] = self.t + time_limit + self.EXTRA_TIME
+
+    def clear_time_limit(self, player):
+        self.deadlines[player] = None
 
     def start(self):
         for i in xrange(2):
@@ -81,6 +109,7 @@ class Game(object):
                            'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
+            self.set_time_limit(i, self.HAND_TIME_LIMIT)
 
     def on_hand(self, player, hand):
         if self.phase != 1:
@@ -100,6 +129,8 @@ class Game(object):
                 self.abort(player, 'on_hand: tile not found in choices')
                 return
 
+        self.clear_time_limit(player)
+
         self.hand[player] = hand
         self.waits[player] = list(rules.waits(hand))
 
@@ -108,6 +139,7 @@ class Game(object):
             for i in xrange(2):
                 self.callback(i, 'phase_two', {})
             self.callback(self.player_turn, 'your_move', {})
+            self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
         else:
             self.callback(player, 'wait_for_phase_two', {})
 
@@ -117,7 +149,8 @@ class Game(object):
             'dora_ind': self.dora_ind,
             'uradora_ind': self.uradora_ind if uradora else None,
             'hotei': all(len(self.discards[i]) == DISCARDS for i in xrange(2)),
-            'ippatsu': len(self.discards[1-player]) == 1,
+
+        'ippatsu': len(self.discards[1-player]) == 1,
         }
 
     def furiten(self, player):
@@ -135,6 +168,7 @@ class Game(object):
             self.abort(player, 'on_discard: tile not found in choices')
             return
 
+        self.clear_time_limit(player)
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
 
@@ -156,6 +190,7 @@ class Game(object):
         # normal turn
         else:
             self.callback(self.player_turn, 'your_move', {})
+            self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
 
     def check_ron(self, player, tile):
         full_hand = sorted(self.hand[1-player] + [tile])
@@ -301,6 +336,22 @@ class GameTestCase(unittest.TestCase):
         self.g.on_hand(0, ['M1']*13)
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'on_hand: tile not found in choices'})
         self.assertTrue(self.g.finished)
+
+    def test_hand_time_limit(self):
+        self.test_init()
+        self.g.on_hand(0, 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split())
+        self.assertMessage(0, 'wait_for_phase_two')
+        for i in range(self.g.HAND_TIME_LIMIT + self.g.EXTRA_TIME):
+            self.g.beat()
+        self.assertMessageBoth('abort', {'culprit': 1, 'description': 'time limit exceeded'})
+
+    def test_discard_time_limit(self):
+        self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
+                        'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
+        self.assertMessage(0, 'your_move')
+        for i in range(self.g.DISCARD_TIME_LIMIT + self.g.EXTRA_TIME):
+            self.g.beat()
+        self.assertMessageBoth('abort', {'culprit': 0, 'description': 'time limit exceeded'})
 
 
 if __name__ == '__main__':

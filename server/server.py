@@ -1,7 +1,9 @@
 import random
 import flask
 import argparse
+from datetime import datetime
 
+import gevent
 import socketio
 import socketio.server
 from socketio.namespace import BaseNamespace
@@ -68,6 +70,24 @@ class GameRoom(object):
         players[1].set_room(self, 1)
         self.logger = app.logger
         self.game.start()
+        self.timer = gevent.spawn(self.run_timer)
+
+    def run_timer(self):
+        start = datetime.now()
+        t = 0
+        while True:
+            new_t = int((datetime.now() - start).seconds)
+
+            if t < new_t:
+                t += 1
+                try:
+                    self.game.beat()
+                except:
+                    self.logger.exception('[%X] exception in Game', id(self))
+                    self.shutdown()
+                    return
+            else:
+                gevent.sleep(seconds=0.5)
 
     def game_callback(self, idx, msg_type, msg):
         self.logger.info('[%X] [to %d] %s %r', id(self), idx, msg_type, msg)
@@ -82,6 +102,7 @@ class GameRoom(object):
             self.shutdown()
 
     def shutdown(self):
+        self.timer.kill()
         for i in xrange(2):
             self.players[i].disconnect()
 
