@@ -15,9 +15,6 @@ def dummy_callback(player, msg_type, msg):
     import pprint
     pprint.pprint((player, msg_type, msg))
 
-class RuleViolation(Exception):
-    pass
-
 class Game(object):
     def __init__(self,
                  nicks=['P1','P2'],
@@ -68,6 +65,14 @@ class Game(object):
         else:
             return 1
 
+    def abort(self, culprit, description):
+        '''Abort the game and provide explanation.'''
+
+        for i in xrange(2):
+            self.callback(i, 'abort',
+                          {'culprit': culprit, 'description': description})
+            self.finished = True
+
     def start(self):
         for i in xrange(2):
             self.callback(i, 'phase_one',
@@ -79,17 +84,21 @@ class Game(object):
 
     def on_hand(self, player, hand):
         if self.phase != 1:
-            raise RuleViolation('on_hand: wrong phase')
+            self.abort(player, 'on_hand: wrong phase')
+            return
         if len(hand) != 13:
-            raise RuleViolation('on_hand: len != 13')
+            self.abort(player, 'on_hand: len != 13')
+            return
         if self.hand[player] != None:
-            raise RuleViolation('on_hand: hand already sent')
+            self.abort(player, 'on_hand: hand already sent')
+            return
         for tile in hand:
             # this fails if a player doesn't have a tile
             try:
                 self.tiles[player].remove(tile)
             except ValueError:
-                raise RuleViolation('on_hand: tile not found in choices')
+                self.abort(player, 'on_hand: tile not found in choices')
+                return
 
         self.hand[player] = hand
         self.waits[player] = list(rules.waits(hand))
@@ -117,11 +126,14 @@ class Game(object):
 
     def on_discard(self, player, tile):
         if self.phase != 2:
-            raise RuleViolation('on_discard: wrong phase')
+            self.abort(player, 'on_discard: wrong phase')
+            return
         if self.player_turn != player:
-            raise RuleViolation('on_discard: not your turn')
+            self.abort(player, 'on_discard: not your turn')
+            return
         if tile not in self.tiles[player]:
-            raise RuleViolation('on_discard: tile not found in choices')
+            self.abort(player, 'on_discard: tile not found in choices')
+            return
 
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
@@ -278,14 +290,18 @@ class GameTestCase(unittest.TestCase):
         self.discard(0, 'S5')
         self.assertMessage(1, 'your_move')
 
-
     def test_short_hand(self):
-        self.assertRaises(RuleViolation,
-                          lambda: self.g.on_hand(0, 'M1 M2 M3'.split()))
+        self.test_init()
+        self.g.on_hand(1, 'M1 M2 M3'.split())
+        self.assertMessageBoth('abort', {'culprit': 1, 'description': 'on_hand: len != 13'})
+        self.assertTrue(self.g.finished)
 
     def test_tiles_outside_initial(self):
-        self.assertRaises(RuleViolation,
-                          lambda: self.g.on_hand(0, ['M1']*13))
+        self.test_init()
+        self.g.on_hand(0, ['M1']*13)
+        self.assertMessageBoth('abort', {'culprit': 0, 'description': 'on_hand: tile not found in choices'})
+        self.assertTrue(self.g.finished)
+
 
 if __name__ == '__main__':
     unittest.main()

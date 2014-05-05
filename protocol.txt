@@ -24,3 +24,5 @@ SERVER MESSAGES
   draw ()
 
   ron (player, hand, yaku, yakuman, dora, points, limit, uradora_ind)
+
+  abort (culprit, description)

@@ -265,6 +265,13 @@ test('end game by draw', function() {
     visible('.end-draw');
 });
 
+test('abort game', function() {
+    server.send('abort', {culprit: 1, description: 'Something happened'});
+    visible('.overlay');
+    ok(ui.find('.status-text').text().indexOf('Something happened') != -1,
+       'status bar should contain message');
+});
+
 var RON_DATA = {
     player: 0,
     hand: ['S1', 'S1', 'S2', 'S3', 'S4'],

@@ -64,6 +64,13 @@ function Ui($elt, socket) {
                 self.set_overlay('Connection lost', true);
             }, 500);
         });
+        self.socket.on('abort', function(data) {
+            self.hide_clock();
+            self.set_overlay('Game aborted', true);
+            self.set_status(data.description + (data.culprit == self.player ?
+                                                ' (because of you)' :
+                                                ' (because of opponent)'));
+        });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
         });
