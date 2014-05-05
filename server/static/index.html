@@ -23,6 +23,17 @@
          $(function() {
              var params = getParams();
 
+             if (params.debug) {
+                 localStorage.setItem('debug', 'true');
+             }
+             else if (params.nodebug) {
+                 localStorage.setItem('debug', 'false');
+             }
+
+             if (localStorage.getItem('debug') == 'true') {
+                 $('.links').show();
+             }
+
              if (params.test) {
                  $('body').prepend('<div id="qunit">');
                  $('.main').wrap('<div id="qunit-fixture">');
@@ -102,7 +113,7 @@
      </div><!-- .templates -->
 
      <div class="page">
-       <div class="links">
+       <div class="links" style="display: none;">
          <b><a href=".">client</a></b>
          / <a href="hello2.html">two clients</a>
          / <a href="?phase1=1">show phase1</a>
