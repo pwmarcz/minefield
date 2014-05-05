@@ -1,0 +1,26 @@
+
+CLIENT MESSAGES
+
+  (connect)
+
+  hello (nick)
+
+  hand (player, hand)
+
+  discard (player, tile)
+
+SERVER MESSAGES
+
+  phase_one (nicks, tiles, dora_ind, you, east)
+
+  wait_for_phase_two ()
+
+  phase_two ()
+
+  your_move ()
+
+  discarded (player, tile)
+
+  draw ()
+
+  ron (player, hand, yaku, yakuman, dora, points, limit, uradora_ind)
