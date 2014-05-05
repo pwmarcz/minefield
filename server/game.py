@@ -149,8 +149,7 @@ class Game(object):
             'dora_ind': self.dora_ind,
             'uradora_ind': self.uradora_ind if uradora else None,
             'hotei': all(len(self.discards[i]) == DISCARDS for i in xrange(2)),
-
-        'ippatsu': len(self.discards[1-player]) == 1,
+            'ippatsu': len(self.discards[1-player]) == 1,
         }
 
     def furiten(self, player):
