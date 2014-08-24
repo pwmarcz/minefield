@@ -39,6 +39,7 @@ class Game(object):
 
         # Tiles available for players
         n = PLAYER_TILES
+        self.initial_tiles = [all_tiles[:n], all_tiles[n:n*2]]
         self.tiles = [all_tiles[:n], all_tiles[n:n*2]]
 
         self.dora_ind = all_tiles[n*2]
