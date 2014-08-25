@@ -1,6 +1,7 @@
 
 import unittest
 import logging
+import random
 
 from game import Game
 
@@ -8,11 +9,13 @@ logger = logging.getLogger('room')
 
 
 class Room(object):
+    ID_HALF_WIDTH = 10
+
     def __init__(self, players=[None, None], game_class=Game):
-        self.game = game_class(callback=self.game_callback)
+        self.game = game_class(callback=self.send_to_player)
         self.players = [None, None]
         self.messages = [[], []]
-        self.id = 42 # TODO
+        self.id = self.make_id()
         self.aborted = False
 
         for idx, player in enumerate(players):
@@ -22,7 +25,14 @@ class Room(object):
         logger.info('[game %s] starting', self.id)
         self.game.start()
 
-    def game_callback(self, idx, msg_type, msg):
+    def make_id(self):
+        # Bitcoin's Base58 :)
+        base58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+        def make_id_half():
+            return ''.join(random.choice(base58) for _ in range(self.ID_HALF_WIDTH))
+        return (make_id_half(), make_id_half())
+
+    def send_to_player(self, idx, msg_type, msg):
         self.messages[idx].append((msg_type, msg))
         if self.players[idx]:
             logger.info('[game %s] send to %d: %s %r', self.id, idx, msg_type, msg)
