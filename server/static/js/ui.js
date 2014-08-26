@@ -22,8 +22,8 @@ function Ui($elt, socket) {
         self.init_elements();
         self.init_network();
 
-        if (window.location.hash) {
-            var key = window.location.hash.slice(1);
+        var key = self.get_key();
+        if (key) {
             self.rejoin(key);
         }
     };
@@ -70,14 +70,18 @@ function Ui($elt, socket) {
             }, 500);
         });
         self.socket.on('abort', function(data) {
+            self.set_key("");
             self.hide_clock();
             self.set_overlay('Game aborted', true);
-            self.set_status(data.description + (data.culprit == self.player ?
-                                                ' (because of you)' :
-                                                ' (because of opponent)'));
+            var message = data.description;
+            if (data.culprit)
+                message += (data.culprit == self.player ?
+                            ' (rule violation by you)' :
+                            ' (rule violation by opponent)');
+            self.set_status(data.message);
         });
         self.socket.on('room', function(key) {
-            window.location.hash = key;
+            self.set_key = key;
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
@@ -109,15 +113,20 @@ function Ui($elt, socket) {
         });
         self.socket.on('draw', function(data) {
             self.delay(data.replay, function() {
+                self.set_key("");
                 self.find('.end-draw').show();
             });
         });
         self.socket.on('ron', function(data) {
             self.delay(data.replay, function() {
+                self.set_key("");
                 self.display_ron(data);
             });
         });
     };
+
+    self.get_key = function() { return window.location.hash.slice(1); };
+    self.set_key = function(key) { window.location.hash = key; };
 
     self.delay = function(replay, func) {
         if (replay)
