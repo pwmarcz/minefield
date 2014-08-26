@@ -104,7 +104,7 @@ function Ui($elt, socket) {
 
     self.login = function() {
         var nick = self.find('.login input[name=nick]').val();
-        if (!ui.testing)
+        if (!self.testing)
             localStorage.setItem('nick', nick);
         self.socket.emit('hello', nick);
 
