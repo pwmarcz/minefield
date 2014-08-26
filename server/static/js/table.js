@@ -62,6 +62,10 @@ function Table($elt, data, complete) {
         });
     };
 
+    self.reset_state = function() {
+        self.state = null;
+    };
+
     self.select_hand = function(handler) {
         self.state = 'select_hand';
         self.find('.submit-hand').show();
@@ -71,11 +75,11 @@ function Table($elt, data, complete) {
     };
 
     self.select_hand_complete = function() {
-        self.state = null;
         self.find('.submit-hand').hide();
         self.find('.tiles').removeClass('tiles-clickable');
         self.find('.hand').removeClass('outlined tiles-clickable');
         self.on_select_hand(Tiles.list(self.find('.hand')));
+        self.reset_state();
     };
 
     self.discard = function(handler) {
@@ -85,7 +89,6 @@ function Table($elt, data, complete) {
     };
 
     self.discard_complete = function($tile) {
-        self.state = null;
         var tile_code = $tile.data('tile');
         $tile.replaceWith(Tiles.create_placeholder($tile));
 
@@ -94,13 +97,14 @@ function Table($elt, data, complete) {
 
         $tile.appendTo(self.find('.discards'));
         self.find('.tiles').removeClass('tiles-clickable');
-        if (self.on_discard)
+        if (self.state == 'discard')
             self.on_discard(tile_code);
+        self.reset_state();
     };
 
     self.replay_discard = function(tile_code) {
+        self.reset_state();
         var $tile = self.find('.tiles .tile[data-tile='+tile_code+']');
-        self.on_discard = null;
         self.discard_complete($tile);
     };
 
@@ -109,6 +113,15 @@ function Table($elt, data, complete) {
             self.find('.opponent-stick').show();
 
         self.find('.opponent-discards').append(Tiles.create(tile_code));
+    };
+
+    self.replay_hand = function(hand) {
+        self.reset_state();
+        for (var i = 0; i < hand.length; i++) {
+            var tile_code = hand[i];
+            var $tile = self.find('.tiles .tile[data-tile='+tile_code+']');
+            self.add_tile_to_hand($tile);
+        }
     };
 
     self.add_tile_to_hand = function($tile) {

@@ -106,7 +106,7 @@ class Game(object):
         for i in xrange(2):
             self.callback(i, 'phase_one',
                           {'nicks': self.nicks,
-                           'tiles': self.tiles[i],
+                           'tiles': self.initial_tiles[i],
                            'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
@@ -134,6 +134,9 @@ class Game(object):
 
         self.hand[player] = hand
         self.waits[player] = list(rules.waits(hand))
+
+        # Send the hand back to player (so that he can reconstruct it while replaying).
+        self.callback(player, 'hand', {'hand': hand})
 
         if self.hand[0] and self.hand[1]:
             # start the second phase

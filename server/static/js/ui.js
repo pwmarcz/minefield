@@ -85,6 +85,11 @@ function Ui($elt, socket) {
         self.socket.on('wait_for_phase_two', function(data) {
             self.set_status('Hand accepted, waiting for opponent\'s hand');
         });
+        self.socket.on('hand', function(data) {
+            if (data.replay) {
+                self.table.replay_hand(data.hand);
+            }
+        });
         self.socket.on('phase_two', function(data) {
             self.set_table_phase_2();
         });
@@ -97,7 +102,7 @@ function Ui($elt, socket) {
             if (data.player == self.player) {
                 if (data.replay)
                     self.table.replay_discard(data.tile);
-                // Otherwise, we display our own discards immediately
+                // Otherwise, we displayed our own discard already.
             } else {
                 self.table.opponent_discard(data.tile);
             }
