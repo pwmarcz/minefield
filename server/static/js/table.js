@@ -94,7 +94,14 @@ function Table($elt, data, complete) {
 
         $tile.appendTo(self.find('.discards'));
         self.find('.tiles').removeClass('tiles-clickable');
-        self.on_discard(tile_code);
+        if (self.on_discard)
+            self.on_discard(tile_code);
+    };
+
+    self.replay_discard = function(tile_code) {
+        var $tile = self.find('.tiles .tile[data-tile='+tile_code+']');
+        self.on_discard = null;
+        self.discard_complete($tile);
     };
 
     self.opponent_discard = function(tile_code) {

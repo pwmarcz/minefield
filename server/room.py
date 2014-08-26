@@ -42,16 +42,19 @@ class Room(object):
         assert not self.players[idx]
         self.players[idx] = player
         player.set_room(self, idx)
-        self.resend_messages(idx, n_received)
+        self.replay_messages(idx, n_received)
 
     def remove_player(self, idx):
         self.players[idx] = None
 
-    def resend_messages(self, idx, n_received):
+    def replay_messages(self, idx, n_received):
         messages = self.messages[idx]
-        for msg_type, msg in messages[n_received:]:
-            logger.info('[game %s] resend to %d: %s %r', self.id, idx, msg_type, msg)
-            self.players[idx].send(msg_type, msg)
+        n_to_resend = len(messages) - n_received
+        for i in range(n_to_resend):
+            msg_type, msg = messages[n_received+i]
+            last_replay = (i == n_to_resend-1)
+            logger.info('[game %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
+            self.players[idx].send(msg_type, msg, replay=True, last_replay=last_replay)
 
     def send_to_game(self, idx, msg_type, msg):
         logger.info('[game %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
@@ -124,7 +127,7 @@ class RoomTest(unittest.TestCase):
         self.assertEquals(len(player1.messages), 1)
         self.assertEquals(player1.messages[0][0], 'ping_1')
 
-    def test_resend_after_connect(self):
+    def test_replay_after_connect(self):
         room = self.create_room()
         room.game.callback(0, 'a', {})
         room.game.callback(0, 'b', {})

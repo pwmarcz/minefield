@@ -21,6 +21,11 @@ function Ui($elt, socket) {
 
         self.init_elements();
         self.init_network();
+
+        if (window.location.hash) {
+            var key = window.location.hash.slice(1);
+            self.rejoin(key);
+        }
     };
 
     self.find = function(sel) {
@@ -71,6 +76,9 @@ function Ui($elt, socket) {
                                                 ' (because of you)' :
                                                 ' (because of opponent)'));
         });
+        self.socket.on('room', function(key) {
+            window.location.hash = key;
+        });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
         });
@@ -81,25 +89,40 @@ function Ui($elt, socket) {
             self.set_table_phase_2();
         });
         self.socket.on('your_move', function(data) {
-            setTimeout(self.start_move, self.discard_delay);
+            if (!data.replay || data.last_replay)
+                self.delay(data.last_replay, self.start_move);
         });
         self.socket.on('discarded', function(data) {
             self.last_discard = data.tile;
-            // We display our own discards immediately
-            if (data.player == self.player)
-                return;
-            self.table.opponent_discard(data.tile);
+            if (data.player == self.player) {
+                if (data.replay)
+                    self.table.replay_discard(data.tile);
+                // Otherwise, we display our own discards immediately
+            } else {
+                self.table.opponent_discard(data.tile);
+            }
         });
         self.socket.on('draw', function(data) {
-            setTimeout(function() {
+            self.delay(data.replay, function() {
                 self.find('.end-draw').show();
-            }, self.discard_delay);
+            });
         });
         self.socket.on('ron', function(data) {
-            setTimeout(function() {
+            self.delay(data.replay, function() {
                 self.display_ron(data);
-            }, self.discard_delay);
+            });
         });
+    };
+
+    self.delay = function(replay, func) {
+        if (replay)
+            func();
+        else
+            setTimeout(func, self.discard_delay);
+    };
+
+    self.rejoin = function(key) {
+        self.socket.emit('rejoin', key);
     };
 
     self.login = function() {

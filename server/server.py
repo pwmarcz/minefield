@@ -26,14 +26,23 @@ class GameServer(object):
         else:
             self.waiting_player = player
 
+    def add_player_to_room(self, player, key):
+        for room in self.rooms:
+            for idx in range(2):
+                if room.id[idx] == key:
+                    if room.players[idx]:
+                        self.remove_player(room.players[idx])
+                    room.add_player(idx, player)
+
     def remove_player(self, player):
         if player == self.waiting_player:
             self.waiting_player = None
-            player.disconnect()
+            player.shutdown()
         elif player.room:
             player.room.remove_player(player.idx)
+            player.shutdown()
         else:
-            player.disconnect()
+            player.shutdown()
 
     def serve_request(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
@@ -74,9 +83,13 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
         if not self.server.add_player(self):
             self.emit('wait')
 
+    def on_rejoin(self, key):
+        self.server.add_player_to_room(self, key)
+
     def set_room(self, room, idx):
         self.room = room
         self.idx = idx
+        self.emit('room', self.room.id[self.idx]);
 
     def recv_disconnect(self):
         logger.info("[disconnect] %s", self.nick)
@@ -88,7 +101,10 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def on_discard(self, msg):
         self.room.send_to_game(self.idx, 'discard', msg)
 
-    def send(self, msg_type, msg):
+    def send(self, msg_type, msg, replay=False, last_replay=False):
+        msg = msg.copy()
+        msg['replay'] = replay
+        msg['last_replay'] = last_replay
         self.emit(msg_type, msg)
 
     def shutdown(self):
