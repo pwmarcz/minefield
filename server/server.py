@@ -1,6 +1,14 @@
+
+# we need to install monkey-patching before everything else
+# see http://stackoverflow.com/questions/8774958/keyerror-in-module-threading-after-a-successful-py-test-run
+from gevent import monkey; monkey.patch_all()
+
 import logging
 import argparse
+import signal
+import sys
 
+import gevent
 import socketio
 import socketio.namespace
 import socketio.server
@@ -63,11 +71,16 @@ class GameServer(object):
         if debug:
             import static
             self.static_app = static.Cling('static')
-        server = socketio.server.SocketIOServer(
+        self.socketio_server = socketio.server.SocketIOServer(
             (host, port),
             self.serve_request,
             resource="socket.io")
-        server.serve_forever()
+        self.socketio_server.serve_forever()
+
+    def stop(self):
+        logger.info('Stopping')
+        if hasattr(self, 'socketio_server'):
+            self.socketio_server.stop()
 
 
 class SocketPlayer(socketio.namespace.BaseNamespace):
@@ -120,11 +133,14 @@ def main():
 
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s: %(message)s')
 
-    from gevent import monkey
-    monkey.patch_all()
-
     print 'Starting server:', args
     server = GameServer()
+
+    def shutdown():
+        return
+        server.stop()
+        sys.exit(signal.SIGINT)
+    gevent.signal(signal.SIGINT, shutdown)
     server.serve(args.host, args.port, args.debug)
 
 

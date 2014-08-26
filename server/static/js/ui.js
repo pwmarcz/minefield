@@ -66,8 +66,9 @@ function Ui($elt, socket) {
             // Show overlay after some time - don't show it if the browser is
             // just leaving the page
             setTimeout(function() {
-                self.set_overlay('Connection lost', true);
-            }, 500);
+                self.set_overlay('Reconnecting...');
+                setTimeout(function() { window.location.reload(); }, 300);
+            }, 300);
         });
         self.socket.on('abort', function(data) {
             self.set_key("");
