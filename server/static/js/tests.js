@@ -23,6 +23,7 @@ function Server() {
     };
 
     self.send = function(type, data) {
+        data = data || {};
         console.debug('send', type, data);
         ok(self.handlers[type], 'expecting event handler for message '+type);
         self.handlers[type](data);

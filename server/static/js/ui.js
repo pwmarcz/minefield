@@ -78,7 +78,7 @@ function Ui($elt, socket) {
                 message += (data.culprit == self.player ?
                             ' (rule violation by you)' :
                             ' (rule violation by opponent)');
-            self.set_status(data.message);
+            self.set_status(message);
         });
         self.socket.on('room', function(key) {
             self.set_key = key;
