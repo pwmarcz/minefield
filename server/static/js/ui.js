@@ -82,7 +82,7 @@ function Ui($elt, socket) {
             self.set_status(message);
         });
         self.socket.on('room', function(key) {
-            self.set_key = key;
+            self.set_key(key);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
