@@ -104,7 +104,7 @@ function Table($elt, data, complete) {
 
     self.replay_discard = function(tile_code) {
         self.reset_state();
-        var $tile = self.find('.tiles .tile[data-tile='+tile_code+']');
+        var $tile = self.find('.tiles .tile[data-tile='+tile_code+']').first();
         self.discard_complete($tile);
     };
 
@@ -119,7 +119,7 @@ function Table($elt, data, complete) {
         self.reset_state();
         for (var i = 0; i < hand.length; i++) {
             var tile_code = hand[i];
-            var $tile = self.find('.tiles .tile[data-tile='+tile_code+']');
+            var $tile = self.find('.tiles .tile[data-tile='+tile_code+']').first();
             self.add_tile_to_hand($tile);
         }
     };
