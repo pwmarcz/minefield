@@ -83,9 +83,10 @@ class GameServer(object):
             resource="socket.io")
         self.socketio_server.serve_forever()
 
-    def stop(self):
+    def stop(self, immediate=False):
         logger.info('stopping')
-        self.timer.stop()
+        if not immediate:
+            self.timer.stop()
         self.save_rooms()
         if hasattr(self, 'socketio_server'):
             self.socketio_server.stop()
@@ -183,7 +184,7 @@ def main():
     server = GameServer(fname)
 
     def shutdown():
-        server.stop()
+        server.stop(immediate=True)
         sys.exit(signal.SIGINT)
     gevent.signal(signal.SIGINT, shutdown)
     server.serve(args.host, args.port, args.debug)
