@@ -263,8 +263,10 @@ class GameTestCase(unittest.TestCase):
     def start_game(self, s1, s2):
         self.test_init()
         self.g.on_hand(0, s1.split())
+        self.assertMessage(0, 'hand', {'hand': s1.split()})
         self.assertMessage(0, 'wait_for_phase_two')
         self.g.on_hand(1, s2.split())
+        self.assertMessage(1, 'hand', {'hand': s2.split()})
         self.assertMessageBoth('phase_two')
 
     def test_draw_scenario(self):
@@ -342,7 +344,9 @@ class GameTestCase(unittest.TestCase):
 
     def test_hand_time_limit(self):
         self.test_init()
-        self.g.on_hand(0, 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split())
+        hand = 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split()
+        self.g.on_hand(0, hand)
+        self.assertMessage(0, 'hand', {'hand': hand})
         self.assertMessage(0, 'wait_for_phase_two')
         for i in range(self.g.HAND_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
