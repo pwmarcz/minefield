@@ -8,6 +8,7 @@ import argparse
 import signal
 import sys
 import os
+from datetime import datetime
 
 import gevent
 import socketio
@@ -25,6 +26,7 @@ class GameServer(object):
         self.waiting_player = None
         self.db = Database(fname)
         self.rooms = set(self.db.load_unfinished_rooms())
+        self.timer = Timer(self.beat)
 
     def add_player(self, player):
         '''Adds a player to the server.'''
@@ -83,14 +85,48 @@ class GameServer(object):
 
     def stop(self):
         logger.info('stopping')
+        self.timer.stop()
         self.save_rooms()
         if hasattr(self, 'socketio_server'):
             self.socketio_server.stop()
 
+    def beat(self):
+        logger.debug('beat')
+        for room in self.rooms:
+            room.beat()
+        self.save_rooms()
+        for room in list(self.rooms):
+            if room.finished and not (room.players[0] or room.players[1]):
+                logger.info('removing inactive room %s from memory', room.id)
+                self.rooms.remove(room)
+
+
     def save_rooms(self):
-        logger.info('saving %d rooms', len(self.rooms))
+        logger.debug('saving %d rooms', len(self.rooms))
         for room in self.rooms:
             self.db.save_room(room)
+
+
+class Timer(object):
+    SLEEP_INTERVAL = 0.2
+
+    def __init__(self, beat):
+        self.beat = beat
+        self.thread = gevent.spawn(self.run)
+
+    def run(self):
+        start = datetime.now()
+        t = 0
+        while True:
+            new_t = int((datetime.now() - start).seconds)
+            if t >= new_t:
+                gevent.sleep(self.SLEEP_INTERVAL)
+            else:
+                t += 1
+                self.beat()
+
+    def stop(self):
+        self.thread.kill()
 
 
 class SocketPlayer(socketio.namespace.BaseNamespace):

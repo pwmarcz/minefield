@@ -87,6 +87,16 @@ class Room(plain_data.DataMixin):
             logger.exception('exception after receiving')
             self.abort()
 
+    def beat(self):
+        if self.finished:
+            return
+
+        try:
+            self.game.beat()
+        except:
+            logger.exception('exception in beat')
+            self.abort()
+
     def abort(self):
         self.aborted = True
         for idx in range(2):
