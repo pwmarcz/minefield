@@ -2,13 +2,18 @@
 import sqlite3
 import unittest
 import json
+import logging
 
 from game import Game
 from room import Room
 
 
+logger = logging.getLogger('database')
+
+
 class Database(object):
     def __init__(self, fname='minefield.db'):
+        logging.info('connecting to database %s', fname)
         self.conn = sqlite3.connect(fname)
         self.conn.isolation_level = None
         self.init_tables()
@@ -16,7 +21,7 @@ class Database(object):
     def init_tables(self):
         self.conn.execute('''
             CREATE TABLE IF NOT EXISTS rooms (
-                create_date NOT NULL DEFAULT NOW,
+                create_date TIMESTAMP NOT NULL DEFAULT current_timestamp,
                 finished INTEGER NOT NULL,
                 data BLOB NOT NULL
             );

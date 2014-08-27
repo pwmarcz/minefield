@@ -7,6 +7,7 @@ import logging
 import argparse
 import signal
 import sys
+import os
 
 import gevent
 import socketio
@@ -14,22 +15,23 @@ import socketio.namespace
 import socketio.server
 
 from room import Room
-
+from database import Database
 
 logger = logging.getLogger('server')
 
 
 class GameServer(object):
-    def __init__(self):
+    def __init__(self, fname):
         self.waiting_player = None
-        self.rooms = []
+        self.db = Database(fname)
+        self.rooms = set(self.db.load_unfinished_rooms())
 
     def add_player(self, player):
         '''Adds a player to the server.'''
 
         if self.waiting_player:
             room = Room([self.waiting_player.nick, player.nick])
-            self.rooms.append(room)
+            self.rooms.add(room)
             room.add_player(0, self.waiting_player)
             room.add_player(1, player)
             self.waiting_player = None
@@ -80,9 +82,15 @@ class GameServer(object):
         self.socketio_server.serve_forever()
 
     def stop(self):
-        logger.info('Stopping')
+        logger.info('stopping')
+        self.save_rooms()
         if hasattr(self, 'socketio_server'):
             self.socketio_server.stop()
+
+    def save_rooms(self):
+        logger.info('saving %d rooms', len(self.rooms))
+        for room in self.rooms:
+            self.db.save_room(room)
 
 
 class SocketPlayer(socketio.namespace.BaseNamespace):
@@ -135,10 +143,10 @@ def main():
     logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s: %(message)s')
 
     print 'Starting server:', args
-    server = GameServer()
+    fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
+    server = GameServer(fname)
 
     def shutdown():
-        return
         server.stop()
         sys.exit(signal.SIGINT)
     gevent.signal(signal.SIGINT, shutdown)
