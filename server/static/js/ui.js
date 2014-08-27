@@ -81,8 +81,10 @@ function Ui($elt, socket) {
                             ' (rule violation by opponent)');
             self.set_status(message);
         });
-        self.socket.on('room', function(key) {
-            self.set_key(key);
+        self.socket.on('room', function(data) {
+            self.set_key(data.key);
+            self.player = data.you;
+            self.set_nicks(data.nicks[self.player], data.nicks[1-self.player]);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
@@ -128,6 +130,13 @@ function Ui($elt, socket) {
 
     self.get_key = function() { return window.location.hash.slice(1); };
     self.set_key = function(key) { window.location.hash = key; };
+
+    self.set_nicks = function(your_nick, opponent_nick) {
+        self.find('.nicks .you').text(
+            your_nick || 'Anonymous');
+        self.find('.nicks .opponent').text(
+            opponent_nick || 'Anonymous');
+    };
 
     self.delay = function(replay, func) {
         if (replay)
@@ -191,11 +200,6 @@ function Ui($elt, socket) {
                 east: data.east,
                 you: data.you
             });
-
-        self.find('.nicks .you').text(
-            data.nicks[self.player] || 'Anonymous');
-        self.find('.nicks .opponent').text(
-            data.nicks[1-self.player] || 'Anonymous');
 
         self.table.select_hand(self.submit_hand);
         self.set_status('Choose your hand and press OK');
@@ -317,8 +321,8 @@ function Ui($elt, socket) {
     };
 
     self.test_phase_1 = function() {
+        self.set_nicks('Akagi', 'Washizu');
         self.set_table_phase_1({
-            nicks: ['Akagi', 'Washizu'],
             tiles: ['M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3',
                     'M1', 'M2', 'M3', 'P1', 'P2', 'P3', 'S1', 'S2', 'S3'],
             dora_ind: 'M1',

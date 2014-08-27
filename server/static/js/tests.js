@@ -77,6 +77,8 @@ function tiles(sel, expected_tile_codes) {
 var ui, server, clock;
 
 function setup_test() {
+    window.location.hash = "";
+
     server = Server();
     ui = Ui($('#qunit-fixture .main.ui'), server.socket);
     ui.discard_time_limit = 30 * 1000;
@@ -107,12 +109,15 @@ test('log in', function() {
     disabled('.login');
     server.expect('hello', 'Akagi');
 
+    server.send('room', {'key': 'K',
+                         'nicks': ['Akagi', 'Washizu'],
+                         'you': 1});
+
     server.send('phase_one', {
-        nicks: ['Akagi', 'Washizu'],
         tiles: ['X1', 'X2', 'X3'],
         dora_ind: 'X3',
         east: 0,
-        you: 1
+        you: 1,
     });
 
     tiles('.dora-display', ['X3']);

@@ -11,8 +11,9 @@ logger = logging.getLogger('room')
 class Room(object):
     ID_HALF_WIDTH = 10
 
-    def __init__(self, players=[None, None], game_class=Game):
+    def __init__(self, nicks=['P1', 'P2'], game_class=Game):
         self.game = game_class(callback=self.send_to_player)
+        self.nicks = nicks
         self.players = [None, None]
         self.messages = [[], []]
         self.id = self.make_id()

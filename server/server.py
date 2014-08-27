@@ -28,7 +28,7 @@ class GameServer(object):
         '''Adds a player to the server.'''
 
         if self.waiting_player:
-            room = Room()
+            room = Room([self.waiting_player.nick, player.nick])
             self.rooms.append(room)
             room.add_player(0, self.waiting_player)
             room.add_player(1, player)
@@ -104,7 +104,9 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def set_room(self, room, idx):
         self.room = room
         self.idx = idx
-        self.emit('room', self.room.id[self.idx])
+        self.emit('room', {'key': self.room.id[self.idx],
+                           'nicks': self.room.nicks,
+                           'you': self.idx});
 
     def recv_disconnect(self):
         logger.info("[disconnect] %s", self.nick)

@@ -24,7 +24,6 @@ class Game(object):
     EXTRA_TIME = 10
 
     def __init__(self,
-                 nicks=['P1','P2'],
                  east=0,
                  callback=dummy_callback):
         self.callback = callback
@@ -34,7 +33,6 @@ class Game(object):
         if not DEBUG:
             random.shuffle(all_tiles)
 
-        self.nicks = nicks
         self.east = east
 
         # Tiles available for players
@@ -105,8 +103,7 @@ class Game(object):
     def start(self):
         for i in xrange(2):
             self.callback(i, 'phase_one',
-                          {'nicks': self.nicks,
-                           'tiles': self.initial_tiles[i],
+                          {'tiles': self.initial_tiles[i],
                            'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
@@ -248,14 +245,12 @@ class GameTestCase(unittest.TestCase):
         # the game has just been created
         n = PLAYER_TILES
         self.assertMessage(0, 'phase_one',
-                           {'nicks': ['P1', 'P2'],
-                            'tiles': TILES[:n],
+                           {'tiles': TILES[:n],
                             'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
         self.assertMessage(1, 'phase_one',
-                           {'nicks': ['P1', 'P2'],
-                            'tiles': TILES[n:n*2],
+                           {'tiles': TILES[n:n*2],
                             'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
