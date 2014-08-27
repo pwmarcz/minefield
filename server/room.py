@@ -18,11 +18,8 @@ class Room(object):
         self.id = self.make_id()
         self.aborted = False
 
-        for idx, player in enumerate(players):
-            if player:
-                self.add_player(idx, player)
-
-        logger.info('[game %s] starting', self.id)
+    def start_game(self):
+        logger.info('[room %s] starting', self.id)
         self.game.start()
 
     def make_id(self):
@@ -35,7 +32,7 @@ class Room(object):
     def send_to_player(self, idx, msg_type, msg):
         self.messages[idx].append((msg_type, msg))
         if self.players[idx]:
-            logger.info('[game %s] send to %d: %s %r', self.id, idx, msg_type, msg)
+            logger.info('[room %s] send to %d: %s %r', self.id, idx, msg_type, msg)
             self.players[idx].send(msg_type, msg)
 
     def add_player(self, idx, player, n_received=0):
@@ -45,6 +42,7 @@ class Room(object):
         self.replay_messages(idx, n_received)
 
     def remove_player(self, idx):
+        self.players[idx].shutdown()
         self.players[idx] = None
 
     def replay_messages(self, idx, n_received):
@@ -53,7 +51,7 @@ class Room(object):
         for i in range(n_to_resend):
             msg_type, msg = messages[n_received+i]
             last_replay = (i == n_to_resend-1)
-            logger.info('[game %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
+            logger.info('[room %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
 
             msg = msg.copy()
             msg['replay'] = True
@@ -62,7 +60,7 @@ class Room(object):
             self.players[idx].send(msg_type, msg)
 
     def send_to_game(self, idx, msg_type, msg):
-        logger.info('[game %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
+        logger.info('[room %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
         try:
             handler = getattr(self.game, 'on_'+msg_type)
             handler(idx, msg)
@@ -110,9 +108,13 @@ class RoomTest(unittest.TestCase):
             self.room = room
             self.idx = idx
 
-
     def create_room(self, players=[None, None]):
-        return Room(players, game_class=self.MockGame)
+        room = Room(game_class=self.MockGame)
+        for idx, player in enumerate(players):
+            if player:
+                room.add_player(idx, player)
+        room.start_game()
+        return room
 
     def test_create(self):
         room = self.create_room()
