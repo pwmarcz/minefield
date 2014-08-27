@@ -2,6 +2,7 @@ import random
 import unittest
 
 import rules
+import plain_data
 
 DEBUG = False
 
@@ -15,7 +16,7 @@ def dummy_callback(player, msg_type, msg):
     import pprint
     pprint.pprint((player, msg_type, msg))
 
-class Game(object):
+class Game(plain_data.DataMixin):
     # Time limits, in seconds
     DISCARD_TIME_LIMIT = 30
     HAND_TIME_LIMIT = 3*60
@@ -55,6 +56,15 @@ class Game(object):
         self.deadlines = [None, None]
 
         self.finished = False
+
+    def init_from_data(self, data, callback=dummy_callback):
+        super(Game, self).init_from_data(data)
+        self.callback = callback
+
+    def to_data(self):
+        data = super(Game, self).to_data()
+        del data['callback']
+        return data
 
     @property
     def phase(self):

@@ -4,20 +4,37 @@ import logging
 import random
 
 from game import Game
+import plain_data
 
 logger = logging.getLogger('room')
 
 
-class Room(object):
+class Room(plain_data.DataMixin):
     ID_HALF_WIDTH = 10
 
-    def __init__(self, nicks=['P1', 'P2'], game_class=Game):
+    def __init__(self, nicks=['P1', 'P2'], game_class=Game, data=None):
+        if data:
+            self.init_from_data(data)
+            return
+
         self.game = game_class(callback=self.send_to_player)
         self.nicks = nicks
         self.players = [None, None]
         self.messages = [[], []]
         self.id = self.make_id()
         self.aborted = False
+
+    def init_from_data(self, data):
+        self.game = Game.from_data(data['game'], callback=self.send_to_player)
+        del data['game']
+        self.players = [None, None]
+        super(Room, self).init_from_data(data)
+
+    def to_data(self):
+        data = super(Room, self).to_data()
+        data['game'] = self.game.to_data()
+        del data['players']
+        return data
 
     def start_game(self):
         logger.info('[room %s] starting', self.id)
