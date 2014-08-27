@@ -177,7 +177,7 @@ def main():
     parser.add_argument('--debug', action='store_true', default=False, help='Debug mode (serve static files as well)')
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format='[%(levelname)s] %(name)s: %(message)s')
+    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s: %(message)s')
 
     print 'Starting server:', args
     fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
