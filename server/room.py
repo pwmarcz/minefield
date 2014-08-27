@@ -10,7 +10,7 @@ logger = logging.getLogger('room')
 
 
 class Room(plain_data.DataMixin):
-    ID_HALF_WIDTH = 10
+    KEY_WIDTH = 10
 
     def __init__(self, nicks=['P1', 'P2'], game_class=Game, data=None):
         if data:
@@ -21,8 +21,9 @@ class Room(plain_data.DataMixin):
         self.nicks = nicks
         self.players = [None, None]
         self.messages = [[], []]
-        self.id = self.make_id()
+        self.keys = self.make_keys()
         self.aborted = False
+        self.id = None
 
     def init_from_data(self, data):
         self.game = Game.from_data(data['game'], callback=self.send_to_player)
@@ -40,12 +41,12 @@ class Room(plain_data.DataMixin):
         logger.info('[room %s] starting', self.id)
         self.game.start()
 
-    def make_id(self):
+    def make_keys(self):
         # Bitcoin's Base58 :)
         base58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-        def make_id_half():
-            return ''.join(random.choice(base58) for _ in range(self.ID_HALF_WIDTH))
-        return (make_id_half(), make_id_half())
+        def make_key():
+            return ''.join(random.choice(base58) for _ in range(self.KEY_WIDTH))
+        return (make_key(), make_key())
 
     def send_to_player(self, idx, msg_type, msg):
         self.messages[idx].append((msg_type, msg))
@@ -91,6 +92,10 @@ class Room(plain_data.DataMixin):
         for idx in range(2):
             if self.players[idx]:
                 self.players[idx].shutdown()
+
+    @property
+    def finished(self):
+        return self.aborted or self.game.finished
 
 
 class RoomTest(unittest.TestCase):

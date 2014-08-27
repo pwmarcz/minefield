@@ -40,7 +40,7 @@ class GameServer(object):
     def add_player_to_room(self, player, key):
         for room in self.rooms:
             for idx in range(2):
-                if room.id[idx] == key:
+                if room.keys[idx] == key:
                     if room.players[idx]:
                         self.remove_player(room.players[idx])
                     room.add_player(idx, player)
@@ -104,7 +104,7 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def set_room(self, room, idx):
         self.room = room
         self.idx = idx
-        self.emit('room', {'key': self.room.id[self.idx],
+        self.emit('room', {'key': self.room.keys[self.idx],
                            'nicks': self.room.nicks,
                            'you': self.idx});
 
