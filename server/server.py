@@ -114,7 +114,7 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def on_discard(self, msg):
         self.room.send_to_game(self.idx, 'discard', msg)
 
-    def send(self, msg_type, msg)
+    def send(self, msg_type, msg):
         self.emit(msg_type, msg)
 
     def shutdown(self):
