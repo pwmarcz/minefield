@@ -218,6 +218,7 @@ class HelperFunctionsTestCase(unittest.TestCase):
         self.assertEqual(chosen,
             {(('pon', 'M2'), ('chi', 'S1')), (('chi', 'M2'), ('chi', 'S1'))})
 
+@unittest.skip('too slow!')
 class TenpaiChoiceTestCase(unittest.TestCase):
     def asserTenpai(self, tenpai):
         wait_values = rules.eval_waits(tenpai)

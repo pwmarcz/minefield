@@ -16,3 +16,6 @@ serve_prod: css
 
 static/css/%.auto.css: static/scss/%.scss
 	pyscss --no-compress -o $@ $<
+
+test:
+	nosetests *.py -v
