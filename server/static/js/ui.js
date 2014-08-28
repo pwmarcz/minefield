@@ -187,11 +187,7 @@ function Ui($elt, socket) {
         self.hide_clock();
     };
 
-    self.set_table_phase_1 = function(data) {
-        self.player = data.you;
-        self.dora_ind = data.dora_ind;
-
-        self.find('.login').hide();
+    self.init_table = function(data) {
         self.table = Table(
             self.find('.table'),
             {
@@ -201,7 +197,19 @@ function Ui($elt, socket) {
                 you: data.you
             });
 
-        self.table.select_hand(self.submit_hand);
+        self.table.on('select_hand', self.submit_hand);
+        self.table.on('discard', self.discard_tile);
+    };
+
+    self.set_table_phase_1 = function(data) {
+        self.player = data.you;
+        self.dora_ind = data.dora_ind;
+
+        self.find('.login').hide();
+
+        self.init_table(data);
+
+        self.table.set_state('select_hand');
         self.set_status('Choose your hand and press OK');
 
         self.show_clock(self.hand_time_limit);
@@ -221,7 +229,7 @@ function Ui($elt, socket) {
 
     self.start_move = function() {
         self.set_status('Your turn!');
-        self.table.discard(self.discard_tile);
+        self.table.set_state('discard');
         self.show_clock(self.discard_time_limit);
         self.on_clock_timeout(function() {
             // On timeout, just discard the first available tile.
@@ -335,8 +343,7 @@ function Ui($elt, socket) {
         self.test_phase_1();
         // add as many tiles as will fit
         self.find('.tiles .tile').click();
-        self.table.on_select_hand = function () {};
-        self.table.select_hand_complete();
+        self.table.reset_state();
         self.set_table_phase_2();
     };
 

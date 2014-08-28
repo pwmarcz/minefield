@@ -6,7 +6,8 @@ function Table($elt, data, complete) {
     var self = {
         $elt: $elt,
         find: function(sel) { return self.$elt.find(sel); },
-        state: null
+        state: null,
+        handlers: {},
     };
 
     self.init = function() {
@@ -63,32 +64,54 @@ function Table($elt, data, complete) {
     };
 
     self.reset_state = function() {
-        self.state = null;
-    };
-
-    self.select_hand = function(handler) {
-        self.state = 'select_hand';
-        self.find('.submit-hand').show();
-        self.find('.tiles').addClass('tiles-clickable');
-        self.find('.hand').addClass('outlined tiles-clickable');
-        self.on_select_hand = handler;
-    };
-
-    self.select_hand_complete = function() {
         self.find('.submit-hand').hide();
         self.find('.tiles').removeClass('tiles-clickable');
         self.find('.hand').removeClass('outlined tiles-clickable');
-        self.on_select_hand(Tiles.list(self.find('.hand')));
+        self.state = null;
+    };
+
+    self.set_state = function(state) {
+        self.reset_state();
+
+        switch (state) {
+        case 'select_hand':
+            self.find('.submit-hand').show();
+            self.find('.tiles').addClass('tiles-clickable');
+            self.find('.hand').addClass('outlined tiles-clickable');
+            break;
+
+        case 'discard':
+            self.find('.tiles').addClass('tiles-clickable');
+            break;
+
+        default:
+            throw new Error('Table.setState(): invalid state: ' + state);
+        }
+
+        self.state = state;
+    };
+
+    self.on = function(event, handler) {
+        self.handlers[event] = handler;
+    };
+
+    self.trigger = function(event, arg) {
+        if (self.handlers[event])
+            self.handlers[event](arg);
+    };
+
+    self.select_hand_complete = function() {
+        self.trigger('select_hand', Tiles.list(self.find('.hand')));
         self.reset_state();
     };
 
-    self.discard = function(handler) {
-        self.state = 'discard';
-        self.find('.tiles').addClass('tiles-clickable');
-        self.on_discard = handler;
+    self.discard_complete = function($tile) {
+        self.show_discard($tile);
+        self.trigger('discard', $tile.data('tile'));
+        self.reset_state();
     };
 
-    self.discard_complete = function($tile) {
+    self.show_discard = function($tile) {
         var tile_code = $tile.data('tile');
         $tile.replaceWith(Tiles.create_placeholder($tile));
 
@@ -96,16 +119,12 @@ function Table($elt, data, complete) {
             self.find('.stick').show();
 
         $tile.appendTo(self.find('.discards'));
-        self.find('.tiles').removeClass('tiles-clickable');
-        if (self.state == 'discard')
-            self.on_discard(tile_code);
-        self.reset_state();
     };
 
     self.replay_discard = function(tile_code) {
-        self.reset_state();
         var $tile = self.find('.tiles .tile[data-tile='+tile_code+']').first();
-        self.discard_complete($tile);
+        self.show_discard($tile);
+        self.reset_state();
     };
 
     self.opponent_discard = function(tile_code) {
@@ -116,12 +135,12 @@ function Table($elt, data, complete) {
     };
 
     self.replay_hand = function(hand) {
-        self.reset_state();
         for (var i = 0; i < hand.length; i++) {
             var tile_code = hand[i];
             var $tile = self.find('.tiles .tile[data-tile='+tile_code+']').first();
             self.add_tile_to_hand($tile);
         }
+        self.reset_state();
     };
 
     self.add_tile_to_hand = function($tile) {
