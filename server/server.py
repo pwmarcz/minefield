@@ -34,6 +34,8 @@ class GameServer(object):
         if self.waiting_player:
             room = Room([self.waiting_player.nick, player.nick])
             self.rooms.add(room)
+            # save to database, to assign ID
+            self.db.save_room(room)
             room.add_player(0, self.waiting_player)
             room.add_player(1, player)
             self.waiting_player = None
