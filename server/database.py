@@ -3,12 +3,77 @@ import sqlite3
 import unittest
 import json
 import logging
+import copy
 
 from game import Game
 from room import Room
 
 
 logger = logging.getLogger('database')
+
+
+class Serializer(object):
+    cls = None
+    exclude_keys = []
+
+    def dump(self, obj):
+        data = {}
+        for k, v in obj.__dict__.iteritems():
+            if k in self.exclude_keys:
+                continue
+            hook = getattr(self, 'dump_'+k, None)
+            if hook:
+                data[k] = hook(v)
+            else:
+                data[k] = copy.deepcopy(v)
+
+        return data
+
+    def load(self, data):
+        obj = self.cls.__new__(self.cls)
+        for k, v in data.iteritems():
+            hook = getattr(self, 'load_'+k, None)
+            if hook:
+                setattr(obj, k, hook(v))
+            else:
+                setattr(obj, k, v)
+
+        self.init(obj)
+        return obj
+
+    def init(self, obj):
+        pass
+
+
+class GameSerializer(Serializer):
+    cls = Game
+    exclude_keys = ['callback']
+
+
+class RoomSerializer(Serializer):
+    cls = Room
+    exclude_keys = ['id', 'players']
+
+    def dump_game(self, game):
+        return GameSerializer().dump(game)
+
+    def load_game(self, data):
+        return GameSerializer().load(data)
+
+    def init(self, room):
+        room.players = [None, None]
+        room.game.callback = room.send_to_player
+
+
+SERIALIZERS = {Game: GameSerializer(), Room: RoomSerializer()}
+
+def to_data(obj):
+    assert type(obj) in SERIALIZERS
+    return SERIALIZERS[type(obj)].dump(obj)
+
+def from_data(cls, data):
+    assert cls in SERIALIZERS
+    return SERIALIZERS[cls].load(data)
 
 
 class Database(object):
@@ -28,8 +93,7 @@ class Database(object):
         ''')
 
     def save_room(self, room):
-        data = room.to_data()
-        del data['id']
+        data = to_data(room)
         data_json = json.dumps(data, indent=2)
         cur = self.conn.cursor()
         cur.execute('''
@@ -50,7 +114,7 @@ class Database(object):
     def make_room(self, id, data_json):
         data = json.loads(data_json)
         data['id'] = id
-        return Room.from_data(data)
+        return from_data(Room, data)
 
     def load_unfinished_rooms(self):
         cur = self.conn.cursor()
@@ -63,9 +127,9 @@ class Database(object):
 
 class SerializationTest(unittest.TestCase):
     def _test_serialize(self, cls, obj1):
-        data1 = obj1.to_data()
-        obj2 = cls.from_data(data1)
-        data2 = obj2.to_data()
+        data1 = to_data(obj1)
+        obj2 = from_data(cls, data1)
+        data2 = to_data(obj2)
         self.assertEqual(data1, data2)
 
     def test_serialize_game(self):
@@ -80,8 +144,10 @@ class DatabaseTest(unittest.TestCase):
         self.db = Database(':memory:')
 
     def assertDataEquals(self, obj1, obj2):
-        json1 = json.dumps(obj1.to_data(), sort_keys=True)
-        json2 = json.dumps(obj2.to_data(), sort_keys=True)
+        # passing data through json changes string keys to unicode ones,
+        # so we're comparing JSON instead.
+        json1 = json.dumps(to_data(obj1), sort_keys=True)
+        json2 = json.dumps(to_data(obj2), sort_keys=True)
         self.assertEquals(json1, json2)
 
     def test_save_room(self):
