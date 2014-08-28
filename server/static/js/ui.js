@@ -101,14 +101,16 @@ function Ui($elt, socket) {
             self.set_table_phase_2();
         });
         self.socket.on('your_move', function(data) {
-            if (!data.replay || data.last_replay)
-                self.delay(data.last_replay, self.start_move);
+            self.delay(data.replay, self.start_move);
         });
         self.socket.on('discarded', function(data) {
             self.last_discard = data.tile;
             if (data.player == self.player) {
-                if (data.replay)
+                if (data.replay) {
                     self.table.replay_discard(data.tile);
+                    self.set_status('');
+                    self.hide_clock();
+                }
                 // Otherwise, we displayed our own discard already.
             } else {
                 self.table.opponent_discard(data.tile);

@@ -55,15 +55,11 @@ class Room(object):
 
     def replay_messages(self, idx, n_received):
         messages = self.messages[idx]
-        n_to_resend = len(messages) - n_received
-        for i in range(n_to_resend):
-            msg_type, msg = messages[n_received+i]
-            last_replay = (i == n_to_resend-1)
+        for msg_type, msg in messages[n_received:]:
             logger.info('[room %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
 
             msg = msg.copy()
             msg['replay'] = True
-            msg['last_replay'] = last_replay
 
             self.players[idx].send(msg_type, msg)
 
