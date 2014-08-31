@@ -160,6 +160,7 @@ test('submit hand', function() {
 });
 
 test('display clock while selecting hand', function() {
+    server.send('clock', {time_limit: 3*60});
     visible('.clock');
     equal(ui.find('.clock').text(), '3:00');
 
@@ -169,16 +170,14 @@ test('display clock while selecting hand', function() {
         ui.find('.tiles .tile').click();
     ui.find('.submit-hand').click();
     server.send('wait_for_phase_two');
-
-    // The clock is still counting down, until the opponent finishes as well.
-    visible('.clock');
-    server.send('phase_two');
+    server.send('clock', {time_limit: null});
     invisible('.clock');
 });
 
 test('auto-submit hand on timeout', function() {
+    server.send('clock', {time_limit: 3*60});
     visible('.clock');
-    clock.tick(ui.hand_time_limit);
+    clock.tick(3*60*1000);
     server.expect('hand', ['M1', 'M1', 'M2', 'M2', 'M3', 'M3',
                            'P1', 'P1', 'P2', 'P2', 'P3', 'P3',
                            'S1']);
@@ -211,24 +210,28 @@ test('deal when allowed', function() {
 test('show clock while dealing', function() {
     invisible('.clock');
     server.send('your_move');
+    server.send('clock', {time_limit: 30});
+    invisible('.clock'); // display clock only after delay
     clock.tick(ui.discard_delay);
 
     visible('.clock');
-    equal(ui.find('.clock').text(), '0:30');
+    equal(ui.find('.clock').text(), '0:29');
 
-    clock.tick(15*1000);
+    clock.tick(14*1000);
     equal(ui.find('.clock').text(), '0:15');
 
     ui.find('.tiles .tile').first().click();
+    server.send('clock', {time_limit: null});
     invisible('.clock');
 });
 
 test('auto-deal on timeout', function() {
     server.send('your_move');
+    server.send('clock', {time_limit: 30});
     clock.tick(ui.discard_delay);
     visible('.clock');
 
-    clock.tick(ui.discard_time_limit);
+    clock.tick(30*1000 - ui.discard_delay);
     invisible('.clock');
     server.expect('discard', 'S1');
 });

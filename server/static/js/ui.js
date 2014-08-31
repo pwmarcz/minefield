@@ -8,8 +8,6 @@ function Ui($elt, socket) {
         // How long to wait with "your turn / win / lose" after dealing a tile
         discard_delay: 1000,
 
-        discard_time_limit: 30 * 1000,
-        hand_time_limit: 3 * 60 * 1000,
         clock: null,
     };
 
@@ -109,7 +107,6 @@ function Ui($elt, socket) {
                 if (data.replay) {
                     self.table.replay_discard(data.tile);
                     self.set_status('');
-                    self.hide_clock();
                 }
                 // Otherwise, we displayed our own discard already.
             } else {
@@ -127,6 +124,23 @@ function Ui($elt, socket) {
                 self.set_key("");
                 self.display_ron(data);
             });
+        });
+        self.socket.on('clock', function(data) {
+            if (typeof data.time_limit == 'number') {
+                var time_limit_ms = data.time_limit * 1000;
+                if (self.table.state == 'select_hand') {
+                    self.show_clock(time_limit_ms);
+                } else {
+                    // Hack: this is discard, so we don't don't show the clock
+                    // immediately (so that the player doesn't have a clue
+                    // whether the opponent won or not).
+                    setTimeout(function() {
+                        self.show_clock(time_limit_ms - self.discard_delay);
+                    }, self.discard_delay);
+                }
+            } else {
+                self.hide_clock();
+            }
         });
     };
 
@@ -180,13 +194,11 @@ function Ui($elt, socket) {
     self.submit_hand = function(tiles) {
         self.socket.emit('hand', tiles);
         self.set_status('Submitting hand');
-        self.on_clock_timeout(null);
     };
 
     self.discard_tile = function(tile_code) {
         self.socket.emit('discard', tile_code);
         self.set_status('');
-        self.hide_clock();
     };
 
     self.init_table = function(data) {
@@ -213,30 +225,16 @@ function Ui($elt, socket) {
 
         self.table.set_state('select_hand');
         self.set_status('Choose your hand and press OK');
-
-        self.show_clock(self.hand_time_limit);
-        self.on_clock_timeout(function() {
-            // Just add as many tiles as will fit
-            self.find('.table .tiles .tile').click();
-            // Submit the hand manually
-            self.find('.table .submit-hand').click();
-        });
     };
 
     self.set_table_phase_2 = function ()
     {
-        self.hide_clock();
         self.set_status('');
     };
 
     self.start_move = function() {
         self.set_status('Your turn!');
         self.table.set_state('discard');
-        self.show_clock(self.discard_time_limit);
-        self.on_clock_timeout(function() {
-            // On timeout, just discard the first available tile.
-            self.find('.table .tiles .tile').first().click();
-        });
     };
 
     self.display_ron = function(data) {
@@ -280,13 +278,6 @@ function Ui($elt, socket) {
         self.update_clock();
     };
 
-    self.on_clock_timeout = function(on_timeout) {
-        if (!self.clock)
-            return;
-
-        self.clock.on_timeout = on_timeout;
-    };
-
     self.update_clock = function() {
         if (!self.clock)
             return;
@@ -316,10 +307,8 @@ function Ui($elt, socket) {
             else
                 $clock.removeClass('warning');
         } else {
-            var on_timeout = self.clock.on_timeout;
             self.hide_clock();
-            if (on_timeout)
-                on_timeout();
+            self.clock_timeout();
         }
     };
 
@@ -328,6 +317,18 @@ function Ui($elt, socket) {
             return;
         self.clock = null;
         self.find('.clock').hide();
+    };
+
+    self.clock_timeout = function() {
+        if (self.table.state == 'select_hand') {
+            // Just add as many tiles as will fit
+            self.find('.table .tiles .tile').click();
+            // Submit the hand manually
+            self.find('.table .submit-hand').click();
+        }
+        if (self.table.state == 'discard') {
+            self.find('.table .tiles .tile').first().click();
+        }
     };
 
     self.test_phase_1 = function() {
