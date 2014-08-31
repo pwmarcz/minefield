@@ -97,9 +97,21 @@ class Game(object):
     def set_time_limit(self, player, time_limit):
         assert self.deadlines[player] is None
         self.deadlines[player] = self.t + time_limit + self.EXTRA_TIME
+        self.send_clock_info(player)
 
     def clear_time_limit(self, player):
         self.deadlines[player] = None
+        self.send_clock_info(player)
+
+    def get_time_limit(self, player):
+        if self.deadlines[player] is None:
+            return None
+        else:
+            return self.deadlines[player] - self.t - self.EXTRA_TIME
+
+    def send_clock_info(self, player):
+        time_limit = self.get_time_limit(player)
+        self.callback(player, 'clock', {'time_limit': time_limit})
 
     def start(self):
         for i in xrange(2):
@@ -128,13 +140,13 @@ class Game(object):
                 self.abort(player, 'on_hand: tile not found in choices')
                 return
 
-        self.clear_time_limit(player)
-
         self.hand[player] = hand
         self.waits[player] = list(rules.waits(hand))
 
         # Send the hand back to player (so that he can reconstruct it while replaying).
         self.callback(player, 'hand', {'hand': hand})
+
+        self.clear_time_limit(player)
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
@@ -169,7 +181,6 @@ class Game(object):
             self.abort(player, 'on_discard: tile not found in choices')
             return
 
-        self.clear_time_limit(player)
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
 
@@ -177,6 +188,8 @@ class Game(object):
             self.callback(i, 'discarded',
                           {'player': player,
                            'tile': tile})
+
+        self.clear_time_limit(player)
 
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
@@ -235,6 +248,10 @@ class GameTestCase(unittest.TestCase):
         our_m = self.messages.popleft()
         self.assertEqual(our_m, (player, msg_type, msg))
 
+    def assertNoMessage(self, msg_type):
+        self.assertFalse(any(_msg_type == msg_type
+                             for (player, _msg_type, msg) in self.messages))
+
     def assertMessageBoth(self, msg_type, msg={}):
         self.assertMessage(0, msg_type, msg)
         self.assertMessage(1, msg_type, msg)
@@ -250,19 +267,23 @@ class GameTestCase(unittest.TestCase):
                             'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
+        self.assertMessage(0, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(1, 'phase_one',
                            {'tiles': TILES[n:n*2],
                             'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
+        self.assertMessage(1, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
 
     def start_game(self, s1, s2):
         self.test_init()
         self.g.on_hand(0, s1.split())
         self.assertMessage(0, 'hand', {'hand': s1.split()})
+        self.assertMessage(0, 'clock', {'time_limit': None})
         self.assertMessage(0, 'wait_for_phase_two')
         self.g.on_hand(1, s2.split())
         self.assertMessage(1, 'hand', {'hand': s2.split()})
+        self.assertMessage(1, 'clock', {'time_limit': None})
         self.assertMessageBoth('phase_two')
 
     def test_draw_scenario(self):
@@ -271,27 +292,28 @@ class GameTestCase(unittest.TestCase):
 
         for i in xrange(DISCARDS):
             for j in xrange(2):
-                self.assertMessage(j, 'your_move')
                 # Just discard the first choice
                 t = self.g.tiles[j][0]
                 self.discard(j, t)
         self.assertMessageBoth('draw')
 
     def discard(self, player, tile):
+        self.assertMessage(player, 'your_move')
+        self.assertMessage(player, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
         self.g.on_discard(player, tile)
         self.assertMessageBoth('discarded', {'player': player,
                                              'tile': tile})
+        self.assertMessage(player, 'clock', {'time_limit': None})
 
     def test_win(self):
         # P0: 13-sided kokushi
         # P1: riichi ippatsu dora - 3 fan, not enough for mangan
         self.start_game('M1 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7',
                         'M1 M2 M3 M4 M5 M6 P7 P8 P9 S1 S2 S3 S4')
-        self.assertMessage(0, 'your_move')
 
         # P1's winning tile - there should be no 'ron' message
         self.discard(0, 'S4')
-        self.assertMessage(1, 'your_move')
+        self.assertNoMessage('ron')
 
         # Rising Sun!
         self.discard(1, 'P1')
@@ -312,19 +334,17 @@ class GameTestCase(unittest.TestCase):
         # P1: riichi tanyao sanshoku on S5, but only riichi tanyao on S8
         self.start_game('M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7',
                         'M6 M7 M8 P6 P7 P8 S2 S3 S4 S5 S6 S7 S8')
-        self.assertMessage(0, 'your_move')
 
         # P1's winning tile - there should be no 'ron' message
         # riichi ippatsu tanyao - no mangan
         self.discard(0, 'S8')
-        self.assertMessage(1, 'your_move')
+        self.assertNoMessage('ron')
 
         self.discard(1, 'P1')
-        self.assertMessage(0, 'your_move')
 
         # P1 would win now, but she's in furiten
         self.discard(0, 'S5')
-        self.assertMessage(1, 'your_move')
+        self.assertNoMessage('ron')
 
     def test_short_hand(self):
         self.test_init()
@@ -343,6 +363,7 @@ class GameTestCase(unittest.TestCase):
         hand = 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split()
         self.g.on_hand(0, hand)
         self.assertMessage(0, 'hand', {'hand': hand})
+        self.assertMessage(0, 'clock', {'time_limit': None})
         self.assertMessage(0, 'wait_for_phase_two')
         for i in range(self.g.HAND_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
@@ -352,6 +373,7 @@ class GameTestCase(unittest.TestCase):
         self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
                         'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
         self.assertMessage(0, 'your_move')
+        self.assertMessage(0, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
         for i in range(self.g.DISCARD_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'time limit exceeded'})

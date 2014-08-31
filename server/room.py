@@ -62,6 +62,11 @@ class Room(object):
             msg['replay'] = True
 
             self.players[idx].send(msg_type, msg)
+        # Send current time limit info, if any
+        # (but don't add to the messages list).
+        time_limit = self.game.get_time_limit(idx)
+        if time_limit is not None:
+            self.players[idx].send('clock', {'time_limit': time_limit})
 
     def send_to_game(self, idx, msg_type, msg):
         logger.info('[room %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
@@ -108,6 +113,9 @@ class RoomTest(unittest.TestCase):
 
         def on_crash(self, idx, msg):
             raise RuntimeError('crashed')
+
+        def get_time_limit(self, idx):
+            return None
 
     class MockPlayer(object):
         def __init__(self):
