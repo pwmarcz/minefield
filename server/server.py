@@ -8,6 +8,7 @@ import argparse
 import signal
 import sys
 import os
+import functools
 from datetime import datetime
 
 import gevent
@@ -17,6 +18,7 @@ import socketio.server
 
 from room import Room
 from database import Database
+from logs import init_logging
 
 logger = logging.getLogger('server')
 
@@ -165,11 +167,24 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def on_discard(self, msg):
         self.room.send_to_game(self.idx, 'discard', msg)
 
+    def on_boom(self):
+        raise Exception("'boom' received")
+
     def send(self, msg_type, msg):
         self.emit(msg_type, msg)
 
     def shutdown(self):
         self.disconnect()
+
+    def exception_handler_decorator(self, fn):
+        @functools.wraps(fn)
+        def wrap(*args, **kwargs):
+            try:
+                return fn(*args, **kwargs)
+            except:
+                logger.exception('server error')
+                self.shutdown()
+        return wrap
 
 
 def main():
@@ -179,7 +194,7 @@ def main():
     parser.add_argument('--debug', action='store_true', default=False, help='Debug mode (serve static files as well)')
     args = parser.parse_args()
 
-    logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(name)s: %(message)s')
+    init_logging()
 
     print 'Starting server:', args
     fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
