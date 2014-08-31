@@ -103,14 +103,11 @@ class Game(object):
         self.deadlines[player] = None
         self.send_clock_info(player)
 
-    def get_time_limit(self, player):
-        if self.deadlines[player] is None:
-            return None
-        else:
-            return self.deadlines[player] - self.t - self.EXTRA_TIME
-
     def send_clock_info(self, player):
-        time_limit = self.get_time_limit(player)
+        if self.deadlines[player] is None:
+            time_limit = None
+        else:
+            time_limit = self.deadlines[player] - self.t - self.EXTRA_TIME
         self.callback(player, 'clock', {'time_limit': time_limit})
 
     def start(self):
