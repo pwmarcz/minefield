@@ -28,6 +28,7 @@ class GameServer(object):
         self.waiting_player = None
         self.db = Database(fname)
         self.rooms = set(self.db.load_unfinished_rooms())
+        self.t = 0
         self.timer = Timer(self.beat)
 
     def add_player(self, player):
@@ -99,12 +100,14 @@ class GameServer(object):
         logger.debug('beat')
         for room in self.rooms:
             room.beat()
-        self.save_rooms()
-        for room in list(self.rooms):
-            if room.finished and not (room.players[0] or room.players[1]):
-                logger.info('removing inactive room %s from memory', room.id)
-                self.rooms.remove(room)
 
+        self.t += 1
+        if self.t % 30 == 0:
+            self.save_rooms()
+            for room in list(self.rooms):
+                if room.finished and not (room.players[0] or room.players[1]):
+                    logger.info('removing inactive room %s from memory', room.id)
+                    self.rooms.remove(room)
 
     def save_rooms(self):
         logger.debug('saving %d rooms', len(self.rooms))
