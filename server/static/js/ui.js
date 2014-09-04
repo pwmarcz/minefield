@@ -1,6 +1,6 @@
 
 /* global io */
-/* global Table, Tiles */
+/* global Lobby, Table, Tiles */
 
 function Ui($elt, socket) {
     var self = {
@@ -31,20 +31,12 @@ function Ui($elt, socket) {
     };
 
     self.init_elements = function() {
-        self.find('.login button').click(self.login);
-        self.find('.login input').keyup(function(e) {
-            if (e.which == 13) {
-                e.preventDefault();
-                this.blur();
-                self.login();
-            }
-        });
+        self.lobby = Lobby(self.find('.lobby'));
+        self.lobby.on('login', self.login);
 
         self.$elt.on('click', '.reload', function() {
             window.location.reload();
         });
-
-        self.find('.login input[name=nick]').val(localStorage.getItem('nick') || '');
 
         self.set_status('Enter nick and press Login');
     };
@@ -165,14 +157,8 @@ function Ui($elt, socket) {
         self.socket.emit('rejoin', key);
     };
 
-    self.login = function() {
-        var nick = self.find('.login input[name=nick]').val();
-        if (!self.testing)
-            localStorage.setItem('nick', nick);
+    self.login = function(nick) {
         self.socket.emit('hello', nick);
-
-        self.find('.login button').prop('disabled', true);
-
         self.set_status('Waiting for opponent');
     };
 
@@ -219,7 +205,7 @@ function Ui($elt, socket) {
         self.player = data.you;
         self.dora_ind = data.dora_ind;
 
-        self.find('.login').hide();
+        self.find('.lobby').hide();
 
         self.init_table(data);
 

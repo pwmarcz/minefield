@@ -13,6 +13,7 @@
        <script src="lib/socket.io.min.js"></script>
        <script src="js/tiles.js"></script>
        <script src="js/table.js"></script>
+       <script src="js/lobby.js"></script>
        <script src="js/ui.js"></script>
        <script src="//code.jquery.com/qunit/qunit-1.14.0.js"></script>
        <script src="lib/sinon-timers-1.9.0.js"></script>
@@ -64,6 +65,12 @@
    </HEAD>
    <BODY>
      <div id="templates" style="display: none;">
+       <div class="lobby">
+         <h2>Minefield</h2>
+         <input name="nick" placeholder="nick">
+         <button class="login-button">Login</button>
+       </div><!-- lobby -->
+
        <div class="table">
          <div class="dora-display"></div>
          <div class="east-display"></div>
@@ -75,7 +82,7 @@
          <div class="hand"></div>
          <button class="submit-hand">OK</button>
          <!-- timer -->
-       </div>
+       </div><!-- .table -->
 
        <div class="ui">
          <div class="nicks">
@@ -87,10 +94,7 @@
            </span>
          </div>
          <div class="table"></div>
-         <div class="login popup">
-           <h2>Minefield</h2>
-           <input name="nick" placeholder="nick">
-           <button class="login-button">Login</button>
+         <div class="lobby popup">
          </div>
          <div class="end-draw popup" style="display: none">
            <h2>Draw</h2>
@@ -120,7 +124,7 @@
            <div class="status-text"></div>
            <div class="clock" style="display:none"></div>
          </div>
-       </div>
+       </div><!-- .ui -->
      </div><!-- .templates -->
 
      <div class="page">
