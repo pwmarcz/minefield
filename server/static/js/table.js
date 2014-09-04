@@ -2,7 +2,7 @@
 /* global Tiles */
 
 // data: {tiles, dora_ind, east, you}
-function Table($elt, data, complete) {
+function Table($elt, data) {
     var self = {
         $elt: $elt,
         find: function(sel) { return self.$elt.find(sel); },
