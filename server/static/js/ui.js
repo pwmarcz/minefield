@@ -1,22 +1,17 @@
 
 /* global io */
-/* global Lobby, Table, Tiles */
+/* global Part, Lobby, Table, Tiles */
 
 function Ui($elt, socket) {
-    var self = {
-        $elt: $elt,
-        // How long to wait with "your turn / win / lose" after dealing a tile
-        discard_delay: 1000,
-
-        clock: null,
-    };
+    var self = Part($elt, '.ui');
+    // How long to wait with "your turn / win / lose" after dealing a tile
+    self.discard_delay = 1000;
+    self.clock = null;
 
     if (socket)
         self.socket = socket;
 
     self.init = function() {
-        self.$elt.html($('#templates > .ui').html());
-
         self.init_elements();
         self.init_network();
 
@@ -24,10 +19,6 @@ function Ui($elt, socket) {
         if (key) {
             self.rejoin(key);
         }
-    };
-
-    self.find = function(sel) {
-        return self.$elt.find(sel);
     };
 
     self.init_elements = function() {

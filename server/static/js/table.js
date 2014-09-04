@@ -1,18 +1,12 @@
 
-/* global Tiles */
+/* global Tiles, Part */
 
 // data: {tiles, dora_ind, east, you}
 function Table($elt, data) {
-    var self = {
-        $elt: $elt,
-        find: function(sel) { return self.$elt.find(sel); },
-        state: null,
-        handlers: {},
-    };
+    var self = Part($elt, '.table');
+    self.state = null;
 
     self.init = function() {
-        self.$elt.html($('#templates > .table').html());
-
         Tiles.add(self.find('.tiles'), data.tiles);
         Tiles.sort(self.find('.tiles'));
 
@@ -89,15 +83,6 @@ function Table($elt, data) {
         }
 
         self.state = state;
-    };
-
-    self.on = function(event, handler) {
-        self.handlers[event] = handler;
-    };
-
-    self.trigger = function(event, arg) {
-        if (self.handlers[event])
-            self.handlers[event](arg);
     };
 
     self.select_hand_complete = function() {

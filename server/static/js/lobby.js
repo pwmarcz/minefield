@@ -1,14 +1,10 @@
 
+/* global Part */
+
 function Lobby($elt) {
-    var self = {
-        $elt: $elt,
-        find: function(sel) { return self.$elt.find(sel); },
-        handlers: {},
-    };
+    var self = Part($elt, '.lobby');
 
     self.init = function() {
-        self.$elt.html($('#templates > .lobby').html());
-
         self.find('button').click(self.login);
         self.find('input').keyup(function(e) {
             if (e.which == 13) {
@@ -19,15 +15,6 @@ function Lobby($elt) {
         });
 
         self.find('.login input[name=nick]').val(localStorage.getItem('nick') || '');
-    };
-
-    self.on = function(event, handler) {
-        self.handlers[event] = handler;
-    };
-
-    self.trigger = function(event, arg) {
-        if (self.handlers[event])
-            self.handlers[event](arg);
     };
 
     self.login = function() {
