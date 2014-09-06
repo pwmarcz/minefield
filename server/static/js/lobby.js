@@ -1,12 +1,13 @@
 
 /* global Part */
 
-function Lobby($elt, socket) {
+function Lobby($elt) {
     var self = Part($elt, '.lobby');
     self.state = null;
 
     self.init = function() {
         self.find('.new-game').click(self.new_game);
+        self.$elt.on('click', '.join', self.join);
         self.find('input').keyup(function(e) {
             if (e.which == 13) {
                 e.preventDefault();
@@ -24,6 +25,13 @@ function Lobby($elt, socket) {
             localStorage.setItem('nick', nick);
         self.set_state('joining');
         self.trigger('new_game', nick);
+    };
+
+    self.join = function() {
+        var nick = self.find('input[name=nick]').val();
+        var key = $(this).data('key');
+        self.set_state('joining');
+        self.trigger('join', nick, key);
     };
 
     self.reset_state = function() {
@@ -52,9 +60,10 @@ function Lobby($elt, socket) {
             } else if (item.type == 'player') {
                 $row.append($('<td>').text(item.nick || 'Anonymous'));
                 $row.append($('<td class="vs"></td>'));
-                var $join_button = $('<button>Join</button>');
-                if (item.is_public) {
+                var $join_button = $('<button class="join">Join</button>');
+                if (item.key) {
                     $join_button.text('Join');
+                    $join_button.data('key', item.key);
                     if (self.state == 'joining')
                         $join_button.prop('disabled', true);
                 } else {
@@ -64,7 +73,7 @@ function Lobby($elt, socket) {
                 $row.append($('<td>').append($join_button));
             }
 
-            if (!(item.type == 'player' && item.is_public)) {
+            if (!(item.type == 'player' && item.key)) {
                 $row.addClass('inactive');
             }
             return $row;

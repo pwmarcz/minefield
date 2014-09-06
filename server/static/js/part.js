@@ -14,9 +14,10 @@ function Part($elt, template_sel) {
         self.handlers[event] = handler;
     };
 
-    self.trigger = function(event, arg) {
+    self.trigger = function(event) {
+        var args = Array.prototype.slice.call(arguments, 1);
         if (self.handlers[event])
-            self.handlers[event](arg);
+            self.handlers[event].apply(null, args);
     };
 
     self.init();

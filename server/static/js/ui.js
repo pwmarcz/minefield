@@ -26,6 +26,7 @@ function Ui($elt, socket) {
     self.init_elements = function() {
         self.lobby = Lobby(self.find('.lobby'));
         self.lobby.on('new_game', self.new_game);
+        self.lobby.on('join', self.join);
 
         self.$elt.on('click', '.reload', function() {
             window.location.reload();
@@ -164,8 +165,13 @@ function Ui($elt, socket) {
     };
 
     self.new_game = function(nick) {
-        self.socket.emit('hello', nick);
+        self.socket.emit('new_game', nick);
         self.set_status('Waiting for opponent');
+    };
+
+    self.join = function(nick, key) {
+        self.socket.emit('join', nick, key);
+        self.set_status('Starting game');
     };
 
     self.set_status = function(status) {

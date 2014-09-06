@@ -1,16 +1,14 @@
 
 import unittest
 import logging
-import random
 
 from game import Game
+from utils import make_key
 
 logger = logging.getLogger('room')
 
 
 class Room(object):
-    KEY_WIDTH = 10
-
     def __init__(self, nicks=['P1', 'P2'], game_class=Game):
         self.game = game_class(callback=self.send_to_player)
         self.nicks = nicks
@@ -31,10 +29,6 @@ class Room(object):
         self.game.start()
 
     def make_keys(self):
-        # Bitcoin's Base58 :)
-        base58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-        def make_key():
-            return ''.join(random.choice(base58) for _ in range(self.KEY_WIDTH))
         return (make_key(), make_key())
 
     def send_to_player(self, idx, msg_type, msg):

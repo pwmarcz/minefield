@@ -19,13 +19,14 @@ import socketio.server
 from room import Room
 from database import Database
 from logs import init_logging
+from utils import make_key
 
 logger = logging.getLogger('server')
 
 
 class GameServer(object):
     def __init__(self, fname):
-        self.waiting_player = None
+        self.waiting_players = {}
         self.db = Database(fname)
         self.rooms = set(self.db.load_unfinished_rooms())
         self.t = 0
@@ -34,19 +35,24 @@ class GameServer(object):
     def add_player(self, player):
         '''Adds a player to the server.'''
 
-        if self.waiting_player:
-            room = Room([self.waiting_player.nick, player.nick])
+        self.waiting_players[player.key] = player
+        return
+
+    def join_player(self, player, key):
+        if key in self.waiting_players:
+            opponent = self.waiting_players.pop(key)
+            room = Room([opponent.nick, player.nick])
             self.rooms.add(room)
             # save to database, to assign ID
             self.db.save_room(room)
-            room.add_player(0, self.waiting_player)
+            room.add_player(0, opponent)
             room.add_player(1, player)
-            self.waiting_player = None
             room.start_game()
         else:
-            self.waiting_player = player
+            # TODO
+            pass
 
-    def add_player_to_room(self, player, key):
+    def rejoin_player(self, player, key):
         for room in self.rooms:
             for idx in range(2):
                 if room.keys[idx] == key:
@@ -55,8 +61,8 @@ class GameServer(object):
                     room.add_player(idx, player)
 
     def remove_player(self, player):
-        if player == self.waiting_player:
-            self.waiting_player = None
+        if player.key in self.waiting_players:
+            del self.waiting_players[player.key]
             player.shutdown()
         elif player.room:
             player.room.remove_player(player.idx)
@@ -68,11 +74,11 @@ class GameServer(object):
         for room in self.rooms:
             if not room.finished:
                 result.append({'type': 'game', 'nicks': room.nicks})
-        if self.waiting_player:
+        for player in self.waiting_players.values():
             result.append({
                 'type': 'player',
-                'nick': self.waiting_player.nick,
-                'is_public': True
+                'nick': player.nick,
+                'key': player.key,
             })
         return result
 
@@ -156,15 +162,20 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
         self.nick = None
         self.room = None
         self.idx = None
+        self.key = make_key()
 
-    def on_hello(self, nick):
+    def on_new_game(self, nick):
         assert not self.room
         self.nick = nick
-        if not self.server.add_player(self):
-            self.emit('wait')
+        self.server.add_player(self)
+
+    def on_join(self, nick, key):
+        assert not self.room
+        self.nick = nick
+        self.server.join_player(self, key)
 
     def on_rejoin(self, key):
-        self.server.add_player_to_room(self, key)
+        self.server.rejoin_player(self, key)
 
     def on_get_games(self):
         self.emit('games', self.server.describe_games())
