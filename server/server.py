@@ -50,8 +50,7 @@ class GameServer(object):
             room.add_player(1, player)
             room.start_game()
         else:
-            # TODO
-            pass
+            player.emit('join_failed', 'Opponent not found.')
 
     def rejoin_player(self, player, key):
         for room in self.rooms:
@@ -260,6 +259,11 @@ class ServerTest(unittest.TestCase):
         self.assertEquals(self.server.rooms[0].nicks, ['Akagi', 'Washizu'])
         self.assertEquals(player1.messages[0][0], 'room')
         self.assertEquals(player2.messages[0][0], 'room')
+
+    def test_join_failed(self):
+        player1 = self.MockSocketPlayer(self.server)
+        player1.on_join('Akagi', 'nonexistent key')
+        self.assertEquals(player1.messages[0][0], 'join_failed')
 
     def test_abort(self):
         player1 = self.MockSocketPlayer(self.server)

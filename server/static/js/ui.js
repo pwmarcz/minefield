@@ -23,6 +23,9 @@ function Ui($elt, socket) {
 
     self.init_elements = function() {
         self.lobby = Lobby(self.find('.lobby'), self.socket);
+        self.lobby.on('join_failed', function(message) {
+            self.set_status(message);
+        });
 
         self.$elt.on('click', '.reload', function() {
             window.location.reload();

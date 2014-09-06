@@ -27,6 +27,10 @@ function Lobby($elt, socket) {
         self.socket.on('games', function(data) {
             self.update_games(data);
         });
+        self.socket.on('join_failed', function(message) {
+            self.reset_state();
+            self.trigger('join_failed', message);
+        });
     };
 
     self.init_beat = function() {
@@ -36,8 +40,7 @@ function Lobby($elt, socket) {
                 self.socket.emit('get_games');
             setTimeout(beat, beat_delay);
         }
-
-        setTimeout(beat, beat_delay);
+        setTimeout(beat, 0);
     };
 
     self.new_game = function() {
