@@ -6,16 +6,14 @@ function Ui($elt, socket) {
     var self = Part($elt, '.ui');
     // How long to wait with "your turn / win / lose" after dealing a tile
     self.discard_delay = 1000;
-    self.beat_delay = 1000;
     self.clock = null;
 
     if (socket)
         self.socket = socket;
 
     self.init = function() {
-        self.init_elements();
         self.init_network();
-        self.init_beat();
+        self.init_elements();
 
         var key = self.get_key();
         if (key) {
@@ -24,9 +22,7 @@ function Ui($elt, socket) {
     };
 
     self.init_elements = function() {
-        self.lobby = Lobby(self.find('.lobby'));
-        self.lobby.on('new_game', self.new_game);
-        self.lobby.on('join', self.join);
+        self.lobby = Lobby(self.find('.lobby'), self.socket);
 
         self.$elt.on('click', '.reload', function() {
             window.location.reload();
@@ -66,12 +62,10 @@ function Ui($elt, socket) {
             self.set_status(message);
         });
         self.socket.on('room', function(data) {
+            self.lobby.set_state('inactive');
             self.set_key(data.key);
             self.player = data.you;
             self.set_nicks(data.nicks[self.player], data.nicks[1-self.player]);
-        });
-        self.socket.on('games', function(data) {
-            self.lobby.update_games(data);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
@@ -131,16 +125,6 @@ function Ui($elt, socket) {
                 self.hide_clock();
             }
         });
-    };
-
-    self.init_beat = function() {
-        function beat() {
-            if (!self.game_started)
-                self.socket.emit('get_games');
-            setTimeout(beat, self.beat_delay);
-        }
-
-        setTimeout(beat, self.beat_delay);
     };
 
     self.get_key = function() { return window.location.hash.slice(1); };
