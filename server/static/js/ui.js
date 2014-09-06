@@ -30,8 +30,6 @@ function Ui($elt, socket) {
         self.$elt.on('click', '.reload', function() {
             window.location.reload();
         });
-
-        self.set_status('Enter nick and press Login');
     };
 
     self.init_network = function() {
