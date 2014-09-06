@@ -10,6 +10,7 @@ import sys
 import os
 import functools
 from datetime import datetime
+import unittest
 
 import gevent
 import socketio
@@ -28,9 +29,9 @@ class GameServer(object):
     def __init__(self, fname):
         self.waiting_players = {}
         self.db = Database(fname)
-        self.rooms = set(self.db.load_unfinished_rooms())
+        self.rooms = self.db.load_unfinished_rooms()
         self.t = 0
-        self.timer = Timer(self.beat)
+        self.timer = None
 
     def add_player(self, player):
         '''Adds a player to the server.'''
@@ -42,7 +43,7 @@ class GameServer(object):
         if key in self.waiting_players:
             opponent = self.waiting_players.pop(key)
             room = Room([opponent.nick, player.nick])
-            self.rooms.add(room)
+            self.rooms.append(room)
             # save to database, to assign ID
             self.db.save_room(room)
             room.add_player(0, opponent)
@@ -105,12 +106,14 @@ class GameServer(object):
             (host, port),
             self.serve_request,
             resource="socket.io")
+        self.timer = Timer(self.beat)
         self.socketio_server.serve_forever()
 
     def stop(self, immediate=False):
         logger.info('stopping')
         if not immediate:
-            self.timer.stop()
+            if self.timer:
+                self.timer.stop()
         self.save_rooms()
         if hasattr(self, 'socketio_server'):
             self.socketio_server.stop()
@@ -215,6 +218,62 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
                 logger.exception('server error')
                 self.shutdown()
         return wrap
+
+
+class ServerTest(unittest.TestCase):
+    class MockSocketPlayer(SocketPlayer):
+        def __init__(self, server):
+            self.request = {'server': server}
+            self.initialize()
+            self.messages = []
+            self.disconnected = False
+
+        def emit(self, *args):
+            self.messages.append(tuple(args))
+
+        def disconnect(self):
+            self.disconnected = True
+
+    def setUp(self):
+        self.server = GameServer(':memory:')
+
+    def test_new_game(self):
+        player = self.MockSocketPlayer(self.server)
+        player.on_new_game('Akagi')
+        self.assertEquals(len(self.server.waiting_players), 1)
+        self.assertEquals(self.server.waiting_players.values()[0], player)
+
+    def test_new_game_disconnect(self):
+        player = self.MockSocketPlayer(self.server)
+        player.on_new_game('Akagi')
+        player.recv_disconnect()
+        self.assertEquals(len(self.server.waiting_players), 0)
+        self.assertTrue(player.disconnected)
+
+    def test_join(self):
+        player1 = self.MockSocketPlayer(self.server)
+        player1.on_new_game('Akagi')
+        player2 = self.MockSocketPlayer(self.server)
+        player2.on_join('Washizu', player1.key)
+        self.assertEquals(len(self.server.waiting_players), 0)
+        self.assertEquals(len(self.server.rooms), 1)
+        self.assertEquals(self.server.rooms[0].nicks, ['Akagi', 'Washizu'])
+        self.assertEquals(player1.messages[0][0], 'room')
+        self.assertEquals(player2.messages[0][0], 'room')
+
+    def test_abort(self):
+        player1 = self.MockSocketPlayer(self.server)
+        player1.on_new_game('Akagi')
+        player2 = self.MockSocketPlayer(self.server)
+        player2.on_join('Washizu', player1.key)
+
+        # send an invalid request
+        player1.on_hand(['X1'])
+        self.assertEquals(player1.messages[-1][0], 'abort')
+        self.assertEquals(player2.messages[-1][0], 'abort')
+
+        room = self.server.rooms[0]
+        self.assertTrue(room.finished)
 
 
 def main():
