@@ -36,18 +36,28 @@ function Ui($elt, socket) {
             var path = window.location.pathname;
             path = path.substring(1, path.lastIndexOf('/')+1);
 
-            self.socket = io.connect('/minefield', { reconnect: false, resource: path+'socket.io' });
+            self.socket = io.connect('/minefield', {
+                reconnect: false,
+                resource: path+'socket.io',
+                'sync disconnect on unload': true,
+            });
             self.set_overlay('Connecting to server');
             self.socket.on('connect', self.clear_overlay);
         }
+
+        $(window).unload(function() {
+            self.unloading = true;
+        });
 
         self.socket.on('disconnect', function(data) {
             self.hide_clock();
             // Show overlay after some time - don't show it if the browser is
             // just leaving the page
             setTimeout(function() {
-                self.set_overlay('Reconnecting...');
-                setTimeout(function() { window.location.reload(); }, 300);
+                if (!self.unloading) {
+                    self.set_overlay('Reconnecting...');
+                    setTimeout(function() { window.location.reload(); }, 300);
+                }
             }, 300);
         });
         self.socket.on('abort', function(data) {
