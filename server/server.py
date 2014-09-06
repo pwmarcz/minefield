@@ -63,6 +63,19 @@ class GameServer(object):
         else:
             player.shutdown()
 
+    def describe_games(self):
+        result = []
+        for room in self.rooms:
+            if not room.finished:
+                result.append({'type': 'game', 'nicks': room.nicks})
+        if self.waiting_player:
+            result.append({
+                'type': 'player',
+                'nick': self.waiting_player.nick,
+                'is_public': True
+            })
+        return result
+
     def serve_request(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
         if path.startswith("socket.io"):
@@ -152,6 +165,9 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
 
     def on_rejoin(self, key):
         self.server.add_player_to_room(self, key)
+
+    def on_get_games(self):
+        self.emit('games', self.server.describe_games())
 
     def set_room(self, room, idx):
         self.room = room

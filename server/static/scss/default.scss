@@ -128,27 +128,26 @@ body {
 // Lobby
 
 .lobby {
-  .games {
-    .scroll {
+  .games .scroll {
       height: 15em;
       overflow-y: auto;
       background: white;
       border-radius: 5px;
-      padding: 5px;
-      table {
-        width: 100%;
-        tr {
-          height: 2em;
-          text-align: center;
-          &.inactive { color: #aaa; }
-          &:hover { background: #eee; }
 
-          td { width: 45%; }
-          td.vs { width: 10%; }
+      tr.inactive { color: #aaa; }
+      tr:hover { background: #eee; }
+  }
+  table {
+    width: 100%;
+    padding: 5px;
+    tr {
+      height: 2em;
+      text-align: center;
 
-          button { width: 12em; }
-        }
-      }
+      td { width: 45%; }
+      td.vs { width: 10%; }
+
+      button { width: 12em; }
     }
   }
 }

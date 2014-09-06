@@ -105,9 +105,11 @@ test('initialize', function() {
 
 test('log in', function() {
     ui.find('input[name=nick]').val('Akagi');
-    ui.find('.login-button').click();
-    disabled('.login');
+    ui.find('.new-game').click();
     server.expect('hello', 'Akagi');
+
+    // TODO this actually disregards joining game and just assumes server will
+    // assign a game immediately
 
     server.send('room', {'key': 'K',
                          'nicks': ['Akagi', 'Washizu'],

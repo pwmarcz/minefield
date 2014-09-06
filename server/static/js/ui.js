@@ -6,6 +6,7 @@ function Ui($elt, socket) {
     var self = Part($elt, '.ui');
     // How long to wait with "your turn / win / lose" after dealing a tile
     self.discard_delay = 1000;
+    self.beat_delay = 1000;
     self.clock = null;
 
     if (socket)
@@ -14,6 +15,7 @@ function Ui($elt, socket) {
     self.init = function() {
         self.init_elements();
         self.init_network();
+        self.init_beat();
 
         var key = self.get_key();
         if (key) {
@@ -23,7 +25,7 @@ function Ui($elt, socket) {
 
     self.init_elements = function() {
         self.lobby = Lobby(self.find('.lobby'));
-        self.lobby.on('login', self.login);
+        self.lobby.on('new_game', self.new_game);
 
         self.$elt.on('click', '.reload', function() {
             window.location.reload();
@@ -66,6 +68,9 @@ function Ui($elt, socket) {
             self.set_key(data.key);
             self.player = data.you;
             self.set_nicks(data.nicks[self.player], data.nicks[1-self.player]);
+        });
+        self.socket.on('games', function(data) {
+            self.lobby.update_games(data);
         });
         self.socket.on('phase_one', function(data) {
             self.set_table_phase_1(data);
@@ -127,6 +132,16 @@ function Ui($elt, socket) {
         });
     };
 
+    self.init_beat = function() {
+        function beat() {
+            if (!self.game_started)
+                self.socket.emit('get_games');
+            setTimeout(beat, self.beat_delay);
+        }
+
+        setTimeout(beat, self.beat_delay);
+    };
+
     self.get_key = function() { return window.location.hash.slice(1); };
     self.set_key = function(key) { window.location.hash = key; };
 
@@ -148,7 +163,7 @@ function Ui($elt, socket) {
         self.socket.emit('rejoin', key);
     };
 
-    self.login = function(nick) {
+    self.new_game = function(nick) {
         self.socket.emit('hello', nick);
         self.set_status('Waiting for opponent');
     };
@@ -195,6 +210,7 @@ function Ui($elt, socket) {
     self.set_table_phase_1 = function(data) {
         self.player = data.you;
         self.dora_ind = data.dora_ind;
+        self.game_started = true;
 
         self.find('.lobby').hide();
 
