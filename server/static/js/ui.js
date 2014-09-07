@@ -48,18 +48,18 @@ function Ui($elt, socket) {
 
         $(window).unload(function() {
             self.unloading = true;
+            self.clear_overlay();
         });
 
-        self.socket.on('disconnect', function(data) {
+        self.socket.on('disconnect', function() {
             self.hide_clock();
             // Show overlay after some time - don't show it if the browser is
             // just leaving the page
-            setTimeout(function() {
+            setTimeout(function(e) {
                 if (!self.unloading) {
-                    self.set_overlay('Reconnecting...');
-                    setTimeout(function() { window.location.reload(); }, 300);
+                    self.set_overlay('Disconnected from server', true);
                 }
-            }, 300);
+            }, 1000);
         });
         self.socket.on('abort', function(data) {
             self.set_key("");
