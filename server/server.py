@@ -85,7 +85,7 @@ class GameServer(object):
 
     def serve_request(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
-        if path.startswith("socket.io"):
+        if path.startswith("socket.io") and 'socketio' in environ:
             request = {'server': self}
             try:
                 socketio.socketio_manage(environ, {'/minefield': SocketPlayer}, request)
