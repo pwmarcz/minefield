@@ -152,6 +152,15 @@ body {
       button { width: 12em; }
     }
   }
+  .cancel-new-game { display: none; }
+  &.state-advertising {
+    .cancel-new-game { display: inline; }
+  }
+  &.state-joining, &.state-advertising, &.state-inactive {
+    // fake a disable
+    input[name=nick] { background: #eee; }
+    .new-game, .join { display: none; }
+  }
 }
 
 // Table

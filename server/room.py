@@ -45,7 +45,6 @@ class Room(object):
         self.replay_messages(idx, n_received)
 
     def remove_player(self, idx):
-        self.players[idx].shutdown()
         self.players[idx] = None
 
     def replay_messages(self, idx, n_received):

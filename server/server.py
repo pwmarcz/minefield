@@ -57,17 +57,18 @@ class GameServer(object):
             for idx in range(2):
                 if room.keys[idx] == key:
                     if room.players[idx]:
-                        self.remove_player(room.players[idx])
+                        old_player = room.players[idx]
+                        self.remove_player(old_player)
+                        old_player.shutdown()
                     room.add_player(idx, player)
 
     def remove_player(self, player):
         if player.key in self.waiting_players:
             del self.waiting_players[player.key]
-            player.shutdown()
         elif player.room:
             player.room.remove_player(player.idx)
         else:
-            player.shutdown()
+            pass
 
     def describe_games(self):
         result = []
@@ -171,6 +172,13 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
         self.nick = nick
         self.server.add_player(self)
 
+    def on_cancel_new_game(self):
+        if self.room:
+            # Too late - the player has joined a game.
+            pass
+        else:
+            self.server.remove_player(self)
+
     def on_join(self, nick, key):
         assert not self.room
         self.nick = nick
@@ -192,6 +200,7 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
     def recv_disconnect(self):
         logger.info("[disconnect] %s", self.nick)
         self.server.remove_player(self)
+        self.shutdown()
 
     def on_hand(self, msg):
         self.room.send_to_game(self.idx, 'hand', msg)

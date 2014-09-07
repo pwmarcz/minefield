@@ -11,6 +11,7 @@ function Lobby($elt, socket) {
         self.init_beat();
 
         self.find('.new-game').click(self.new_game);
+        self.find('.cancel-new-game').click(self.cancel_new_game);
         self.$elt.on('click', '.join', self.join);
         self.find('input').keyup(function(e) {
             if (e.which == 13) {
@@ -47,8 +48,13 @@ function Lobby($elt, socket) {
         var nick = self.find('input[name=nick]').val();
         if (!self.testing)
             localStorage.setItem('nick', nick);
-        self.set_state('joining');
+        self.set_state('advertising');
         self.socket.emit('new_game', nick);
+    };
+
+    self.cancel_new_game = function() {
+        self.socket.emit('cancel_new_game');
+        self.reset_state();
     };
 
     self.join = function() {
@@ -59,17 +65,13 @@ function Lobby($elt, socket) {
     };
 
     self.reset_state = function() {
-        self.find('button').prop('disabled', false);
-        self.find('input[name=nick]').prop('disabled', false);
+        self.$elt.removeClass('state-'+self.state);
+        self.state = null;
     };
 
     self.set_state = function(state) {
-        self.reset_state();
-        if (state == 'joining' || state == 'inactive') {
-            self.find('button').prop('disabled', true);
-            self.find('input[name=nick]').prop('disabled', true);
-        }
         self.state = state;
+        self.$elt.addClass('state-'+state);
     };
 
     self.update_games = function(data) {
@@ -86,8 +88,6 @@ function Lobby($elt, socket) {
                 if (item.key) {
                     $join_button.text('Join');
                     $join_button.data('key', item.key);
-                    if (self.state !== null)
-                        $join_button.prop('disabled', true);
                 } else {
                     $join_button.text('private');
                     $join_button.prop('disabled', true);
