@@ -21,5 +21,8 @@ serve: css
 serve_prod: env css
 	env/bin/python server.py --host 127.0.0.1 --port 8080
 
+serve_bot:
+	env/bin/python bot_connect.py --host 127.0.0.1 --port 8080 --nick Bot
+
 static/css/%.auto.css: static/scss/%.scss
 	env/bin/pyscss --no-compress -o $@ $<

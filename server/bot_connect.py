@@ -1,5 +1,6 @@
-import sys
+import argparse
 import logging
+import time
 
 from socketIO_client import BaseNamespace, SocketIO
 
@@ -55,21 +56,29 @@ class MinefieldNamespace(BaseNamespace):
         logger.info('Draw!')
         self.disconnect()
 
-    def on_disconnect(self):
-        logger.info('Disconnected')
-        sys.exit()
 
-def bot_connect(host, port):
+def bot_connect(host, port, nick):
     socket = SocketIO(host, port)
     minefield = socket.define(MinefieldNamespace, '/minefield')
-    minefield.emit('new_game', 'Bot')
-    logger.info('Starting bot')
-    socket.wait()
+    minefield.emit('new_game', nick)
+    logger.info('Starting bot client')
+    while socket.connected:
+        socket.wait(seconds=5)
+    logger.info('Disconnected')
 
 
 def main():
+    parser = argparse.ArgumentParser(description='Serve the Minefield Mahjong application.')
+    parser.add_argument('--host', metavar='IP', type=str, default='127.0.0.1')
+    parser.add_argument('--port', metavar='PORT', type=int, default=8080)
+    parser.add_argument('--nick', metavar='NICK', type=str, default='Bot')
+    args = parser.parse_args()
+
     init_logging()
-    bot_connect('localhost', 8080)
+
+    while True:
+        bot_connect(args.host, args.port, args.nick)
+        time.sleep(1)
 
 
 if __name__ == '__main__':
