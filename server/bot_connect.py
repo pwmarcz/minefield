@@ -1,7 +1,13 @@
-from socketIO_client import BaseNamespace, SocketIO
 import sys
+import logging
 
+from socketIO_client import BaseNamespace, SocketIO
+
+from logs import init_logging
 from bot import Bot
+
+logger = logging.getLogger('bot')
+
 
 class MinefieldNamespace(BaseNamespace):
     def on_wait(self):
@@ -9,9 +15,9 @@ class MinefieldNamespace(BaseNamespace):
 
     def on_phase_one(self, data):
         tiles = data['tiles']
-        print ' '.join(sorted(tiles))
+        logger.info('my tiles: %s', ' '.join(sorted(tiles)))
         dora_ind = data['dora_ind']
-        print 'dora indicator:', dora_ind
+        logger.info('dora indicator: %s', dora_ind)
         east = data['east'] == data['you']
         options = {
             'fanpai_winds': ['X1' if east else 'X3'],
@@ -20,7 +26,7 @@ class MinefieldNamespace(BaseNamespace):
         self.me = data['you']
         self.bot = Bot(tiles=tiles, options=options)
         tenpai = self.bot.choose_tenpai()
-        print ' '.join(tenpai)
+        logger.info('my hand: %s', ' '.join(tenpai))
         self.emit('hand', tenpai)
 
     def on_wait_for_phase_two(self, data):
@@ -31,7 +37,7 @@ class MinefieldNamespace(BaseNamespace):
 
     def on_your_move(self, data):
         tile = self.bot.discard()
-        print tile
+        logger.info('discarding: %s', tile)
         self.emit('discard', tile)
 
     def on_discarded(self, data):
@@ -40,31 +46,31 @@ class MinefieldNamespace(BaseNamespace):
 
     def on_ron(self, data):
         if data['player'] == self.me:
-            print 'I won!'
-            print 'uradora indicator:', data['uradora_ind']
-            print ' '.join(data['hand'])
-            desc = ['riichi'] + data['yaku']
-            if data['dora']:
-                desc.append('dora %s' % data['dora'])
-            print ', '.join(desc)
-            print data['points']
+            logger.info('I won!\n%r', data)
         else:
-            print 'I lost!'
+            logger.info('I lost!\n%r', data)
         self.disconnect()
 
     def on_draw(self, data):
-        print 'Draw!'
+        logger.info('Draw!')
         self.disconnect()
 
     def on_disconnect(self):
-        print 'Disconnected'
+        logger.info('Disconnected')
         sys.exit()
 
 def bot_connect(host, port):
     socket = SocketIO(host, port)
     minefield = socket.define(MinefieldNamespace, '/minefield')
     minefield.emit('new_game', 'Bot')
+    logger.info('Starting bot')
     socket.wait()
 
-if __name__ == '__main__':
+
+def main():
+    init_logging()
     bot_connect('localhost', 8080)
+
+
+if __name__ == '__main__':
+    main()
