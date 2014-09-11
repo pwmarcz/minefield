@@ -6,7 +6,8 @@ Required packages (as of Ubuntu 12.04):
 
 Install Python libraries:
 
-  $ pip install -r requirements.txt
+  $ cd server
+  $ make
 
 To develop:
 
@@ -17,6 +18,7 @@ To develop:
 
 Server make targets are:
 
+  - make env - install server packages
   - make css - recompile SCSS
   - make watch - recompiles CSS on each change
   - make serve - serve the website in development mode

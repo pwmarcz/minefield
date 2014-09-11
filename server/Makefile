@@ -5,7 +5,7 @@ all: env css
 
 env:
 	[ -e env/bin/python ] || virtualenv env/
-	env/bin/pip install -q -r ../requirements.txt
+	env/bin/pip install -q -r requirements.txt
 
 css: static/css/default.auto.css static/css/sprites.auto.css
 
