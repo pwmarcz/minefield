@@ -26,6 +26,7 @@ class MinefieldNamespace(BaseNamespace):
         }
         self.me = data['you']
         self.bot = Bot(tiles=tiles, options=options)
+        logger.info('thinking about my hand...')
         tenpai = self.bot.choose_tenpai()
         logger.info('my hand: %s', ' '.join(tenpai))
         self.emit('hand', tenpai)
