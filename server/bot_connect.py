@@ -1,6 +1,7 @@
 import argparse
 import logging
 import time
+import threading
 
 from socketIO_client import BaseNamespace, SocketIO
 
@@ -26,10 +27,17 @@ class MinefieldNamespace(BaseNamespace):
         }
         self.me = data['you']
         self.bot = Bot(tiles=tiles, options=options)
-        logger.info('thinking about my hand...')
-        tenpai = self.bot.choose_tenpai()
-        logger.info('my hand: %s', ' '.join(tenpai))
-        self.emit('hand', tenpai)
+
+        self.build_hand()
+
+    def build_hand(self):
+        def build():
+            logger.info('thinking about my hand...')
+            tenpai = self.bot.choose_tenpai()
+            logger.info('my hand: %s', ' '.join(tenpai))
+            self.emit('hand', tenpai)
+        thread = threading.Thread(target=build)
+        thread.start()
 
     def on_wait_for_phase_two(self, data):
         pass
@@ -65,7 +73,7 @@ def bot_connect(host, port, nick):
     minefield = socket.define(MinefieldNamespace, '/minefield')
     minefield.emit('new_game', nick)
     while socket.connected:
-        socket.wait(seconds=5)
+        socket.wait(seconds=1)
     logger.info('Disconnected')
 
 
