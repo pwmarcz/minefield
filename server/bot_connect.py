@@ -61,6 +61,7 @@ class MinefieldNamespace(BaseNamespace):
 def bot_connect(host, port, nick):
     logger.info('Starting bot client')
     socket = SocketIO(host, port, wait_for_connection=False)
+    logger.info('Connected')
     minefield = socket.define(MinefieldNamespace, '/minefield')
     minefield.emit('new_game', nick)
     while socket.connected:
