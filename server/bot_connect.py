@@ -1,4 +1,5 @@
 from socketIO_client import BaseNamespace, SocketIO
+import sys
 
 from bot import Bot
 
@@ -49,14 +50,20 @@ class MinefieldNamespace(BaseNamespace):
             print data['points']
         else:
             print 'I lost!'
+        self.disconnect()
 
     def on_draw(self, data):
         print 'Draw!'
+        self.disconnect()
+
+    def on_disconnect(self):
+        print 'Disconnected'
+        sys.exit()
 
 def bot_connect(host, port):
     socket = SocketIO(host, port)
     minefield = socket.define(MinefieldNamespace, '/minefield')
-    minefield.emit('hello', 'Bot')
+    minefield.emit('new_game', 'Bot')
     socket.wait()
 
 if __name__ == '__main__':
