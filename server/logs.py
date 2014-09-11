@@ -8,7 +8,7 @@ def init_logging():
         'disable_existing_loggers': False,
         'formatters': {
             'normal': {
-                'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s',
+                'format': '%(asctime)s [%(process)d] [%(levelname)s] %(name)s: %(message)s',
             }
         },
         'filters': {},
