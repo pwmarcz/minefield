@@ -2,6 +2,8 @@ from collections import Counter
 import unittest
 import itertools
 
+import gevent
+
 import rules
 
 class Multiset(Counter):
@@ -144,25 +146,33 @@ class Bot(object):
             count -= int(wait == self.options.get('dora_ind'))
             yield count, pts
 
-    def eval_tenpais(self, tenpais):
-        for tenpai in tenpais:
-            wait_values = list(
-                rules.eval_waits(list(tenpai), options=self.options))
-            if any(pts > 0 for wait, pts in wait_values):
-                counts_values = list(self.count_waits(wait_values))
-                yield self.tenpai_value(counts_values), tenpai
+    def eval_tenpai(self, tenpai):
+        wait_values = list(
+            rules.eval_waits(list(tenpai), options=self.options))
+        if any(pts > 0 for wait, pts in wait_values):
+            counts_values = list(self.count_waits(wait_values))
+            return self.tenpai_value(counts_values)
 
-    def choose_tenpai(self):
+    def choose_tenpai(self, cooperative=False):
         #print ','.join(sorted(tiles))
         #print 'dora_ind:', options.get('dora_ind')
-        tenpais = itertools.chain(
+        tenpais = set()
+        evaluated_tenpais = list()
+        for t in itertools.chain(
             self.tenpai_3groups(),
             self.tenpai_4groups(),
             self.tenpai_6pairs(),
             self.tenpai_kokushi(),
-        )
-        tenpais = set(tuple(t) for t in tenpais)
-        value, tenpai = max(self.eval_tenpais(tenpais))
+        ):
+            if cooperative:
+                gevent.sleep(0)
+            t = tuple(t)
+            if t in tenpais:
+                continue
+            tenpais.add(t)
+            val = self.eval_tenpai(t)
+            evaluated_tenpais.append((val, t))
+        value, tenpai = max(evaluated_tenpais)
         tenpai = list(tenpai)
         self.tenpai = tenpai
         self.waits = list(rules.waits(tenpai))

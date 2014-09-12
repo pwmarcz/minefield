@@ -1,4 +1,6 @@
 
+import gevent
+
 from bot import Bot
 from utils import make_key
 
@@ -8,6 +10,7 @@ class BotPlayer(object):
 
     def __init__(self):
         self.key = make_key()
+        self.thread = None
 
     def send(self, msg_type, msg):
         if msg_type == 'phase_one':
@@ -18,6 +21,7 @@ class BotPlayer(object):
             self.on_your_move(msg)
         elif msg_type in ['ron', 'draw', 'aborted']:
             self.room.remove_player(self.idx)
+            self.shutdown()
         else:
             # ignore
             pass
@@ -41,9 +45,13 @@ class BotPlayer(object):
             }
         )
 
-        # TODO make this parallel
-        hand = self.bot.choose_tenpai()
-        self.room.send_to_game(self.idx, 'hand', hand)
+        self.choose_tenpai()
+
+    def choose_tenpai(self):
+        def run():
+            hand = self.bot.choose_tenpai(cooperative=True)
+            self.room.send_to_game(self.idx, 'hand', hand)
+        self.thread = gevent.spawn(run)
 
     def on_discarded(self, msg):
         if msg['player'] != self.idx:
@@ -54,4 +62,4 @@ class BotPlayer(object):
         self.room.send_to_game(self.idx, 'discard', tile)
 
     def shutdown(self):
-        pass
+        self.thread.join()
