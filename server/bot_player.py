@@ -1,8 +1,12 @@
 
+import logging
+
 import gevent
 
 from bot import Bot
 from utils import make_key
+
+logger = logging.getLogger('bot')
 
 
 class BotPlayer(object):
@@ -49,7 +53,9 @@ class BotPlayer(object):
 
     def choose_tenpai(self):
         def run():
+            logger.info('Choosing tenpai...')
             hand = self.bot.choose_tenpai(cooperative=True)
+            logger.info('Tenpai found')
             self.room.send_to_game(self.idx, 'hand', hand)
         self.thread = gevent.spawn(run)
 
