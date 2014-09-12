@@ -21,17 +21,19 @@ from room import Room
 from database import Database
 from logs import init_logging
 from utils import make_key
+from bot_player import BotPlayer
 
 logger = logging.getLogger('server')
 
 
 class GameServer(object):
-    def __init__(self, fname):
+    def __init__(self, fname, use_bots=False):
         self.waiting_players = {}
         self.db = Database(fname)
         self.rooms = self.db.load_unfinished_rooms()
         self.t = 0
         self.timer = None
+        self.use_bots = use_bots
 
     def add_player(self, player):
         '''Adds a player to the server.'''
@@ -118,10 +120,19 @@ class GameServer(object):
         if hasattr(self, 'socketio_server'):
             self.socketio_server.stop()
 
+    def add_bot(self):
+        if not any(isinstance(player, BotPlayer)
+                   for player in self.waiting_players.values()):
+            logger.info('adding a bot')
+            bot = BotPlayer()
+            self.add_player(bot)
+
     def beat(self):
         logger.debug('beat')
         for room in self.rooms:
             room.beat()
+        if self.use_bots:
+            self.add_bot()
 
         self.t += 1
         if self.t % 30 == 0:
@@ -300,7 +311,7 @@ def main():
 
     print 'Starting server:', args
     fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
-    server = GameServer(fname)
+    server = GameServer(fname, use_bots=True)
 
     def shutdown():
         server.stop(immediate=True)
