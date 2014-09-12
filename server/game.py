@@ -112,12 +112,12 @@ class Game(object):
 
     def start(self):
         for i in xrange(2):
+            self.set_time_limit(i, self.HAND_TIME_LIMIT)
             self.callback(i, 'phase_one',
                           {'tiles': self.initial_tiles[i],
                            'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
-            self.set_time_limit(i, self.HAND_TIME_LIMIT)
 
     def on_hand(self, player, hand):
         if self.phase != 1:
@@ -149,8 +149,8 @@ class Game(object):
             # start the second phase
             for i in xrange(2):
                 self.callback(i, 'phase_two', {})
-            self.callback(self.player_turn, 'your_move', {})
             self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
+            self.callback(self.player_turn, 'your_move', {})
         else:
             self.callback(player, 'wait_for_phase_two', {})
 
@@ -200,8 +200,8 @@ class Game(object):
                 self.callback(i, 'draw', {})
         # normal turn
         else:
-            self.callback(self.player_turn, 'your_move', {})
             self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
+            self.callback(self.player_turn, 'your_move', {})
 
     def check_ron(self, player, tile):
         full_hand = sorted(self.hand[1-player] + [tile])
@@ -259,18 +259,18 @@ class GameTestCase(unittest.TestCase):
     def test_init(self):
         # the game has just been created
         n = PLAYER_TILES
+        self.assertMessage(0, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(0, 'phase_one',
                            {'tiles': TILES[:n],
                             'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
-        self.assertMessage(0, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
+        self.assertMessage(1, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(1, 'phase_one',
                            {'tiles': TILES[n:n*2],
                             'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
-        self.assertMessage(1, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
 
     def start_game(self, s1, s2):
         self.test_init()
@@ -295,8 +295,8 @@ class GameTestCase(unittest.TestCase):
         self.assertMessageBoth('draw')
 
     def discard(self, player, tile):
-        self.assertMessage(player, 'your_move')
         self.assertMessage(player, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
+        self.assertMessage(player, 'your_move')
         self.g.on_discard(player, tile)
         self.assertMessageBoth('discarded', {'player': player,
                                              'tile': tile})
@@ -369,8 +369,8 @@ class GameTestCase(unittest.TestCase):
     def test_discard_time_limit(self):
         self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
                         'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
-        self.assertMessage(0, 'your_move')
         self.assertMessage(0, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
+        self.assertMessage(0, 'your_move')
         for i in range(self.g.DISCARD_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'time limit exceeded'})
