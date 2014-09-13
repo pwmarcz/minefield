@@ -319,7 +319,7 @@ class GameTestCase(unittest.TestCase):
             'yaku': ['kokushi'],
             'yakuman': True,
             'hand': 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(),
-            'points': 4000,
+            'points': 32000,
             'limit': 5,
             'dora': 0,
             'uradora_ind': 'M2'
