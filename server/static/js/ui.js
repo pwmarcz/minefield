@@ -73,7 +73,6 @@ function Ui($elt, socket) {
             self.set_status(message);
         });
         self.socket.on('room', function(data) {
-            self.lobby.set_state('inactive');
             self.set_key(data.key);
             self.player = data.you;
             self.set_nicks(data.nicks[self.player], data.nicks[1-self.player]);
@@ -209,6 +208,7 @@ function Ui($elt, socket) {
     };
 
     self.set_table_phase_1 = function(data) {
+        self.lobby.set_state('inactive');
         self.player = data.you;
         self.dora_ind = data.dora_ind;
         self.game_started = true;

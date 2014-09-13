@@ -106,7 +106,7 @@ test('initialize', function() {
 test('log in', function() {
     ui.find('input[name=nick]').val('Akagi');
     ui.find('.new-game').click();
-    server.expect('hello', 'Akagi');
+    server.expect('new_game', 'Akagi');
 
     // TODO this actually disregards joining game and just assumes server will
     // assign a game immediately
