@@ -4,6 +4,7 @@
 function Lobby($elt, socket) {
     var self = Part($elt, '.lobby');
     self.state = null;
+    self.data = null;
     self.socket = socket;
 
     self.init = function() {
@@ -26,12 +27,20 @@ function Lobby($elt, socket) {
 
     self.init_network = function() {
         self.socket.on('games', function(data) {
-            self.update_games(data);
+            if (self.is_data_changed(data)) {
+                self.data = data;
+                self.update_games(data);
+            }
         });
         self.socket.on('join_failed', function(message) {
             self.reset_state();
             self.trigger('join_failed', message);
         });
+    };
+
+    self.is_data_changed = function(data) {
+        // hack: compare JSON representations
+        return JSON.stringify(self.data) != JSON.stringify(data);
     };
 
     self.init_beat = function() {
