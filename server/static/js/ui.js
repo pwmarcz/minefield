@@ -121,16 +121,12 @@ function Ui($elt, socket) {
         self.socket.on('clock', function(data) {
             if (typeof data.time_limit == 'number') {
                 var time_limit_ms = data.time_limit * 1000;
-                if (self.table.state == 'select_hand') {
-                    self.show_clock(time_limit_ms);
-                } else {
-                    // Hack: this is discard, so we don't don't show the clock
-                    // immediately (so that the player doesn't have a clue
-                    // whether the opponent won or not).
-                    setTimeout(function() {
-                        self.show_clock(time_limit_ms - self.discard_delay);
-                    }, self.discard_delay);
-                }
+                // Hack we don't don't show the clock immediately (so in the
+                // case of discard, the player doesn't have a clue whether the
+                // opponent won or not).
+                setTimeout(function() {
+                    self.show_clock(time_limit_ms - self.discard_delay);
+                }, self.discard_delay);
             } else {
                 self.hide_clock();
             }
