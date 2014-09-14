@@ -35,7 +35,7 @@ function Lobby($elt, socket) {
     };
 
     self.init_beat = function() {
-        var beat_delay = 1000;
+        var beat_delay = 2500;
         function beat() {
             if (self.state != 'inactive')
                 self.socket.emit('get_games');
