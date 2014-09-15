@@ -50,13 +50,17 @@ class Room(object):
     def replay_messages(self, idx, n_received):
         messages = self.messages[idx]
         for msg_type, msg in messages[n_received:]:
+            # we don't replay move info, only send the last one to the player
+            if msg_type in ['start_move', 'end_move']:
+                pass
+
             logger.info('[room %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
 
             msg = msg.copy()
             msg['replay'] = True
 
             self.players[idx].send(msg_type, msg)
-        self.game.send_clock_info(idx)
+        self.game.send_move(idx)
 
     def send_to_game(self, idx, msg_type, msg):
         logger.info('[room %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
@@ -104,7 +108,7 @@ class RoomTest(unittest.TestCase):
         def on_crash(self, idx, msg):
             raise RuntimeError('crashed')
 
-        def send_clock_info(self, idx):
+        def send_move(self, idx):
             pass
 
     class MockPlayer(object):

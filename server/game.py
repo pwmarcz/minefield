@@ -53,7 +53,9 @@ class Game(object):
 
         # Elapsed time in seconds (see beat() for details)
         self.t = 0
-        self.deadlines = [None, None]
+
+        # Move is (move_type, deadline)
+        self.moves = [None, None]
 
         self.finished = False
 
@@ -82,42 +84,47 @@ class Game(object):
         for i in xrange(2):
             self.callback(i, 'abort',
                           {'culprit': culprit, 'description': description})
-        self.finished = True
-        self.deadlines = [None, None]
+            self.finished = True
+        self.moves = [None, None]
 
     def beat(self):
         '''Make time advance by 1 second in the game, handling possible timeouts.
         To be called by external code. Optional.'''
         self.t += 1
         for i in xrange(2):
-            if self.deadlines[i] is not None and self.t >= self.deadlines[i]:
+            if self.moves[i] is not None and self.t >= self.moves[i][1]:
                 self.abort(i, 'time limit exceeded')
                 return
 
-    def set_time_limit(self, player, time_limit):
-        assert self.deadlines[player] is None
-        self.deadlines[player] = self.t + time_limit + self.EXTRA_TIME
-        self.send_clock_info(player)
+    def start_move(self, player, move_type, time_limit):
+        assert self.moves[player] is None
+        deadline = self.t + time_limit + self.EXTRA_TIME
+        self.moves[player] = (move_type, deadline)
+        self.send_move(player)
 
-    def clear_time_limit(self, player):
-        self.deadlines[player] = None
-        self.send_clock_info(player)
+    def end_move(self, player):
+        self.moves[player] = None
+        self.callback(player, 'end_move', {})
 
-    def send_clock_info(self, player):
-        if self.deadlines[player] is None:
-            time_limit = None
-        else:
-            time_limit = self.deadlines[player] - self.t - self.EXTRA_TIME
-        self.callback(player, 'clock', {'time_limit': time_limit})
+    def send_move(self, player):
+        if self.moves[player] is None:
+            return
+
+        move_type, deadline = self.moves[player]
+        time_limit = deadline - self.t - self.EXTRA_TIME
+        self.callback(player, 'start_move', {
+            'type': move_type,
+            'time_limit': time_limit
+        })
 
     def start(self):
         for i in xrange(2):
-            self.set_time_limit(i, self.HAND_TIME_LIMIT)
             self.callback(i, 'phase_one',
                           {'tiles': self.initial_tiles[i],
                            'dora_ind': self.dora_ind,
                            'you': i,
                            'east': self.east})
+            self.start_move(i, 'hand', self.HAND_TIME_LIMIT)
 
     def on_hand(self, player, hand):
         if self.phase != 1:
@@ -140,17 +147,16 @@ class Game(object):
         self.hand[player] = hand
         self.waits[player] = list(rules.waits(hand))
 
+        self.end_move(player)
+
         # Send the hand back to player (so that he can reconstruct it while replaying).
         self.callback(player, 'hand', {'hand': hand})
-
-        self.clear_time_limit(player)
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
             for i in xrange(2):
                 self.callback(i, 'phase_two', {})
-            self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
-            self.callback(self.player_turn, 'your_move', {})
+            self.start_move(0, 'discard', self.DISCARD_TIME_LIMIT)
         else:
             self.callback(player, 'wait_for_phase_two', {})
 
@@ -181,12 +187,12 @@ class Game(object):
         self.tiles[player].remove(tile)
         self.discards[player].append(tile)
 
+        self.end_move(player)
+
         for i in xrange(2):
             self.callback(i, 'discarded',
                           {'player': player,
                            'tile': tile})
-
-        self.clear_time_limit(player)
 
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
@@ -200,8 +206,7 @@ class Game(object):
                 self.callback(i, 'draw', {})
         # normal turn
         else:
-            self.set_time_limit(self.player_turn, self.DISCARD_TIME_LIMIT)
-            self.callback(self.player_turn, 'your_move', {})
+            self.start_move(self.player_turn, 'discard', self.DISCARD_TIME_LIMIT)
 
     def check_ron(self, player, tile):
         full_hand = sorted(self.hand[1-player] + [tile])
@@ -259,28 +264,28 @@ class GameTestCase(unittest.TestCase):
     def test_init(self):
         # the game has just been created
         n = PLAYER_TILES
-        self.assertMessage(0, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(0, 'phase_one',
                            {'tiles': TILES[:n],
                             'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
-        self.assertMessage(1, 'clock', {'time_limit': Game.HAND_TIME_LIMIT})
+        self.assertMessage(0, 'start_move', {'type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(1, 'phase_one',
                            {'tiles': TILES[n:n*2],
                             'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
+        self.assertMessage(1, 'start_move', {'type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
 
     def start_game(self, s1, s2):
         self.test_init()
         self.g.on_hand(0, s1.split())
+        self.assertMessage(0, 'end_move', {})
         self.assertMessage(0, 'hand', {'hand': s1.split()})
-        self.assertMessage(0, 'clock', {'time_limit': None})
         self.assertMessage(0, 'wait_for_phase_two')
         self.g.on_hand(1, s2.split())
+        self.assertMessage(1, 'end_move', {})
         self.assertMessage(1, 'hand', {'hand': s2.split()})
-        self.assertMessage(1, 'clock', {'time_limit': None})
         self.assertMessageBoth('phase_two')
 
     def test_draw_scenario(self):
@@ -295,12 +300,11 @@ class GameTestCase(unittest.TestCase):
         self.assertMessageBoth('draw')
 
     def discard(self, player, tile):
-        self.assertMessage(player, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
-        self.assertMessage(player, 'your_move')
+        self.assertMessage(player, 'start_move', {'type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
         self.g.on_discard(player, tile)
+        self.assertMessage(player, 'end_move', {})
         self.assertMessageBoth('discarded', {'player': player,
                                              'tile': tile})
-        self.assertMessage(player, 'clock', {'time_limit': None})
 
     def test_win(self):
         # P0: 13-sided kokushi
@@ -359,8 +363,8 @@ class GameTestCase(unittest.TestCase):
         self.test_init()
         hand = 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split()
         self.g.on_hand(0, hand)
+        self.assertMessage(0, 'end_move', {})
         self.assertMessage(0, 'hand', {'hand': hand})
-        self.assertMessage(0, 'clock', {'time_limit': None})
         self.assertMessage(0, 'wait_for_phase_two')
         for i in range(self.g.HAND_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
@@ -369,8 +373,7 @@ class GameTestCase(unittest.TestCase):
     def test_discard_time_limit(self):
         self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
                         'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
-        self.assertMessage(0, 'clock', {'time_limit': Game.DISCARD_TIME_LIMIT})
-        self.assertMessage(0, 'your_move')
+        self.assertMessage(0, 'start_move', {'type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
         for i in range(self.g.DISCARD_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'time limit exceeded'})

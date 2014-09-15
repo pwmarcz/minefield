@@ -91,9 +91,10 @@ function Ui($elt, socket) {
         self.socket.on('phase_two', function(data) {
             self.set_table_phase_2();
         });
-        self.socket.on('your_move', function(data) {
-            self.delay(data.replay, self.start_move);
+        self.socket.on('start_move', function(data) {
+            self.delay(data.replay, function() { self.start_move(data); });
         });
+        self.socket.on('end_move', self.end_move);
         self.socket.on('discarded', function(data) {
             self.last_discard = data.tile;
             if (data.player == self.player) {
@@ -117,19 +118,6 @@ function Ui($elt, socket) {
                 self.set_key("");
                 self.display_ron(data);
             });
-        });
-        self.socket.on('clock', function(data) {
-            if (typeof data.time_limit == 'number') {
-                var time_limit_ms = data.time_limit * 1000;
-                // Hack we don't don't show the clock immediately (so in the
-                // case of discard, the player doesn't have a clue whether the
-                // opponent won or not).
-                setTimeout(function() {
-                    self.show_clock(time_limit_ms - self.discard_delay);
-                }, self.discard_delay);
-            } else {
-                self.hide_clock();
-            }
         });
     };
 
@@ -212,9 +200,6 @@ function Ui($elt, socket) {
         self.find('.lobby').hide();
 
         self.init_table(data);
-
-        self.table.set_state('select_hand');
-        self.set_status('Choose your hand and press OK');
     };
 
     self.set_table_phase_2 = function ()
@@ -222,9 +207,19 @@ function Ui($elt, socket) {
         self.set_status('');
     };
 
-    self.start_move = function() {
-        self.set_status('Your turn!');
-        self.table.set_state('discard');
+    self.start_move = function(data) {
+        if (data.type == 'hand') {
+            self.table.set_state('select_hand');
+            self.set_status('Choose your hand and press OK');
+        } else {
+            self.table.set_state('discard');
+            self.set_status('Your turn!');
+        }
+        self.show_clock(data.time_limit*1000);
+    };
+
+    self.end_move = function() {
+        self.hide_clock();
     };
 
     self.display_ron = function(data) {
