@@ -19,10 +19,12 @@ class BotPlayer(object):
     def send(self, msg_type, msg):
         if msg_type == 'phase_one':
             self.on_phase_one(msg)
+        elif msg_type == 'hand':
+            self.on_hand(msg)
         elif msg_type == 'discarded':
             self.on_discarded(msg)
-        elif msg_type == 'your_move':
-            self.on_your_move(msg)
+        elif msg_type == 'start_move':
+            self.on_start_move(msg)
         elif msg_type in ['ron', 'draw', 'aborted']:
             self.room.remove_player(self.idx)
             self.shutdown()
@@ -49,7 +51,8 @@ class BotPlayer(object):
             }
         )
 
-        self.choose_tenpai()
+    def on_hand(self, msg):
+        self.bot.use_tenpai(msg['hand'])
 
     def choose_tenpai(self):
         def run():
@@ -60,12 +63,18 @@ class BotPlayer(object):
         self.thread = gevent.spawn(run)
 
     def on_discarded(self, msg):
-        if msg['player'] != self.idx:
+        if msg['player'] == self.idx:
+            self.bot.use_discard(msg['tile'])
+        else:
             self.bot.opponent_discard(msg['tile'])
 
-    def on_your_move(self, msg):
-        tile = self.bot.discard()
-        self.room.send_to_game(self.idx, 'discard', tile)
+    def on_start_move(self, msg):
+        if msg['type'] == 'discard':
+            tile = self.bot.discard()
+            self.room.send_to_game(self.idx, 'discard', tile)
+        elif msg['type'] == 'hand':
+            self.choose_tenpai()
 
     def shutdown(self):
-        self.thread.join()
+        if self.thread:
+            self.thread.join()

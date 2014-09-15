@@ -35,6 +35,14 @@ class GameServer(object):
         self.timer = None
         self.use_bots = use_bots
 
+        if use_bots:
+            for room in self.rooms:
+                for i, nick in enumerate(room.nicks):
+                    # XXX recognize bots in a nicer way
+                    if nick == 'Bot':
+                        bot = BotPlayer()
+                        room.add_player(i, bot)
+
     def add_player(self, player):
         '''Adds a player to the server.'''
 

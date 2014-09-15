@@ -32,8 +32,7 @@ class Room(object):
         return (make_key(), make_key())
 
     def send_to_player(self, idx, msg_type, msg):
-        if msg_type != 'clock':
-            self.messages[idx].append((msg_type, msg))
+        self.messages[idx].append((msg_type, msg))
         if self.players[idx]:
             logger.info('[room %s] send to %d: %s %r', self.id, idx, msg_type, msg)
             self.players[idx].send(msg_type, msg)
@@ -52,7 +51,7 @@ class Room(object):
         for msg_type, msg in messages[n_received:]:
             # we don't replay move info, only send the last one to the player
             if msg_type in ['start_move', 'end_move']:
-                pass
+                continue
 
             logger.info('[room %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
 

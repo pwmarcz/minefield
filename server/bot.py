@@ -174,6 +174,9 @@ class Bot(object):
             evaluated_tenpais.append((val, t))
         value, tenpai = max(evaluated_tenpais)
         tenpai = list(tenpai)
+        return tenpai
+
+    def use_tenpai(self, tenpai):
         self.tenpai = tenpai
         self.waits = list(rules.waits(tenpai))
         self.discard_options = self.truncated_multiset(tenpai)
@@ -192,6 +195,11 @@ class Bot(object):
         self.safe_tiles.add(tile)
         return tile in self.waits
 
+    def use_discard(self, to_discard):
+        self.safe_tiles.add(to_discard)
+        self.discard_options.subtract([to_discard])
+        return to_discard
+
     def discard(self):
         available_safe = self.discard_options.set() & self.safe_tiles
         if available_safe:
@@ -203,9 +211,8 @@ class Bot(object):
                     break
             else: # furiten ahoy
                 to_discard = self.discard_options.most_common(1)[0][0]
-        self.safe_tiles.add(to_discard)
-        self.discard_options.subtract([to_discard])
         return to_discard
+
 
 class HelperFunctionsTestCase(unittest.TestCase):
     def test_full_groups(self):
