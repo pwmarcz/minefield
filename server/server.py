@@ -147,8 +147,8 @@ class GameServer(object):
             self.save_rooms()
             for room in list(self.rooms):
                 if not (room.players[0] or room.players[1]):
-                    # delete rooms after 6h
-                    if room.finished or room.game.t > 60*60*6:
+                    # delete rooms after 1h
+                    if room.finished or room.game.t > 60*60*1:
                         logger.info('removing inactive room %s from memory', room.id)
                         self.rooms.remove(room)
 
