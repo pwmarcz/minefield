@@ -146,9 +146,11 @@ class GameServer(object):
         if self.t % 30 == 0:
             self.save_rooms()
             for room in list(self.rooms):
-                if room.finished and not (room.players[0] or room.players[1]):
-                    logger.info('removing inactive room %s from memory', room.id)
-                    self.rooms.remove(room)
+                if not (room.players[0] or room.players[1]):
+                    # delete rooms after 6h
+                    if room.finished or room.game.t > 60*60*6:
+                        logger.info('removing inactive room %s from memory', room.id)
+                        self.rooms.remove(room)
 
     def save_rooms(self):
         logger.debug('saving %d rooms', len(self.rooms))
