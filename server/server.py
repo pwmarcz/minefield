@@ -54,11 +54,11 @@ class GameServer(object):
             opponent = self.waiting_players.pop(key)
             room = Room([opponent.nick, player.nick])
             self.rooms.append(room)
-            # save to database, to assign ID
-            self.db.save_room(room)
             room.add_player(0, opponent)
             room.add_player(1, player)
             room.start_game()
+            # save to database, to assign ID
+            self.db.save_room(room)
         else:
             player.emit('join_failed', 'Opponent not found.')
 
@@ -155,10 +155,13 @@ class GameServer(object):
             self.save_rooms()
             for room in list(self.rooms):
                 if not (room.players[0] or room.players[1]):
-                    # delete rooms after 1h
-                    if room.finished or room.game.t > 60*60*1:
+                    if room.finished:
                         logger.info('removing inactive room %s from memory', room.id)
                         self.rooms.remove(room)
+                    elif room.game.t > 60*60*1:
+                        logger.warning('aborting zombie room', room.id)
+                        room.abort()
+                        self.db.save_room(room)
 
     def save_rooms(self):
         logger.debug('saving %d rooms', len(self.rooms))
