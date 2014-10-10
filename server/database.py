@@ -126,7 +126,7 @@ class Database(object):
 
     def dump_active_rooms(self):
         cur = self.conn.cursor()
-        cur.execute('''SELECT rowid, data FROM rooms''')
+        cur.execute('''SELECT rowid, data FROM rooms WHERE NOT finished''')
         result = []
         for rowid, data in cur.fetchall():
             result.append('Room %d:\n%s' % (rowid, data))
