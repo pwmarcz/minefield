@@ -95,6 +95,12 @@ class GameServer(object):
 
     def serve_request(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
+        if path == 'dumpdb':
+            start_response('200 OK', [('Content-type', 'text/plain')])
+            return [
+                't = %d\n' % self.t,
+                'rooms:\n',
+                self.db.dump_active_rooms()]
         if path.startswith("socket.io") and 'socketio' in environ:
             request = {'server': self}
             try:

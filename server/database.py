@@ -124,6 +124,13 @@ class Database(object):
             for (id, data_json) in cur.fetchall()
         ]
 
+    def dump_active_rooms(self):
+        cur = self.conn.cursor()
+        cur.execute('''SELECT rowid, data FROM rooms''')
+        result = []
+        for rowid, data in cur.fetchall():
+            result.append('Room %d:\n%s' % (rowid, data))
+        return '\n-----\n'.join(result)
 
 class SerializationTest(unittest.TestCase):
     def _test_serialize(self, cls, obj1):
