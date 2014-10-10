@@ -158,10 +158,10 @@ class GameServer(object):
                     if room.finished:
                         logger.info('removing inactive room %s from memory', room.id)
                         self.rooms.remove(room)
-                    elif room.game.t > 60*60*1:
-                        logger.warning('aborting zombie room', room.id)
-                        room.abort()
-                        self.db.save_room(room)
+                if not room.finished and room.game.t > 60*60*1:
+                    logger.warning('aborting zombie room', room.id)
+                    room.abort()
+                    self.db.save_room(room)
 
     def save_rooms(self):
         logger.debug('saving %d rooms', len(self.rooms))
