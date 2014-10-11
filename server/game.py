@@ -18,7 +18,7 @@ def dummy_callback(player, msg_type, msg):
 
 class Game(object):
     # Time limits, in seconds
-    DISCARD_TIME_LIMIT = 30
+    DISCARD_TIME_LIMIT = 15
     HAND_TIME_LIMIT = 3*60
 
     # Additional leeway to accomodate connection problems and UI updates
