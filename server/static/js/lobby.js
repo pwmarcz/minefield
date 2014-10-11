@@ -86,12 +86,19 @@ function Lobby($elt, socket) {
     self.update_games = function(data) {
         function make_row(item) {
             var $row = $('<tr>');
+            function $nick_td(nick) {
+                nick = nick || 'Anonymous';
+                if (nick == 'Bot')
+                    return $('<td>').append($('<i>').text(nick));
+                else
+                    return $('<td>').text(nick);
+            }
             if (item.type == 'game') {
-                $row.append($('<td>').text(item.nicks[0] || 'Anonymous'));
+                $row.append($nick_td(item.nicks[0]));
                 $row.append($('<td class="vs">vs</td>'));
-                $row.append($('<td>').text(item.nicks[1] || 'Anonymous'));
+                $row.append($nick_td(item.nicks[1]));
             } else if (item.type == 'player') {
-                $row.append($('<td>').text(item.nick || 'Anonymous'));
+                $row.append($nick_td(item.nick));
                 $row.append($('<td class="vs"></td>'));
                 var $join_button = $('<button class="join">Join</button>');
                 if (item.key) {
