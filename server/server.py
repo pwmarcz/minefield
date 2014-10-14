@@ -149,7 +149,7 @@ class GameServer(object):
             self.add_bot()
 
         self.t += 1
-        if self.t % 60*60*3 == 0:
+        if self.t % (60*60*3) == 0:
             logger.info('beat t = %d', self.t)
         if self.t % 30 == 0:
             self.save_rooms()
