@@ -143,14 +143,15 @@ class GameServer(object):
 
     def beat(self):
         logger.debug('beat')
+        self.t += 1
+        if self.t % (60*60*3) == 0:
+            logger.info('beat t = %d', self.t)
+
         for room in self.rooms:
             room.beat()
         if self.use_bots:
             self.add_bot()
 
-        self.t += 1
-        if self.t % (60*60*3) == 0:
-            logger.info('beat t = %d', self.t)
         if self.t % 30 == 0:
             self.save_rooms()
             for room in list(self.rooms):
@@ -162,6 +163,9 @@ class GameServer(object):
                     logger.warning('aborting zombie room', room.id)
                     room.abort()
                     self.db.save_room(room)
+
+        if self.t % (60*60*3) == 0:
+            logger.info('end beat t = %d', self.t)
 
     def save_rooms(self):
         logger.debug('saving %d rooms', len(self.rooms))
