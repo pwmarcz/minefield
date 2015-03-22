@@ -9,7 +9,7 @@ See https://pwmarcz.com/minefield/ (where the project is currently deployed) for
 
 The project is available under MIT license. See COPYING for more details.
 
-## Install and run
+## Install
 
 Required packages (as of Ubuntu 12.04):
 
@@ -22,13 +22,6 @@ Install Python libraries:
     $ cd server
     $ make
 
-To develop:
-
-    $ make watch  # watch SCSS for changes
-    $ make serve
-
-  then browse to `localhost:8080`.
-
 Server make targets are:
 
   - `make env` - install server packages
@@ -37,7 +30,22 @@ Server make targets are:
   - `make serve` - serve the website in development mode
   - `make serve_prod` - serve the website in production mode
 
-## Deployment
+## Run (in developer mode)
+
+    $ make watch  # watch SCSS for changes
+    $ make serve
+
+then browse to `localhost:8080`.
+
+You can also run browse to `localhost:8080/?debug=1` to for some helpful shortcuts.
+
+## Test
+
+To run the Python (server) tests, just execute `./run-tests`.
+
+To run the JavaScript tests, browse to `localhost:8080/?test=1` (broken at the moment, sorry).
+
+## Deploy
 
 Minefield is currently a static web page plus a WebSocket (SocketIO) server.
 To deploy Minefield, you need to:
@@ -49,7 +57,7 @@ To deploy Minefield, you need to:
 Here's an example configuration for nginx:
 
     location /minefield {
-        alias /path/to/minefield/server/static;
+        /path/to/minefield/server/static;
     }
 
     location /minefield/socket.io {
