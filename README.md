@@ -41,7 +41,7 @@ You can also run browse to `localhost:8080/?debug=1` to for some helpful shortcu
 
 ## Test
 
-To run the Python (server) tests, just execute `./run-tests`.
+To run the Python (server) tests, just execute `make test`.
 
 To run the JavaScript tests, browse to `localhost:8080/?test=1` (broken at the moment, sorry).
 

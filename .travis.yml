@@ -1,0 +1,5 @@
+language: python
+python: "2.7"
+
+install: "make -C server"
+script: "make -C server test"
