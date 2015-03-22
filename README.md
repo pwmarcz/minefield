@@ -5,7 +5,7 @@
 
 This is a two-player version of Riichi Mahjong.
 
-See https://pwmarcz.com/minefield/ (where the project is currently deployed) for more details.
+See http://pwmarcz.pl/minefield/ (where the project is currently deployed) for more details.
 
 ## License
 
