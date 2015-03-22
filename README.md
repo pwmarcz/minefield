@@ -1,6 +1,8 @@
 
 # Minefield Mahjong
 
+[![Build Status](https://travis-ci.org/pwmarcz/minefield.svg?branch=master)](https://travis-ci.org/pwmarcz/minefield)
+
 This is a two-player version of Riichi Mahjong.
 
 See https://pwmarcz.com/minefield/ (where the project is currently deployed) for more details.
