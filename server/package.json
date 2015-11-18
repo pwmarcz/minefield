@@ -1,0 +1,11 @@
+{
+  "name": "minefield",
+  "dependencies": {
+    "gulp": "*",
+    "gulp-sass": "*",
+    "gulp-rename": "*",
+    "gulp-babel": "*",
+    "babel-preset-es2015": "*",
+    "babel-preset-react": "*"
+  }
+}

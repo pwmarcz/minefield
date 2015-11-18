@@ -13,11 +13,13 @@ The project is available under MIT license. See COPYING for more details.
 
 ## Install
 
-Required packages (as of Ubuntu 12.04):
+Required packages (as of Ubuntu 14.04):
 
     python-dev
     libevent-dev
     libpcre3-dev
+    nodejs
+    npm
 
 Install Python libraries:
 
@@ -27,8 +29,9 @@ Install Python libraries:
 Server make targets are:
 
   - `make env` - install server packages
-  - `make css` - recompile SCSS
-  - `make watch` - recompiles CSS on each change
+  - `make css` - recompile CSS
+  - `make js` - recompile JS
+  - `make watch` - recompiles CSS and JS on each change
   - `make serve` - serve the website in development mode
   - `make serve_prod` - serve the website in production mode
 

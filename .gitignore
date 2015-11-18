@@ -3,4 +3,5 @@
 *.db
 *.db-journal
 *.log
+node_modules/
 server/env
