@@ -237,7 +237,7 @@ body {
     }
 
     @for $i from 2 through 6 {
-      .tile:nth-child($i) {
+      .tile:nth-child(#{$i}) {
         transform: translateX(14px);
       }
     }
