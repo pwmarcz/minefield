@@ -6,10 +6,10 @@
 
 @each $i, $suit in (1, M), (2, P), (3, S), (4, X) {
   @for $j from 1 through 9 {
-    .tile[data-tile="$suit$j"] {
+    .tile[data-tile="#{$suit + $j}"] {
       background-position:
-      left -($j - 1)*30px
-      top  -($i - 1)*44px;
+      left ($j - 1)*(-30px)
+      top  ($i - 1)*(-44px);
     }
   }
 }
