@@ -8,9 +8,13 @@
        <link rel="stylesheet" type="text/css" href="css/default.auto.css">
        <link rel="stylesheet" type="text/css" href="css/sprites.auto.css">
        <link rel="stylesheet" type="text/css" href="lib/qunit-1.15.0.css">
+
        <script src="lib/jquery-2.1.1.min.js"></script>
        <script src="lib/prefixfree.min.js"></script>
        <script src="lib/socket.io.min.js"></script>
+       <script src="lib/react.js"></script>
+       <script src="lib/react-dom.js"></script>
+
        <script src="js/part.js"></script>
        <script src="js/tiles.js"></script>
        <script src="js/table.js"></script>
@@ -20,6 +24,17 @@
        <script src="lib/sinon-timers-1.10.3.js"></script>
        <script src="js/tests.js"></script>
        <script src="js/util.js"></script>
+
+       <script src="js/tile.auto.js"></script>
+
+       <script>
+         $(function() {
+           ReactDOM.render(
+             React.createElement(Tile, {'type': 'M8'}),
+             document.getElementById('start')
+           );
+         });
+       </script>
        <script><!--
          if (window.QUnit) QUnit.config.autostart = false;
 
@@ -157,6 +172,8 @@
        </div>
 
        <div class="ui main"></div>
+
+       <div id="start"></div>
 
        <div class="links" style="display: none;">
          <b><a href=".">client</a></b>
