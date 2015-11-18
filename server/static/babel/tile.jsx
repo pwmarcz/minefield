@@ -3,9 +3,9 @@ class Tile extends React.Component {
     return <div className="tile" data-tile={this.props.type} title={Tile.getTitle(this.props.type)} />;
   }
 
-  static getTitle(tile_type) {
-    var suit = tile_type[0];
-    var number = tile_type[1];
+  static getTitle(type) {
+    var suit = type[0];
+    var number = type[1];
 
     switch (suit) {
       case 'M':

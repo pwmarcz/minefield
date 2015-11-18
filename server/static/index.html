@@ -26,11 +26,19 @@
        <script src="js/util.js"></script>
 
        <script src="js/tile.auto.js"></script>
+       <script src="js/table.auto.js"></script>
 
        <script>
          $(function() {
            ReactDOM.render(
-             React.createElement(Tile, {'type': 'M8'}),
+             React.createElement(TableX, {
+               doraInd: 'M1',
+               isEast: true,
+               discards: ['M1', 'M2'],
+               opponentDiscards: ['X1', 'P4'],
+               tiles: [],
+               hand: ['X1', 'X2', 'X3'],
+             }),
              document.getElementById('start')
            );
          });
