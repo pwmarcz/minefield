@@ -21,10 +21,10 @@ function TableX(props) {
       <div className="east-display">{eastDisplay}</div>
       {stick}
       {opponentStick}
-      <TileList className="discards any-discards" types={props.discards} />
+      <TileList onTileClick={props.onDiscardTileClick} className="discards any-discards" types={props.discards} />
       <TileList className="opponent-discards any-discards" types={props.opponentDiscards} />
-      <TileList className="tiles" types={props.tiles} />
-      <TileList className="hand" types={props.hand} />
+      <TileList onTileClick={props.onTileClick} className="tiles" types={props.tiles} />
+      <TileList onTileClick={props.onHandTileClick} className="hand" types={props.hand} />
     </div>
   );
 }
