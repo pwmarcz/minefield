@@ -4,14 +4,14 @@ class UiStageOne extends React.Component {
     super(props);
     this.state = {
       tiles: props.tiles,
-      hand: [],
-      handIndices: [],
+      handData: [],
     }
   }
 
   render() {
     var onTileClick;
-    if (this.state.hand.length < 13) {
+    var hand = this.state.handData.map(h => h.type);
+    if (hand.length < 13) {
       onTileClick = this.onTileClick.bind(this);
     }
 
@@ -20,7 +20,7 @@ class UiStageOne extends React.Component {
         <TableX doraInd={this.props.doraInd}
                 isEast={this.props.isEast}
                 tiles={this.state.tiles}
-                hand={this.state.hand}
+                hand={hand}
                 onTileClick={onTileClick}
                 onHandTileClick={this.onHandTileClick.bind(this)} />
       </div>
@@ -29,20 +29,27 @@ class UiStageOne extends React.Component {
 
   onTileClick(i, type) {
     var tiles = this.state.tiles.slice();
-    var hand = this.state.hand.slice();
-    var handIndices = this.state.handIndices.slice();
-    hand.push(tiles[i]);
-    handIndices.push(i);
+    var handData = this.state.handData.slice();
+    handData.push({ type: tiles[i], index: i });
     tiles[i] = '';
-    this.setState({tiles: tiles, hand: hand, handIndices: handIndices});
+    handData.sort((h1, h2) => {
+      if (h1.type < h2.type) {
+        return -1;
+      } else if (h1.type == h2.type) {
+        return 0;
+      } else {
+        return 1;
+      }
+    });
+    this.setState({tiles: tiles, handData: handData});
   }
 
   onHandTileClick(i, type) {
     var tiles = this.state.tiles.slice();
-    var hand = this.state.hand.slice();
-    var handIndices = this.state.handIndices.slice();
-    var j = handIndices.pop();
-    tiles[j] = hand.pop();
-    this.setState({tiles: tiles, hand: hand, handIndices: handIndices});
+    var handData = this.state.handData.slice();
+    var h = handData[i];
+    handData.splice(i, 1);
+    tiles[h.index] = h.type;
+    this.setState({tiles: tiles, handData: handData});
   }
 }
