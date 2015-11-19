@@ -1,9 +1,13 @@
 class Tile extends React.Component {
   render() {
-    return <div className="tile"
-                data-tile={this.props.type}
-                title={Tile.getTitle(this.props.type)}
-                onClick={this.props.onClick} />;
+    if (this.props.type) {
+      return <div className="tile"
+                  data-tile={this.props.type}
+                  title={Tile.getTitle(this.props.type)}
+                  onClick={this.props.onClick} />;
+    } else {
+      return <div className="tile-placeholder" />;
+    }
   }
 
   static getTitle(type) {
@@ -25,15 +29,16 @@ class Tile extends React.Component {
 
 function TileList(props) {
   var tiles;
+  var types = props.types || [];
   var className = props.className || '';
 
   if (props.onTileClick) {
-    tiles = props.types.map((type, i) => (
+    tiles = types.map((type, i) => (
       <Tile type={type} key={i} onClick={() => props.onTileClick(i, type)} />
     ));
     className += ' tiles-clickable';
   } else {
-    tiles = props.types.map((type, i) => (
+    tiles = types.map((type, i) => (
       <Tile type={type} key={i} />
     ));
   }

@@ -27,18 +27,15 @@
 
        <script src="js/tile.auto.js"></script>
        <script src="js/table.auto.js"></script>
+       <script src="js/ui.auto.js"></script>
 
        <script>
          $(function() {
            ReactDOM.render(
-             React.createElement(TableX, {
+             React.createElement(UiStageOne, {
                doraInd: 'M1',
                isEast: true,
-               discards: ['M1', 'M2'],
-               opponentDiscards: ['X1', 'P4'],
-               tiles: [],
-               hand: ['X1', 'X2', 'X3'],
-               onHandTileClick: function(i, type) { alert(i + ', ' + type); }
+               tiles: ['M1', 'M2', 'M3', 'X1', 'X2', 'X3'],
              }),
              document.getElementById('start')
            );

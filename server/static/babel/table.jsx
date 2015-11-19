@@ -8,10 +8,10 @@ function TableX(props) {
   }
 
   var stick, opponentStick;
-  if (props.discards.length > 0) {
+  if (props.discards && props.discards.length > 0) {
     stick = <div className="stick any-stick" />;
   }
-  if (props.opponentDiscards.length > 0) {
+  if (props.opponentDiscards && props.opponentDiscards.length > 0) {
     opponentStick = <div className="opponent-stick any-stick" />;
   }
 
@@ -21,7 +21,7 @@ function TableX(props) {
       <div className="east-display">{eastDisplay}</div>
       {stick}
       {opponentStick}
-      <TileList onTileClick={props.onDiscardTileClick} className="discards any-discards" types={props.discards} />
+      <TileList className="discards any-discards" types={props.discards} />
       <TileList className="opponent-discards any-discards" types={props.opponentDiscards} />
       <TileList onTileClick={props.onTileClick} className="tiles" types={props.tiles} />
       <TileList onTileClick={props.onHandTileClick} className="hand" types={props.hand} />
