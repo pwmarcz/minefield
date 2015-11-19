@@ -15,20 +15,16 @@ function TableX(props) {
     opponentStick = <div className="opponent-stick any-stick" />;
   }
 
-  function renderTiles(tileTypes) {
-    return tileTypes.map((type, i) => <Tile type={type} key={i} />);
-  }
-
   return (
     <div className="table">
       <div className="dora-display">{doraIndTile}</div>
       <div className="east-display">{eastDisplay}</div>
       {stick}
       {opponentStick}
-      <div className="discards any-discards">{renderTiles(props.discards)}</div>
-      <div className="opponent-discards any-discards">{renderTiles(props.opponentDiscards)}</div>
-      <div className="tiles">{renderTiles(props.tiles)}</div>
-      <div className="hand">{renderTiles(props.hand)}</div>
+      <TileList className="discards any-discards" types={props.discards} />
+      <TileList className="opponent-discards any-discards" types={props.opponentDiscards} />
+      <TileList className="tiles" types={props.tiles} />
+      <TileList className="hand" types={props.hand} />
     </div>
   );
 }

@@ -19,3 +19,8 @@ class Tile extends React.Component {
     }
   }
 }
+
+function TileList(props) {
+  var tiles = props.types.map((type, i) => <Tile type={type} key={i} />);
+  return <div {...props}>{tiles}</div>
+}
