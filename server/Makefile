@@ -24,7 +24,7 @@ test:
 	env/bin/nosetests *.py -v
 
 .PHONY: watch
-watch:
+watch: css js
 	node_modules/gulp/bin/gulp.js watch
 
 .PHONY: serve

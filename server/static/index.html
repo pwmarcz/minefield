@@ -24,23 +24,6 @@
        <script src="lib/sinon-timers-1.10.3.js"></script>
        <script src="js/tests.js"></script>
        <script src="js/util.js"></script>
-
-       <script src="js/tile.auto.js"></script>
-       <script src="js/table.auto.js"></script>
-       <script src="js/ui.auto.js"></script>
-
-       <script>
-         $(function() {
-           ReactDOM.render(
-             React.createElement(UiStageOne, {
-               doraInd: 'M1',
-               isEast: true,
-               tiles: ['M1', 'M2', 'M3', 'X1', 'X2', 'X3'],
-             }),
-             document.getElementById('start')
-           );
-         });
-       </script>
        <script><!--
          if (window.QUnit) QUnit.config.autostart = false;
 
