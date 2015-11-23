@@ -24,11 +24,11 @@
        <div id="ui"></div>
        lobby:
        <div id="lobby"></div>
-       table stage one:
-       <div id="table-stage-one"></div>
+       table phase one:
+       <div id="table-phase-one"></div>
      </div>
      <script>
-       var table = React.createElement(TableStageOne, {
+       var table = React.createElement(TablePhaseOne, {
          doraInd: 'M1',
          isEast: true,
          tiles: ['M1', 'M2', 'M3', 'X1', 'X2', 'X3'],
@@ -43,7 +43,7 @@
        });
        var ui = React.createElement(Ui, {});
 
-       ReactDOM.render(table, document.getElementById('table-stage-one'));
+       ReactDOM.render(table, document.getElementById('table-phase-one'));
        ReactDOM.render(lobby, document.getElementById('lobby'));
        ReactDOM.render(ui, document.getElementById('ui'));
      </script>

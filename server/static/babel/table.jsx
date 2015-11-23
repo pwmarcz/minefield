@@ -41,7 +41,7 @@ function TableX(props) {
 }
 
 
-class TableStageOne extends React.Component {
+class TablePhaseOne extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -101,4 +101,17 @@ class TableStageOne extends React.Component {
     tiles[h.index] = h.type;
     this.setState({tiles: tiles, handData: handData});
   }
+}
+
+function TablePhaseTwo(props) {
+  var onTileClick = (i, type) => {
+    var tiles = props.tiles.slice();
+    var discards = props.discards.slice();
+    var discard = tiles[i];
+    tiles[i] = '';
+    discards.push(discard);
+    if (props.onDiscard)
+      props.onDiscard(discard, tiles, discards);
+  }
+  return <TableX {...props} onTileClick={onTileClick} />;
 }

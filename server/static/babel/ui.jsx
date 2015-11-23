@@ -32,15 +32,23 @@ class Ui extends React.Component {
         doraInd: this.state.doraInd,
         hand: this.state.hand,
         tiles: this.state.tiles,
+        discards: this.state.discards,
+        opponentDiscards: this.state.opponentDiscards,
       };
 
       if (this.state.status == 'phaseOne') {
-        table = <TableStageOne {...tableProps}
+        table = <TablePhaseOne {...tableProps}
                                onSubmit={this.onSubmit.bind(this)} />;
         statusMessage = 'Choose your hand and press OK';
       } else if (this.state.status == 'phaseOneWait') {
         table = <TableX {...tableProps} />;
         statusMessage = 'Hand selected, waiting for opponent...';
+      } else if (this.state.status == 'phaseTwo') {
+        table = <TablePhaseTwo {...tableProps}
+                               onDiscard={this.onDiscard.bind(this)} />;
+        statusMessage = 'Your move!';
+      } else if (this.state.status == 'phaseTwoWait') {
+        table = <TableX {...tableProps} />;
       }
     }
 
@@ -90,19 +98,37 @@ class Ui extends React.Component {
       this.setState({
         status: 'phaseOne',
         doraInd: data.doraInd,
-        player: data.player,
+        player: data.you,
         east: data.east,
         tiles: data.tiles,
       });
     });
 
+    this.socket.on('phase_two', () => {
+      this.setState({
+        status: 'phaseTwoWait',
+        discards: [],
+        opponentDiscards: [],
+      });
+    });
+
     this.socket.on('start_move', (data) => {
-      console.log(data);
+      if (this.state.status == 'phaseTwoWait') {
+        this.setState({ status: 'phaseTwo' });
+      }
       this.showClock(data.time_limit*1000);
     });
 
     this.socket.on('end_move', (data) => {
       this.hideClock();
+    });
+
+    this.socket.on('discarded', (data) => {
+      if (data.player != this.state.player) {
+        var opponentDiscards = this.state.opponentDiscards.slice();
+        opponentDiscards.push(data.tile);
+        this.setState({ opponentDiscards: opponentDiscards });
+      };
     });
   }
 
@@ -123,8 +149,18 @@ class Ui extends React.Component {
 
   onSubmit(tiles, hand) {
     this.socket.emit('hand', hand);
-    // this.hideClock();
+    // keep clock
     this.setState({ tiles: tiles, hand: hand, status: 'phaseOneWait' });
+  }
+
+  onDiscard(discard, tiles, discards) {
+    this.socket.emit('discard', discard);
+    this.hideClock();
+    this.setState({
+      tiles: tiles,
+      discards: discards,
+      status: 'phaseTwoWait'
+    });
   }
 
   initBeat() {
