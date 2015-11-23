@@ -41,14 +41,14 @@ class Ui extends React.Component {
                                onSubmit={this.onSubmit.bind(this)} />;
         statusMessage = 'Choose your hand and press OK';
       } else if (this.state.status == 'phaseOneWait') {
-        table = <TableX {...tableProps} />;
+        table = <Table {...tableProps} />;
         statusMessage = 'Hand selected, waiting for opponent...';
       } else if (this.state.status == 'phaseTwo') {
         table = <TablePhaseTwo {...tableProps}
                                onDiscard={this.onDiscard.bind(this)} />;
         statusMessage = 'Your move!';
       } else if (this.state.status == 'phaseTwoWait') {
-        table = <TableX {...tableProps} />;
+        table = <Table {...tableProps} />;
       }
     }
 

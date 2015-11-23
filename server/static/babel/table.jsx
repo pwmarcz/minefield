@@ -1,5 +1,5 @@
 
-function TableX(props) {
+function Table(props) {
   var doraIndTile = <Tile type={props.doraInd} />;
   var eastDisplay;
   if (props.isEast) {
@@ -65,7 +65,7 @@ class TablePhaseOne extends React.Component {
 
 
     return (
-      <TableX doraInd={this.props.doraInd}
+      <Table doraInd={this.props.doraInd}
               isEast={this.props.isEast}
               tiles={this.state.tiles}
               hand={hand}
@@ -113,5 +113,5 @@ function TablePhaseTwo(props) {
     if (props.onDiscard)
       props.onDiscard(discard, tiles, discards);
   }
-  return <TableX {...props} onTileClick={onTileClick} />;
+  return <Table {...props} onTileClick={onTileClick} />;
 }
