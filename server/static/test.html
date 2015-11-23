@@ -9,6 +9,7 @@
        <link rel="stylesheet" type="text/css" href="css/sprites.auto.css">
 
        <script src="lib/prefixfree.min.js"></script>
+       <script src="lib/socket.io.min.js"></script>
        <script src="lib/react.js"></script>
        <script src="lib/react-dom.js"></script>
 
@@ -19,6 +20,8 @@
    </head>
    <body>
      <div class="page">
+       ui:
+       <div id="ui"></div>
        lobby:
        <div id="lobby"></div>
        table stage one:
@@ -38,9 +41,11 @@
            { type: 'player', nick: 'Washizu', key: 'XYZ' },
          ]
        });
+       var ui = React.createElement(Ui, {});
 
        ReactDOM.render(table, document.getElementById('table-stage-one'));
        ReactDOM.render(lobby, document.getElementById('lobby'));
+       ReactDOM.render(ui, document.getElementById('ui'));
      </script>
    </body>
 </html>

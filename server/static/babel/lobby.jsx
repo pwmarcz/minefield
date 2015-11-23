@@ -1,21 +1,25 @@
 class Lobby extends React.Component {
   constructor(props) {
     super(props);
-    this.state = {
-      nick: this.props.nick || '',
-      status: 'normal',
-    }
+    this.state = {};
+  }
+
+  componentDidMount() {
+    this.setState({ nick: localStorage.getItem('nick') || '' });
   }
 
   render() {
     var items = this.props.items.map((item, i) => {
       if (item.type == 'game')
-        return <LobbyGame nicks={item.nicks} />;
+        return <LobbyGame nicks={item.nicks} key={i} />;
       else {
         var onJoin;
-        if (this.state.status == 'normal')
-          onJoin = this.onJoin.bind(this, item.key);
-
+        if (this.props.status == 'normal') {
+          onJoin = () => {
+            if (this.props.onJoin)
+              this.props.onJoin(this.state.nick, item.key);
+          }
+        }
         return <LobbyPlayer nick={item.nick}
                             key={i}
                             onJoin={onJoin} />;
@@ -23,7 +27,11 @@ class Lobby extends React.Component {
     });
 
     var newGame;
-    if (this.state.status == 'normal') {
+    if (this.props.status == 'normal') {
+      var onNewGame = () => {
+        if (this.props.onNewGame)
+          this.props.onNewGame(this.state.nick);
+      }
       newGame = (
         <tr>
           <td><input name="nick"
@@ -32,17 +40,17 @@ class Lobby extends React.Component {
                      onChange={this.onNickChange.bind(this)} /></td>
           <td className="vs"></td>
           <td>
-            <button className="new-game" onClick={this.onNewGame.bind(this)}>New game</button>
+            <button className="new-game" onClick={onNewGame}>New game</button>
           </td>
         </tr>
       );
-    } else if (this.state.status == 'advertising' || this.state.status == 'joining') {
+    } else if (this.props.status == 'advertising' || this.props.status == 'joining') {
       newGame = (
         <tr>
           <td><input name="nick" value={this.state.nick} disabled /></td>
           <td className="vs"></td>
           <td>
-            <button className="cancel" onClick={this.onCancel.bind(this)}>Cancel</button>
+            <button className="cancel" onClick={this.props.onCancel}>Cancel</button>
           </td>
         </tr>
       );
@@ -58,7 +66,7 @@ class Lobby extends React.Component {
                 {items}
               </tbody>
             </table>
-           </div>
+          </div>
         </div>
         <br />
         <table>
@@ -68,56 +76,45 @@ class Lobby extends React.Component {
         </table>
       </div>
     );
-
-    function LobbyGame(props) {
-      return (
-        <tr>
-          <Nick nick={props.nicks[0]} />
-          <td className="vs">vs</td>
-          <Nick nick={props.nicks[1]} />
-        </tr>
-      );
-    }
-
-    function LobbyPlayer(props) {
-      var join;
-      if (props.onJoin)
-        join = <button className="join" onClick={props.onJoin}>Join</button>;
-
-      return (
-        <tr>
-          <Nick nick={props.nick} />
-          <td className="vs"></td>
-          <td>
-            {join}
-          </td>
-        </tr>
-      );
-    }
-
-    function Nick(props) {
-      var nick = props.nick || 'Anonymous';
-      if (props.nick == 'Bot')
-        return <td><i>{nick}</i></td>;
-      else
-        return <td>{nick}</td>;
-    }
   }
 
   onNickChange(event) {
-    this.setState({ nick: event.target.value });
+    var newNick = event.target.value;
+    this.setState({ nick: newNick });
+    localStorage.setItem('nick', newNick);
   }
+}
 
-  onNewGame() {
-    this.setState({ status: 'advertising' });
-  }
+function LobbyGame(props) {
+  return (
+    <tr>
+      <LobbyNick nick={props.nicks[0]} />
+      <td className="vs">vs</td>
+      <LobbyNick nick={props.nicks[1]} />
+    </tr>
+  );
+}
 
-  onCancel() {
-    this.setState({ status: 'normal' });
-  }
+function LobbyPlayer(props) {
+  var join;
+  if (props.onJoin)
+    join = <button className="join" onClick={props.onJoin}>Join</button>;
 
-  onJoin(key) {
-    debugger;
-    this.setState({ status: 'joining' });
-  }
+  return (
+    <tr>
+      <LobbyNick nick={props.nick} />
+      <td className="vs"></td>
+      <td>
+        {join}
+      </td>
+    </tr>
+  );
+}
+
+function LobbyNick(props) {
+  var nick = props.nick || 'Anonymous';
+  if (props.nick == 'Bot')
+    return <td><i>{nick}</i></td>;
+  else
+    return <td>{nick}</td>;
 }
