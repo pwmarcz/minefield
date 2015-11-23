@@ -17,17 +17,42 @@ class Ui extends React.Component {
       overlay = <Overlay message="Connecting to server" />;
     }
 
+    var table, lobby;
+    var statusMessage = '';
+    if (this.state.status == 'beforeGame') {
+      table = <div className="table" />;
+      lobby = <Lobby items={this.state.games}
+                     status={this.state.lobbyStatus}
+                     onNewGame={this.onNewGame.bind(this)}
+                     onJoin={this.onJoin.bind(this)}
+                     onCancel={this.onCancel.bind(this)} />;
+    } else {
+      var tableProps = {
+        isEast: this.state.player == this.state.east,
+        doraInd: this.state.doraInd,
+        hand: this.state.hand,
+        tiles: this.state.tiles,
+      };
+
+      if (this.state.status == 'phaseOne') {
+        table = <TableStageOne {...tableProps}
+                               onSubmit={this.onSubmit.bind(this)} />;
+        statusMessage = 'Choose your hand and press OK';
+      } else if (this.state.status == 'phaseOneWait') {
+        table = <TableX {...tableProps} />;
+        statusMessage = 'Hand selected, waiting for opponent...';
+      }
+    }
+
+    var clockTime = this.getClockTime();
+
     return (
       <div className="ui">
         <NickBar nicks={this.state.nicks} />
-        <div className="table" />
-        <Lobby items={this.state.games}
-               status={this.state.lobbyStatus}
-               onNewGame={this.onNewGame.bind(this)}
-               onJoin={this.onJoin.bind(this)}
-               onCancel={this.onCancel.bind(this)}
-               />
+        {table}
+        {lobby}
         {overlay}
+        <StatusBar message={statusMessage} clockTime={clockTime} />
       </div>
     );
   }
@@ -59,6 +84,26 @@ class Ui extends React.Component {
     this.socket.on('join_failed', (data) => {
       this.setState({ lobbyStatus: 'normal' });
     });
+
+    this.socket.on('phase_one', (data) => {
+      data.tiles.sort();
+      this.setState({
+        status: 'phaseOne',
+        doraInd: data.doraInd,
+        player: data.player,
+        east: data.east,
+        tiles: data.tiles,
+      });
+    });
+
+    this.socket.on('start_move', (data) => {
+      console.log(data);
+      this.showClock(data.time_limit*1000);
+    });
+
+    this.socket.on('end_move', (data) => {
+      this.hideClock();
+    });
   }
 
   onNewGame(nick) {
@@ -76,6 +121,12 @@ class Ui extends React.Component {
     this.setState({ lobbyStatus: 'normal' });
   }
 
+  onSubmit(tiles, hand) {
+    this.socket.emit('hand', hand);
+    // this.hideClock();
+    this.setState({ tiles: tiles, hand: hand, status: 'phaseOneWait' });
+  }
+
   initBeat() {
     window.setInterval(this.beat.bind(this), 100);
   };
@@ -88,7 +139,33 @@ class Ui extends React.Component {
         this.socket.emit('get_games');
     }
 
+    // handle clock
+
     this.setState({ beatNum: beatNum + 1 });
+  }
+
+  showClock(timeLimit) {
+    this.setState({
+      clock: {
+        start: new Date(),
+        timeLimit: timeLimit,
+      }
+    });
+  }
+
+  hideClock() {
+    this.setState({ clock: null });
+  }
+
+  getClockTime() {
+    if (this.state.clock) {
+      var now = new Date();
+      return this.state.clock.start.getTime()
+             + this.state.clock.timeLimit
+             - now.getTime();
+    } else {
+      return null;
+    }
   }
 }
 
@@ -109,6 +186,31 @@ function NickBar(props) {
       <span style={{float: 'right'}}>
         Opponent: <strong className="opponent">{props.opponent}</strong>
       </span>
+    </div>
+  );
+}
+
+function StatusBar(props) {
+  var clock;
+  if (typeof props.clockTime == 'number' && props.clockTime >= 0) {
+    var clockTimeSeconds = Math.ceil(props.clockTime / 1000);
+    function padZeros(number, n) {
+      var s = number.toString();
+      while (s.length < n)
+        s = '0' + s;
+      return s;
+    }
+    var className = 'clock';
+    if (clockTimeSeconds <= 10)
+      className += ' warning';
+    var minutes = Math.floor(clockTimeSeconds / 60);
+    var seconds = padZeros(clockTimeSeconds % 60, 2);
+    clock = <div className={className}>{minutes}:{seconds}</div>;
+  }
+  return (
+    <div className="status">
+      <div className="status-text">{props.message}</div>
+      {clock}
     </div>
   );
 }

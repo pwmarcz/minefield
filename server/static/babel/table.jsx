@@ -16,6 +16,15 @@ function TableX(props) {
     opponentStick = <div className="opponent-stick any-stick" />;
   }
 
+  var submitButton;
+  if (props.showSubmit) {
+    if (props.onSubmit) {
+      submitButton = <button className="submit-hand" onClick={props.onSubmit}>OK</button>;
+    } else {
+      submitButton = <button className="submit-hand" disabled>OK</button>;
+    }
+  }
+
   return (
     <div className="table">
       <div className="dora-display">{doraIndTile}</div>
@@ -26,6 +35,7 @@ function TableX(props) {
       <TileList className="opponent-discards any-discards" types={props.opponentDiscards} />
       <TileList onTileClick={props.onTileClick} className="tiles" types={props.tiles} />
       <TileList onTileClick={props.onHandTileClick} className="hand" types={props.hand} />
+      {submitButton}
     </div>
   );
 }
@@ -43,9 +53,16 @@ class TableStageOne extends React.Component {
   render() {
     var onTileClick;
     var hand = this.state.handData.map(h => h.type);
-    if (hand.length < 13) {
+    var onSubmit;
+    if (hand.length == 13) {
+      onSubmit = () => {
+        if (this.props.onSubmit)
+          this.props.onSubmit(this.state.tiles, hand);
+      };
+    } else {
       onTileClick = this.onTileClick.bind(this);
     }
+
 
     return (
       <TableX doraInd={this.props.doraInd}
@@ -53,7 +70,9 @@ class TableStageOne extends React.Component {
               tiles={this.state.tiles}
               hand={hand}
               onTileClick={onTileClick}
-              onHandTileClick={this.onHandTileClick.bind(this)} />
+              onHandTileClick={this.onHandTileClick.bind(this)}
+              showSubmit={true}
+              onSubmit={onSubmit} />
     );
   }
 
