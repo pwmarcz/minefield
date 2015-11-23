@@ -17,11 +17,11 @@ class Ui extends React.Component {
       overlay = <Overlay message="Connecting to server" />;
     }
 
-    var table, lobby;
+    var table, popup;
     var statusMessage = '';
     if (this.state.status == 'beforeGame') {
       table = <div className="table" />;
-      lobby = <Lobby items={this.state.games}
+      popup = <Lobby items={this.state.games}
                      status={this.state.lobbyStatus}
                      onNewGame={this.onNewGame.bind(this)}
                      onJoin={this.onJoin.bind(this)}
@@ -59,7 +59,7 @@ class Ui extends React.Component {
         <NickBar nicks={this.state.nicks} />
         {table}
         {lobby}
-        {overlay}
+        {popup}
         <StatusBar message={statusMessage} clockTime={clockTime} />
       </div>
     );
