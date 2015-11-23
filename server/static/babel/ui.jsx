@@ -97,7 +97,7 @@ class Ui extends React.Component {
       data.tiles.sort();
       this.setState({
         status: 'phaseOne',
-        doraInd: data.doraInd,
+        doraInd: data.dora_ind,
         player: data.you,
         east: data.east,
         tiles: data.tiles,
