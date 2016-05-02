@@ -1,5 +1,6 @@
-
 import React from 'react';
+import { connect } from 'react-redux';
+
 
 export function Ui(props) {
   return (
@@ -10,6 +11,8 @@ export function Ui(props) {
     </div>
   )
 }
+
+export const GameUi = connect()(Ui);
 
 function NickBar({you, opponent}) {
   return (

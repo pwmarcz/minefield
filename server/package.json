@@ -22,6 +22,7 @@
     "redux-thunk": "*",
     "react": "*",
     "react-dom": "*",
-    "react-addons-update": "*"
+    "react-addons-update": "*",
+    "react-redux": "*"
   }
 }

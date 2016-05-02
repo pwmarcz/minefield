@@ -10,30 +10,15 @@ import {
 } from './game';
 
 
-class FakeSocket {
-  constructor() {
-    this.calls = [];
-  }
-
-  emit(type, ...args) {
-    this.calls.push({type, args});
-  }
-
-  getLastCall() {
-    return this.calls[this.calls.length-1];
-  }
-
-  assertLastCall(type, ...args) {
-    assert.deepEqual(this.getLastCall(), {type, args});
-  }
-};
-
-
 describe('game', function() {
   beforeEach(function() {
     this.store = createGameStore();
-    this.socket = new FakeSocket();
   });
+
+  function assertLastCall(store, type, ...args) {
+    let { messages } = store.getState();
+    assert.deepEqual(messages[messages.length-1], { type, args });
+  }
 
   it('on connect', function() {
     this.store.dispatch(socketAction('connect'));
@@ -47,21 +32,21 @@ describe('game', function() {
   });
 
   it('join', function() {
-    this.store.dispatch(joinAction('Akagi', 'XYZ', this.socket));
+    this.store.dispatch(joinAction('Akagi', 'XYZ'));
     assert.equal(this.store.getState().lobby.status, 'joining');
-    this.socket.assertLastCall('join', 'Akagi', 'XYZ');
+    assertLastCall(this.store, 'join', 'Akagi', 'XYZ');
   });
 
   it('newGame', function() {
-    this.store.dispatch(newGameAction('Akagi', this.socket));
+    this.store.dispatch(newGameAction('Akagi'));
     assert.equal(this.store.getState().lobby.status, 'advertising');
-    this.socket.assertLastCall('new_game', 'Akagi');
+    assertLastCall(this.store, 'new_game', 'Akagi');
   });
 
   it('cancelNewGame', function() {
-    this.store.dispatch(newGameAction('Akagi', this.socket));
-    this.store.dispatch(cancelNewGameAction(this.socket));
+    this.store.dispatch(newGameAction('Akagi'));
+    this.store.dispatch(cancelNewGameAction());
     assert.equal(this.store.getState().lobby.status, 'normal');
-    this.socket.assertLastCall('cancel_new_game');
+    assertLastCall(this.store, 'cancel_new_game');
   });
 });
