@@ -58,7 +58,6 @@ class Ui extends React.Component {
       <div className="ui">
         <NickBar nicks={this.state.nicks} />
         {table}
-        {lobby}
         {popup}
         <StatusBar message={statusMessage} clockTime={clockTime} />
       </div>
