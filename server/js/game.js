@@ -1,8 +1,11 @@
 
 // import thunkMiddleware from 'redux-thunk';
+import createLogger from 'redux-logger';
 import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
 
+
+const loggerMiddleware = createLogger();
 
 const INITIAL_GAME = {
   connected: false,
@@ -61,8 +64,11 @@ export function cancelNewGameAction() {
   return { type: 'cancel_new_game' };
 }
 
-export function createGameStore() {
-  return createStore(game); //, applyMiddleware(thunkMiddleware));
+export function createGameStore(logging) {
+  let middleware = undefined;
+  if (logging)
+    middleware = applyMiddleware(loggerMiddleware);
+  return createStore(game, middleware);
 }
 
 export function useSocket(store, socket) {

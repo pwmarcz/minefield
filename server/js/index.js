@@ -12,7 +12,7 @@ let socket = io.connect('/minefield', {
   'sync disconnect on unload': true,
 });
 
-let store = createGameStore();
+let store = createGameStore(true);
 useSocket(store, socket);
 
 ReactDOM.render(<GameUi store={store} />, document.getElementById('ui'));

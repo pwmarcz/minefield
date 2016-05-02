@@ -20,6 +20,7 @@
 
     "redux": "*",
     "redux-thunk": "*",
+    "redux-logger": "*",
     "react": "*",
     "react-dom": "*",
     "react-addons-update": "*",
