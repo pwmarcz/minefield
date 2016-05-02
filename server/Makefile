@@ -1,6 +1,6 @@
 
 .PHONY: all
-all: env node css js
+all: env node bundles
 
 .PHONY: env
 env:
@@ -11,24 +11,20 @@ env:
 node:
 	npm install
 
-.PHONY: css
-css:
-	node_modules/gulp/bin/gulp.js css
-
-.PHONY: js
-js:
-	node_modules/gulp/bin/gulp.js js
+.PHONY: bundles
+bundles:
+	node_modules/.bin/webpack
 
 .PHONY: test
 test:
 	env/bin/nosetests *.py -v
 
 .PHONY: watch
-watch: css js
-	node_modules/gulp/bin/gulp.js watch
+watch:
+	node_modules/.bin/webpack --watch
 
 .PHONY: serve
-serve: css js
+serve: bundles
 	env/bin/python server.py --debug --host 0.0.0.0 --port 8080
 
 .PHONY: serve_prod
