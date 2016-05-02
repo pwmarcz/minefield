@@ -1,4 +1,4 @@
-import { Ui } from './ui.jsx';
+import { Ui } from './ui';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
