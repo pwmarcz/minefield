@@ -1,5 +1,5 @@
-import { game } from './game';
-import { createStore } from 'redux';
+import { Ui } from './ui.jsx';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-let store = createStore(game);
-console.log(store.getState());
+ReactDOM.render(<Ui />, document.getElementById('ui'));
