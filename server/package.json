@@ -11,7 +11,15 @@
     "babel-core": "*",
     "babel-preset-es2015": "*",
     "babel-preset-react": "*",
+    "babel-register": "*",
 
-    "webpack": "*"
+    "mocha": "*",
+    "chai": "*",
+
+    "webpack": "*",
+
+    "redux": "*",
+    "react": "*",
+    "react-addons": "*"
   }
 }

@@ -19,6 +19,10 @@ bundles:
 test:
 	env/bin/nosetests *.py -v
 
+.PHONY: test_js
+test_js:
+	node_modules/.bin/mocha js/test.js --compilers 'js:babel-register'
+
 .PHONY: watch
 watch:
 	node_modules/.bin/webpack --watch
