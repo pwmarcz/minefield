@@ -1,5 +1,5 @@
-import game from './game';
+import { game } from './game';
+import { createStore } from 'redux';
 
-console.log(game.getState());
-
-console.log('It works!');
+let store = createStore(game);
+console.log(store.getState());

@@ -23,6 +23,10 @@ test:
 test_js:
 	node_modules/.bin/mocha js/test.js --compilers 'js:babel-register'
 
+.PHONY: watch_test_js
+watch_test_js:
+	node_modules/.bin/mocha js/test.js --compilers 'js:babel-register' --watch
+
 .PHONY: watch
 watch:
 	node_modules/.bin/webpack --watch

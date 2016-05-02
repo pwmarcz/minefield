@@ -1,5 +1,7 @@
 
-import { createStore } from 'redux';
+import thunkMiddleware from 'redux-thunk';
+import { createStore, applyMiddleware } from 'redux';
+import update from 'react-addons-update';
 
 
 const INITIAL_GAME = {
@@ -16,18 +18,45 @@ const INITIAL_GAME = {
 function game(state = INITIAL_GAME, action) {
   switch (action.type) {
   case 'socket_connect':
-    return Object.assign({}, state, {connected: true});
+    return update(state, { connected: { $set: true }});
   case 'socket_games':
-    return Object.assign({}, state, {lobby: Object.assign({}, state.lobby, {games: action.data})});
+    return update(state, { lobby: { games: { $set: action.data }}});
+  case 'join':
+    return update(state, { lobby: { status: { $set: 'joining' }}});
+  case 'new_game':
+    return update(state, { lobby: { status: { $set: 'advertising' }}});
+  case 'cancel_new_game':
+    return update(state, { lobby: { status: { $set: 'normal' }}});
   default:
     return state;
   }
 }
 
+export function socketAction(event, data) {
+  return { type: 'socket_' + event, data: data };
+}
 
-let store = createStore(game);
-console.log(store.getState());
-store.dispatch({type: 'socket_games', data: ['foo', 'bar', 'baz']})
-console.log(store.getState());
+export function joinAction(nick, key, socket) {
+  return function(dispatch) {
+    dispatch({ type: 'join' });
+    socket.emit('join', nick, key);
+  };
+}
 
-export default store;
+export function newGameAction(nick, socket) {
+  return function(dispatch) {
+    dispatch({ type: 'new_game' });
+    socket.emit('new_game', nick);
+  };
+}
+
+export function cancelNewGameAction(socket) {
+  return function(dispatch) {
+    dispatch({ type: 'cancel_new_game' });
+    socket.emit('cancel_new_game');
+  };
+}
+
+export function createGameStore() {
+  return createStore(game, applyMiddleware(thunkMiddleware));
+}

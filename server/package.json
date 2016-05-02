@@ -19,7 +19,8 @@
     "webpack": "*",
 
     "redux": "*",
+    "redux-thunk": "*",
     "react": "*",
-    "react-addons": "*"
+    "react-addons-update": "*"
   }
 }
