@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createGameStore, useSocket } from './game';
+import { createGameStore, useSocket, startBeat } from './game';
 import { Ui, GameUi } from './ui';
 
 let path = window.location.pathname;
@@ -14,5 +14,6 @@ let socket = io.connect('/minefield', {
 
 let store = createGameStore(true);
 useSocket(store, socket);
+startBeat(store);
 
 ReactDOM.render(<GameUi store={store} />, document.getElementById('ui'));

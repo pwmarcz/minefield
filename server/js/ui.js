@@ -1,20 +1,49 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { Lobby } from './lobby';
 
 
-export function Ui(props) {
+export function Ui({ connected, status }) {
+  let overlay;
+  if (!connected) {
+    overlay = <Overlay message="Connecting to server" />;
+  }
+
+  let table, popup;
+  if (status == 'lobby') {
+    // empty table
+    table = <div className="table" />;
+    popup = <Lobby />;
+  }
+
   return (
     <div className='ui'>
+      {overlay}
       <NickBar you='Akagi' opponent='Washizu' />
-      <div className='table' />
-      <StatusBar clockTime={420*1000} message='Hello' />
+      {table}
+      {popup}
+      <StatusBar clockTime={420*1000} message='todo' />
     </div>
-  )
+  );
 }
 
-export const GameUi = connect()(Ui);
+function mapStateToProps({ connected, status, lobby, nicks }) {
+  return { connected, status, lobby, nicks };
+}
 
-function NickBar({you, opponent}) {
+export const GameUi = connect(mapStateToProps)(Ui);
+
+
+function Overlay({ message }) {
+  return (
+    <div className="overlay main-part">
+      <div className="message">{message}</div>
+    </div>
+  );
+}
+
+
+function NickBar({ you, opponent }) {
   return (
     <div className="nicks">
       <span>
@@ -27,7 +56,7 @@ function NickBar({you, opponent}) {
   );
 }
 
-function StatusBar({clockTime, message}) {
+function StatusBar({ clockTime, message }) {
   var clock;
   if (typeof clockTime == 'number' && clockTime >= 0) {
     var clockTimeSeconds = Math.ceil(clockTime / 1000);
