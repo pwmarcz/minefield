@@ -29,7 +29,7 @@ const INITIAL_GAME = {
   discards: [],
   player: null,
   east: null,
-  'dora_ind': null,
+  doraInd: null,
 };
 
 const SOCKET_EVENTS = [
