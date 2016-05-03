@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 import { Lobby } from './lobby';
 
 
-export function Ui({ connected, status }) {
+export function Ui({ connected, status, nicks }) {
   let overlay;
   if (!connected) {
     overlay = <Overlay message="Connecting to server" />;
@@ -19,7 +19,7 @@ export function Ui({ connected, status }) {
   return (
     <div className='ui'>
       {overlay}
-      <NickBar you='Akagi' opponent='Washizu' />
+      <NickBar you={nicks.you} opponent={nicks.opponent} />
       {table}
       {popup}
       <StatusBar clockTime={420*1000} message='todo' />
@@ -27,8 +27,8 @@ export function Ui({ connected, status }) {
   );
 }
 
-function mapStateToProps({ connected, status, lobby, nicks }) {
-  return { connected, status, lobby, nicks };
+function mapStateToProps({ connected, status, nicks }) {
+  return { connected, status, nicks };
 }
 
 export const GameUi = connect(mapStateToProps)(Ui);

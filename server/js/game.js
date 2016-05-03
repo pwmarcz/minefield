@@ -41,12 +41,15 @@ function game(state = INITIAL_GAME, action) {
   case 'socket_games':
     return update(state, { lobby: { games: { $set: action.data }}});
 
+  case 'set_nick':
+    return update(state, { nicks: { you: { $set: action.nick }}});
+
   case 'join':
-    state = emit(state, 'join', action.nick, action.key);
+    state = emit(state, 'join', state.nicks.you, action.key);
     return update(state, { lobby: { status: { $set: 'joining' }}});
 
   case 'new_game':
-    state = emit(state, 'new_game', action.nick);
+    state = emit(state, 'new_game', state.nicks.you);
     return update(state, { lobby: { status: { $set: 'advertising' }}});
 
   case 'cancel_new_game':
@@ -72,21 +75,31 @@ function emit(state, type, ...args) {
   return update(state, { messages: { $push: [{ type, args }]}});
 }
 
-export function socketAction(event, data) {
-  return { type: 'socket_' + event, data: data };
-}
+export const actions = {
+  socket(event, data) {
+    return { type: 'socket_' + event, data: data };
+  },
 
-export function joinAction(nick, key) {
-  return { type: 'join', nick, key };
-}
+  join(key) {
+    return { type: 'join', key };
+  },
 
-export function newGameAction(nick) {
-  return { type: 'new_game', nick };
-}
+  newGame() {
+    return { type: 'new_game' };
+  },
 
-export function cancelNewGameAction() {
-  return { type: 'cancel_new_game' };
-}
+  cancelNewGame() {
+    return { type: 'cancel_new_game' };
+  },
+
+  beat() {
+    return { type: 'beat' };
+  },
+
+  setNick(nick) {
+    return { type: 'set_nick', nick: nick };
+  },
+};
 
 export function createSimpleGameStore() {
   return createStore(game);
@@ -106,11 +119,12 @@ export function startGame() {
 
   useSocket(store, socket);
   startBeat(store);
+  useLocalStorage(store);
 
-
+  return store;
 }
 
-export function useSocket(store, socket) {
+function useSocket(store, socket) {
   function listen() {
     let { messages } = store.getState();
     if (messages.length > 0) {
@@ -120,14 +134,23 @@ export function useSocket(store, socket) {
   }
 
   SOCKET_EVENTS.forEach((event) => {
-    socket.on(event, (data) => store.dispatch(socketAction(event, data)));
+    socket.on(event, (data) => store.dispatch(actions.socket(event, data)));
   });
 
   store.subscribe(listen);
 }
 
-export function startBeat(store) {
+function startBeat(store) {
   window.setInterval(() => {
     store.dispatch({ type: 'beat' });
   }, 100);
+}
+
+function useLocalStorage(store) {
+  let nick = localStorage.getItem('nick') || '';
+  store.dispatch(actions.setNick(nick));
+  store.subscribe(function listen() {
+    let nick = store.getState().nicks.you;
+    localStorage.setItem('nick', nick);
+  });
 }
