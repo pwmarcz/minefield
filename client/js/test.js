@@ -7,6 +7,11 @@ import {
 } from './game';
 
 
+const SAMPLE_TILES = [
+  'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+  'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9',
+];
+
 describe('game', function() {
   beforeEach(function() {
     this.store = createSimpleGameStore();
@@ -90,17 +95,12 @@ describe('game', function() {
       assert.deepEqual(this.store.getState().tiles, ['X1', 'X2', 'X3']);
     });
 
-    const TILES = [
-      'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
-      'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9',
-    ];
-
     it('selecting a hand', function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
         'phase_one', {
-          tiles: TILES, 'dora_ind': 'X3', east: 0, you: 0
+          tiles: SAMPLE_TILES, 'dora_ind': 'X3', east: 0, you: 0
         }));
 
       // M8, M3, P4
@@ -126,19 +126,47 @@ describe('game', function() {
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
         'phase_one', {
-          tiles: TILES, 'dora_ind': 'X3', east: 0, you: 0
+          tiles: SAMPLE_TILES, 'dora_ind': 'X3', east: 0, you: 0
         }));
+
+      this.store.dispatch(actions.socket('start_move', { type: 'hand' }));
 
       for (let i = 0; i < 13; i++) {
         this.store.dispatch(actions.selectTile(i));
       }
 
       this.store.dispatch(actions.submitHand());
-      assert.equal(this.store.getState().handSubmitted, true);
-      assertLastCall(this.store, 'hand', TILES.slice(0, 13));
+      assert.equal(this.store.getState().move, null);
+      assertLastCall(this.store, 'hand', SAMPLE_TILES.slice(0, 13));
 
       this.store.dispatch(actions.socket('phase_two'));
       assert.equal(this.store.getState().status, 'phase_two');
+    });
+  });
+
+  describe('phase two', function() {
+    beforeEach(function() {
+      this.store.dispatch(actions.socket(
+        'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
+      this.store.dispatch(actions.socket(
+        'phase_one', {
+          tiles: SAMPLE_TILES, 'dora_ind': 'X3', east: 0, you: 0
+        }));
+      for (let i = 0; i < 13; i++) {
+        this.store.dispatch(actions.selectTile(i));
+      }
+      this.store.dispatch(actions.submitHand());
+      this.store.dispatch(actions.socket('phase_two'));
+    });
+
+    it('discard', function() {
+      assert.isNull(this.store.getState().move);
+      this.store.dispatch(actions.socket('start_move', { type: 'discard' }));
+      assert.isNotNull(this.store.getState().move);
+      this.store.dispatch(actions.discard(13));
+      assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
+      assert.isNull(this.store.getState().move);
+      assert.equal(this.store.getState().discards[0], SAMPLE_TILES[13]);
     });
   });
 });

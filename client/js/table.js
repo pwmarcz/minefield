@@ -56,8 +56,8 @@ export function Table({
       <div className="east-display">{eastDisplay}</div>
       {stick}
       {opponentStick}
-      <TileList className="discards any-discards" types={discards} />
-      <TileList className="opponent-discards any-discards" types={opponentDiscards} />
+      <TileList className="discards any-discards" tiles={discards} />
+      <TileList className="opponent-discards any-discards" tiles={opponentDiscards} />
       <TileList onTileClick={onTileClick} className="tiles" tiles={tiles} />
       <TileList onTileClick={onHandTileClick} className="hand" tiles={hand} />
       {submitButton}
@@ -65,31 +65,50 @@ export function Table({
   );
 }
 
-function mapStateToProps({ doraInd, player, east, tiles, handData, handSubmitted }) {
-  return {
-    doraInd,
-    isEast: player === east,
-    tiles: tiles,
-    hand: handData.map(a => a.tile),
-    canClickTile: !handSubmitted && handData.length < 13,
-    canClickHandTile: !handSubmitted,
-    showSubmit: !handSubmitted,
-    canSubmit: !handSubmitted && handData.length === 13,
-  };
-}
+export const GameTablePhaseOne = connect(
+  function mapStateToProps({ doraInd, player, east, tiles, handData, move }) {
+    let yourTurn = move && move.type === 'hand';
+    return {
+      doraInd,
+      isEast: player === east,
+      tiles: tiles,
+      hand: handData.map(a => a.tile),
+      canClickTile: yourTurn && handData.length < 13,
+      canClickHandTile: yourTurn,
+      showSubmit: yourTurn,
+      canSubmit: yourTurn && handData.length === 13,
+    };
+  },
+  function mapDispatchToProps(dispatch) {
+    return {
+      onTileClick(idx, tile) {
+        dispatch(actions.selectTile(idx));
+      },
+      onHandTileClick(idx, tile) {
+        dispatch(actions.unselectTile(idx));
+      },
+      onSubmit() {
+        dispatch(actions.submitHand());
+      }
+    };
+  })(Table);
 
-function mapDispatchToProps(dispatch) {
-  return {
-    onTileClick(idx, tile) {
-      dispatch(actions.selectTile(idx));
-    },
-    onHandTileClick(idx, tile) {
-      dispatch(actions.unselectTile(idx));
-    },
-    onSubmit() {
-      dispatch(actions.submitHand());
-    }
-  };
-}
-
-export const GameTablePhaseOne = connect(mapStateToProps, mapDispatchToProps)(Table);
+export const GameTablePhaseTwo = connect(
+  function mapStateToProps({ doraInd, player, east, tiles, discards, handData, move }) {
+    let yourTurn = move && move.type === 'discard';
+    return {
+      doraInd,
+      isEast: player === east,
+      tiles: tiles,
+      discards: discards,
+      hand: handData.map(a => a.tile),
+      canClickTile: yourTurn,
+    };
+  },
+  function mapDispatchToProps(dispatch) {
+    return {
+      onTileClick(idx, tile) {
+        dispatch(actions.discard(idx));
+      }
+    };
+  })(Table);

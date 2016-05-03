@@ -23,9 +23,10 @@ const INITIAL_GAME = {
   nicks: { you: '', opponent: '' },
   messages: [],
   beatNum: 0,
+  move: null,
   handData: [],
-  handSubmitted: false,
   tiles: null,
+  discards: [],
   player: null,
   east: null,
   'dora_ind': null,
@@ -37,6 +38,7 @@ const SOCKET_EVENTS = [
   'room',
   'phase_one',
   'phase_two',
+  'start_move',
 ];
 
 
@@ -73,7 +75,16 @@ function game(state = INITIAL_GAME, action) {
   }
 
   case 'socket_phase_two':
-    return update(state, { status: { $set: 'phase_two' }});
+    return update(state, {
+      status: { $set: 'phase_two' },
+      playerTurn: { $set: state.east }
+    });
+
+  case 'socket_start_move':
+    // TODO timelimit
+    return update(state, {
+      move: { $set: { type: action.data.type }}
+    });
 
   case 'set_nick':
     return update(state, { nicks: { you: { $set: action.nick }}});
@@ -116,8 +127,16 @@ function game(state = INITIAL_GAME, action) {
   case 'submit_hand': {
     let hand = state.handData.map(a => a.tile);
     state = emit(state, 'hand', hand);
-    return update(state, { handSubmitted: { $set: true }});
+    return update(state, { move: { $set: null }});
   }
+
+  case 'discard':
+    state = emit(state, 'discard', state.tiles[action.idx]);
+    return update(state, {
+      discards: { $push: [state.tiles[action.idx]] },
+      tiles: { [action.idx]: { $set: null }},
+      move: { $set: null },
+    });
 
   case 'flush':
     return update(state, { messages: { $set: [] }});
@@ -173,6 +192,10 @@ export const actions = {
 
   submitHand() {
     return { type: 'submit_hand' };
+  },
+
+  discard(idx) {
+    return { type: 'discard', idx };
   },
 };
 
