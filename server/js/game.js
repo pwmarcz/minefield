@@ -28,7 +28,7 @@ const INITIAL_GAME = {
 };
 
 const SOCKET_EVENTS = [
-  'connect', 'games',
+  'connect', 'games', 'room',
 ];
 
 
@@ -40,6 +40,16 @@ function game(state = INITIAL_GAME, action) {
 
   case 'socket_games':
     return update(state, { lobby: { games: { $set: action.data }}});
+
+  case 'socket_room': {
+    let { you, nicks } = action.data;
+    return update(state, {
+      player: { $set: you },
+      nicks: { $set: {
+        you: nicks[you],
+        opponent: nicks[1-you]
+      }}});
+  }
 
   case 'set_nick':
     return update(state, { nicks: { you: { $set: action.nick }}});
@@ -128,7 +138,6 @@ function useSocket(store, socket) {
   function listen() {
     let { messages } = store.getState();
     if (messages.length > 0) {
-      console.log('emit', messages);
       messages.forEach(({ type, args }) => socket.emit(type, ...args));
       store.dispatch({ type: 'flush' });
     }

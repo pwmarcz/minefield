@@ -62,4 +62,12 @@ describe('game', function() {
     // second beat shouldn't produce another message
     assert.equal(this.store.getState().messages.length, 1);
   });
+
+  it('starting phase one', function() {
+    this.store.dispatch(actions.socket(
+      'room', { key: '123', you: 1, nicks: ['Akagi', 'Washizu'] }));
+    assert.equal(this.store.getState().player, 1);
+    assert.deepEqual(this.store.getState().nicks,
+                     { you: 'Washizu', opponent: 'Akagi' });
+  });
 });
