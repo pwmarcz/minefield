@@ -1,6 +1,6 @@
 
 .PHONY: all
-all: env node bundles
+all: env node static
 
 .PHONY: env
 env:
@@ -11,8 +11,8 @@ env:
 node:
 	npm install
 
-.PHONY: bundles
-bundles:
+.PHONY: static
+static:
 	node_modules/.bin/webpack
 
 .PHONY: test
@@ -32,9 +32,9 @@ watch:
 	node_modules/.bin/webpack --watch
 
 .PHONY: serve
-serve: bundles
+serve: static
 	env/bin/python server.py --debug --host 0.0.0.0 --port 8080
 
 .PHONY: serve_prod
-serve_prod: env css js
+serve_prod: env static
 	env/bin/python server.py --host 127.0.0.1 --port 8080
