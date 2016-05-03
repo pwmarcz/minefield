@@ -1,4 +1,4 @@
-/* global describe, it, beforeEach */
+/* eslint-env node, mocha */
 
 import { assert } from 'chai';
 import {
@@ -60,7 +60,7 @@ describe('game', function() {
 
     this.store.dispatch({ type: 'beat' });
     assert.equal(this.store.getState().beatNum, 2);
-    // second beat shouldn't produce anoth message
+    // second beat shouldn't produce another message
     assert.equal(this.store.getState().messages.length, 1);
   });
 });
