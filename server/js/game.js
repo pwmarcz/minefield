@@ -24,6 +24,7 @@ const INITIAL_GAME = {
   messages: [],
   beatNum: 0,
   handData: [],
+  handSubmitted: false,
   tiles: null,
   player: null,
   east: null,
@@ -31,7 +32,11 @@ const INITIAL_GAME = {
 };
 
 const SOCKET_EVENTS = [
-  'connect', 'games', 'room', 'phase_one',
+  'connect',
+  'games',
+  'room',
+  'phase_one',
+  'phase_two',
 ];
 
 
@@ -66,6 +71,9 @@ function game(state = INITIAL_GAME, action) {
       east: { $set: east }
     });
   }
+
+  case 'socket_phase_two':
+    return update(state, { status: { $set: 'phase_two' }});
 
   case 'set_nick':
     return update(state, { nicks: { you: { $set: action.nick }}});
@@ -103,6 +111,12 @@ function game(state = INITIAL_GAME, action) {
       tiles: { [idx]: { $set: tile }},
       handData: { $set: newHandData }
     });
+  }
+
+  case 'submit_hand': {
+    let hand = state.handData.map(a => a.tile);
+    state = emit(state, 'hand', hand);
+    return update(state, { handSubmitted: { $set: true }});
   }
 
   case 'flush':
@@ -155,6 +169,10 @@ export const actions = {
 
   unselectTile(handIdx) {
     return { type: 'unselect_tile', handIdx };
+  },
+
+  submitHand() {
+    return { type: 'submit_hand' };
   },
 };
 

@@ -65,16 +65,16 @@ export function Table({
   );
 }
 
-function mapStateToProps({ doraInd, player, east, tiles, handData }) {
+function mapStateToProps({ doraInd, player, east, tiles, handData, handSubmitted }) {
   return {
     doraInd,
     isEast: player === east,
     tiles: tiles,
     hand: handData.map(a => a.tile),
-    canClickTile: handData.length < 13,
-    canClickHandTile: true,
-    showSubmit: true,
-    canSubmit: handData.length === 13,
+    canClickTile: !handSubmitted && handData.length < 13,
+    canClickHandTile: !handSubmitted,
+    showSubmit: !handSubmitted,
+    canSubmit: !handSubmitted && handData.length === 13,
   };
 }
 
@@ -86,6 +86,9 @@ function mapDispatchToProps(dispatch) {
     onHandTileClick(idx, tile) {
       dispatch(actions.unselectTile(idx));
     },
+    onSubmit() {
+      dispatch(actions.submitHand());
+    }
   };
 }
 

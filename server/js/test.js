@@ -110,15 +110,35 @@ describe('game', function() {
       assert.deepEqual(
         this.store.getState().handData.map(a => a.tile),
         ['M3', 'M8', 'P4']);
-      assert.deepEqual(this.store.getState().tiles[7], null);
-      assert.deepEqual(this.store.getState().tiles[2], null);
-      assert.deepEqual(this.store.getState().tiles[12], null);
+      assert.equal(this.store.getState().tiles[7], null);
+      assert.equal(this.store.getState().tiles[2], null);
+      assert.equal(this.store.getState().tiles[12], null);
 
       this.store.dispatch(actions.unselectTile(0));
       assert.deepEqual(
         this.store.getState().handData.map(a => a.tile),
         ['M8', 'P4']);
-      assert.deepEqual(this.store.getState().tiles[2], 'M3');
+      assert.equal(this.store.getState().tiles[2], 'M3');
+    });
+
+    it('submitting a hand', function() {
+      this.store.dispatch(actions.socket(
+        'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
+      this.store.dispatch(actions.socket(
+        'phase_one', {
+          tiles: TILES, 'dora_ind': 'X3', east: 0, you: 0
+        }));
+
+      for (let i = 0; i < 13; i++) {
+        this.store.dispatch(actions.selectTile(i));
+      }
+
+      this.store.dispatch(actions.submitHand());
+      assert.equal(this.store.getState().handSubmitted, true);
+      assertLastCall(this.store, 'hand', TILES.slice(0, 13));
+
+      this.store.dispatch(actions.socket('phase_two'));
+      assert.equal(this.store.getState().status, 'phase_two');
     });
   });
 });
