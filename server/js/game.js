@@ -28,7 +28,7 @@ const INITIAL_GAME = {
 };
 
 const SOCKET_EVENTS = [
-  'connect', 'games', 'room',
+  'connect', 'games', 'room', 'phase_one',
 ];
 
 
@@ -49,6 +49,17 @@ function game(state = INITIAL_GAME, action) {
         you: nicks[you],
         opponent: nicks[1-you]
       }}});
+  }
+
+  case 'socket_phase_one': {
+    let { tiles, 'dora_ind': doraInd, you, east } = action.data;
+    return update(state, {
+      status: { $set: 'phase_one' },
+      tiles: { $set: tiles },
+      doraInd: { $set: doraInd },
+      player: { $set: you },
+      east: { $set: east }
+    });
   }
 
   case 'set_nick':

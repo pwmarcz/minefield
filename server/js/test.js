@@ -65,9 +65,24 @@ describe('game', function() {
 
   it('starting phase one', function() {
     this.store.dispatch(actions.socket(
-      'room', { key: '123', you: 1, nicks: ['Akagi', 'Washizu'] }));
+      'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
     assert.equal(this.store.getState().player, 1);
     assert.deepEqual(this.store.getState().nicks,
                      { you: 'Washizu', opponent: 'Akagi' });
+
+    let tiles = ['X1', 'X2', 'X3'];
+    this.store.dispatch(actions.socket(
+      'phase_one', {
+        tiles,
+        'dora_ind': 'X3',
+        east: 0,
+        you: 0
+      }));
+
+    assert.equal(this.store.getState().status, 'phase_one');
+    assert.equal(this.store.getState().doraInd, 'X3');
+    assert.equal(this.store.getState().east, 0);
+    assert.equal(this.store.getState().player, 0);
+    assert.deepEqual(this.store.getState().tiles, tiles);
   });
 });
