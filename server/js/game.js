@@ -56,6 +56,8 @@ function game(state = INITIAL_GAME, action) {
 
   case 'socket_phase_one': {
     let { tiles, 'dora_ind': doraInd, you, east } = action.data;
+    tiles = tiles.slice();
+    tiles.sort();
     return update(state, {
       status: { $set: 'phase_one' },
       tiles: { $set: tiles },

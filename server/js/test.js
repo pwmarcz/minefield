@@ -74,10 +74,9 @@ describe('game', function() {
       assert.deepEqual(this.store.getState().nicks,
                        { you: 'Washizu', opponent: 'Akagi' });
 
-      let tiles = ['X1', 'X2', 'X3'];
       this.store.dispatch(actions.socket(
         'phase_one', {
-          tiles,
+          tiles: ['X3', 'X2', 'X1'],
           'dora_ind': 'X3',
           east: 0,
           you: 0
@@ -87,8 +86,8 @@ describe('game', function() {
       assert.equal(this.store.getState().doraInd, 'X3');
       assert.equal(this.store.getState().east, 0);
       assert.equal(this.store.getState().player, 0);
-      // TODO sort?
-      assert.deepEqual(this.store.getState().tiles, tiles);
+      // the tiles should be sorted
+      assert.deepEqual(this.store.getState().tiles, ['X1', 'X2', 'X3']);
     });
 
     const TILES = [
