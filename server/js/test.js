@@ -49,4 +49,18 @@ describe('game', function() {
     assert.equal(this.store.getState().lobby.status, 'normal');
     assertLastCall(this.store, 'cancel_new_game');
   });
+
+  it('beat', function() {
+    assert.equal(this.store.getState().beatNum, 0);
+
+    this.store.dispatch({ type: 'beat' });
+    assert.equal(this.store.getState().messages.length, 1);
+    assert.equal(this.store.getState().beatNum, 1);
+    assertLastCall(this.store, 'get_games');
+
+    this.store.dispatch({ type: 'beat' });
+    assert.equal(this.store.getState().beatNum, 2);
+    // second beat shouldn't produce anoth message
+    assert.equal(this.store.getState().messages.length, 1);
+  });
 });
