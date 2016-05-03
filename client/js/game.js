@@ -65,16 +65,15 @@ function reduceGameGeneral(state, action) {
     return update(state, { connected: { $set: true }});
 
   case 'socket_start_move':
-    // TODO timelimit
     return update(state, {
-      move: { $set: { type: action.data.type }}
+      move: { $set: {
+        type: action.data.type,
+        deadline: state.beatNum + action.data.time_limit * 10,
+      }}
     });
 
   case 'beat': {
-    let beatNum = state.beatNum;
-    if (state.status === 'lobby' && beatNum % 25 === 0)
-      state = emit(state, 'get_games');
-    return update(state, { beatNum: { $set: beatNum+1 }});
+    return update(state, { beatNum: { $set: state.beatNum+1 }});
   }
 
   case 'flush':
@@ -100,6 +99,12 @@ function reduceGameLobby(state, action) {
         opponent: nicks[1-you]
       }}});
   }
+
+  case 'beat':
+    if (state.status === 'lobby' && state.beatNum % 25 === 1)
+      return emit(state, 'get_games');
+    else
+      return state;
 
   case 'set_nick':
     return update(state, { nicks: { you: { $set: action.nick }}});

@@ -4,7 +4,7 @@ import { GameLobby } from './lobby';
 import { GameTablePhaseOne, GameTablePhaseTwo } from './table';
 
 
-export function Ui({ connected, status, nicks }) {
+export function Ui({ connected, status, nicks, clockTime }) {
   let overlay;
   if (!connected) {
     overlay = <Overlay message="Connecting to server" />;
@@ -27,13 +27,17 @@ export function Ui({ connected, status, nicks }) {
       <NickBar you={nicks.you} opponent={nicks.opponent} />
       {table}
       {popup}
-      <StatusBar clockTime={420*1000} message='todo' />
+      <StatusBar clockTime={clockTime} message='todo' />
     </div>
   );
 }
 
-function mapStateToProps({ connected, status, nicks }) {
-  return { connected, status, nicks };
+function mapStateToProps({ connected, status, nicks, move, beatNum }) {
+  let clockTime;
+  if (move) {
+    clockTime = (move.deadline - beatNum)*100;
+  }
+  return { connected, status, nicks, clockTime };
 }
 
 export const GameUi = connect(mapStateToProps)(Ui);
