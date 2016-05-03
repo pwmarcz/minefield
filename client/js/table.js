@@ -94,13 +94,14 @@ export const GameTablePhaseOne = connect(
   })(Table);
 
 export const GameTablePhaseTwo = connect(
-  function mapStateToProps({ doraInd, player, east, tiles, discards, handData, move }) {
+  function mapStateToProps({ doraInd, player, east, tiles, discards, opponentDiscards, handData, move }) {
     let yourTurn = move && move.type === 'discard';
     return {
       doraInd,
       isEast: player === east,
-      tiles: tiles,
-      discards: discards,
+      tiles,
+      discards,
+      opponentDiscards,
       hand: handData.map(a => a.tile),
       canClickTile: yourTurn,
     };

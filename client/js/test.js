@@ -168,5 +168,7 @@ describe('game', function() {
       assert.isNull(this.store.getState().move);
       assert.equal(this.store.getState().discards[0], SAMPLE_TILES[13]);
     });
+
+    // TODO opponent discards
   });
 });

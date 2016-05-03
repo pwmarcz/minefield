@@ -47,6 +47,7 @@ const SOCKET_EVENTS = [
   'phase_one',
   'phase_two',
   'start_move',
+  'discarded',
 ];
 
 
@@ -63,6 +64,9 @@ function reduceGameGeneral(state, action) {
 
   case 'socket_connect':
     return update(state, { connected: { $set: true }});
+
+  // TODO disconnect
+  // TODO abort
 
   case 'socket_start_move':
     return update(state, {
@@ -184,6 +188,15 @@ function reduceGamePhaseTwo(state, action) {
       status: { $set: 'phase_two' },
       playerTurn: { $set: state.east }
     });
+
+  case 'socket_discarded':
+    if (action.data.player === state.player) {
+      return state;
+    } else {
+      return update(state, {
+        opponentDiscards: { $push: [action.data.tile] }
+      });
+    }
 
   case 'discard':
     state = emit(state, 'discard', state.tiles[action.idx]);
