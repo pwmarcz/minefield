@@ -22,33 +22,6 @@ describe('game', function() {
     assert.isTrue(this.store.getState().connected);
   });
 
-  it('on games list', function() {
-    let games = ['x', 'y', 'z'];
-    this.store.dispatch(actions.socket('games', games));
-    assert.deepEqual(this.store.getState().lobby.games, games);
-  });
-
-  it('join', function() {
-    this.store.dispatch(actions.setNick('Akagi'));
-    this.store.dispatch(actions.join('XYZ'));
-    assert.equal(this.store.getState().lobby.status, 'joining');
-    assertLastCall(this.store, 'join', 'Akagi', 'XYZ');
-  });
-
-  it('newGame', function() {
-    this.store.dispatch(actions.setNick('Akagi'));
-    this.store.dispatch(actions.newGame());
-    assert.equal(this.store.getState().lobby.status, 'advertising');
-    assertLastCall(this.store, 'new_game', 'Akagi');
-  });
-
-  it('cancelNewGame', function() {
-    this.store.dispatch(actions.newGame());
-    this.store.dispatch(actions.cancelNewGame());
-    assert.equal(this.store.getState().lobby.status, 'normal');
-    assertLastCall(this.store, 'cancel_new_game');
-  });
-
   it('beat', function() {
     assert.equal(this.store.getState().beatNum, 0);
 
@@ -63,26 +36,90 @@ describe('game', function() {
     assert.equal(this.store.getState().messages.length, 1);
   });
 
-  it('starting phase one', function() {
-    this.store.dispatch(actions.socket(
-      'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
-    assert.equal(this.store.getState().player, 1);
-    assert.deepEqual(this.store.getState().nicks,
-                     { you: 'Washizu', opponent: 'Akagi' });
+  describe('lobby', function() {
+    it('on games list', function() {
+      let games = ['x', 'y', 'z'];
+      this.store.dispatch(actions.socket('games', games));
+      assert.deepEqual(this.store.getState().lobby.games, games);
+    });
 
-    let tiles = ['X1', 'X2', 'X3'];
-    this.store.dispatch(actions.socket(
-      'phase_one', {
-        tiles,
-        'dora_ind': 'X3',
-        east: 0,
-        you: 0
-      }));
+    it('join', function() {
+      this.store.dispatch(actions.setNick('Akagi'));
+      this.store.dispatch(actions.join('XYZ'));
+      assert.equal(this.store.getState().lobby.status, 'joining');
+      assertLastCall(this.store, 'join', 'Akagi', 'XYZ');
+    });
 
-    assert.equal(this.store.getState().status, 'phase_one');
-    assert.equal(this.store.getState().doraInd, 'X3');
-    assert.equal(this.store.getState().east, 0);
-    assert.equal(this.store.getState().player, 0);
-    assert.deepEqual(this.store.getState().tiles, tiles);
+    it('newGame', function() {
+      this.store.dispatch(actions.setNick('Akagi'));
+      this.store.dispatch(actions.newGame());
+      assert.equal(this.store.getState().lobby.status, 'advertising');
+      assertLastCall(this.store, 'new_game', 'Akagi');
+    });
+
+    it('cancelNewGame', function() {
+      this.store.dispatch(actions.newGame());
+      this.store.dispatch(actions.cancelNewGame());
+      assert.equal(this.store.getState().lobby.status, 'normal');
+      assertLastCall(this.store, 'cancel_new_game');
+    });
+
+  });
+
+  describe('phase one', function() {
+    it('starting phase one', function() {
+      this.store.dispatch(actions.socket(
+        'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
+      assert.equal(this.store.getState().player, 1);
+      assert.deepEqual(this.store.getState().nicks,
+                       { you: 'Washizu', opponent: 'Akagi' });
+
+      let tiles = ['X1', 'X2', 'X3'];
+      this.store.dispatch(actions.socket(
+        'phase_one', {
+          tiles,
+          'dora_ind': 'X3',
+          east: 0,
+          you: 0
+        }));
+
+      assert.equal(this.store.getState().status, 'phase_one');
+      assert.equal(this.store.getState().doraInd, 'X3');
+      assert.equal(this.store.getState().east, 0);
+      assert.equal(this.store.getState().player, 0);
+      // TODO sort?
+      assert.deepEqual(this.store.getState().tiles, tiles);
+    });
+
+    const TILES = [
+      'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+      'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9',
+    ];
+
+    it('selecting a hand', function() {
+      this.store.dispatch(actions.socket(
+        'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
+      this.store.dispatch(actions.socket(
+        'phase_one', {
+          tiles: TILES, 'dora_ind': 'X3', east: 0, you: 0
+        }));
+
+      // M8, M3, P4
+      this.store.dispatch(actions.selectTile(7));
+      this.store.dispatch(actions.selectTile(2));
+      this.store.dispatch(actions.selectTile(12));
+      assert.deepEqual(
+        this.store.getState().handData.map(a => a.tile),
+        ['M3', 'M8', 'P4']);
+      assert.deepEqual(this.store.getState().tiles[7], null);
+      assert.deepEqual(this.store.getState().tiles[2], null);
+      assert.deepEqual(this.store.getState().tiles[12], null);
+
+      this.store.dispatch(actions.unselectTile(0));
+      assert.deepEqual(
+        this.store.getState().handData.map(a => a.tile),
+        ['M8', 'P4']);
+      assert.deepEqual(this.store.getState().tiles[2], 'M3');
+    });
   });
 });

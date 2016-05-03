@@ -18,6 +18,7 @@ const loggerMiddleware = createLogger({
 const INITIAL_GAME = {
   connected: false,
   status: 'lobby',
+  // TODO unpack?
   lobby: {
     status: 'normal',
     games: [],
@@ -25,6 +26,11 @@ const INITIAL_GAME = {
   nicks: { you: '', opponent: '' },
   messages: [],
   beatNum: 0,
+  handData: [],
+  tiles: null,
+  player: null,
+  east: null,
+  'dora_ind': null,
 };
 
 const SOCKET_EVENTS = [
@@ -77,6 +83,29 @@ function game(state = INITIAL_GAME, action) {
     state = emit(state, 'cancel_new_game');
     return update(state, { lobby: { status: { $set: 'normal' }}});
 
+  case 'select_tile': {
+    let idx = action.idx;
+    let tile = state.tiles[idx];
+    let newHandData = state.handData.slice();
+    newHandData.push({tile, idx});
+    newHandData.sort((a, b) => a.tile.localeCompare(b.tile));
+    return update(state, {
+      tiles: { [idx]: { $set: null }},
+      handData: { $set: newHandData }
+    });
+  }
+
+  case 'unselect_tile': {
+    let handIdx = action.handIdx;
+    let { tile, idx } = state.handData[handIdx];
+    let newHandData = state.handData.slice();
+    newHandData.splice(handIdx, 1);
+    return update(state, {
+      tiles: { [idx]: { $set: tile }},
+      handData: { $set: newHandData }
+    });
+  }
+
   case 'flush':
     return update(state, { messages: { $set: [] }});
 
@@ -118,7 +147,15 @@ export const actions = {
   },
 
   setNick(nick) {
-    return { type: 'set_nick', nick: nick };
+    return { type: 'set_nick', nick };
+  },
+
+  selectTile(idx) {
+    return { type: 'select_tile', idx };
+  },
+
+  unselectTile(handIdx) {
+    return { type: 'unselect_tile', handIdx };
   },
 };
 
