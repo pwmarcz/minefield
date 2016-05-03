@@ -4,7 +4,7 @@ import { actions } from './game';
 
 
 export function Lobby({
-  status, games, nick,
+  lobbyStatus, games, nick,
   onNickChange, onJoin, onNewGame, onCancelNewGame
 }) {
 
@@ -13,7 +13,7 @@ export function Lobby({
       return <LobbyGame nicks={item.nicks} key={i} />;
     else {
       let onJoinPlayer;
-      if (status === 'normal') {
+      if (lobbyStatus === 'normal') {
         onJoinPlayer = () => onJoin(item.key);
       }
       return <LobbyPlayer nick={item.nick} key={i}
@@ -22,7 +22,7 @@ export function Lobby({
   });
 
   let newGame;
-  if (status === 'normal') {
+  if (lobbyStatus === 'normal') {
     newGame = (
       <tr>
         <td><input name="nick"
@@ -35,7 +35,7 @@ export function Lobby({
         </td>
       </tr>
     );
-  } else if (status === 'advertising') {
+  } else if (lobbyStatus === 'advertising') {
     newGame = (
       <tr>
         <td><input name="nick" value={nick} disabled /></td>
@@ -69,8 +69,8 @@ export function Lobby({
   );
 }
 
-function mapStateToProps({ lobby, nicks }) {
-  return Object.assign({}, lobby, { nick: nicks.you });
+function mapStateToProps({ lobbyStatus, games, nicks }) {
+  return { lobbyStatus, games, nick: nicks.you };
 }
 
 function mapDispatchToProps(dispatch) {

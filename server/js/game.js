@@ -18,11 +18,8 @@ const loggerMiddleware = createLogger({
 const INITIAL_GAME = {
   connected: false,
   status: 'lobby',
-  // TODO unpack?
-  lobby: {
-    status: 'normal',
-    games: [],
-  },
+  lobbyStatus: 'normal',
+  games: [],
   nicks: { you: '', opponent: '' },
   messages: [],
   beatNum: 0,
@@ -45,7 +42,7 @@ function game(state = INITIAL_GAME, action) {
     return update(state, { connected: { $set: true }});
 
   case 'socket_games':
-    return update(state, { lobby: { games: { $set: action.data }}});
+    return update(state, { games: { $set: action.data }});
 
   case 'socket_room': {
     let { you, nicks } = action.data;
@@ -73,15 +70,15 @@ function game(state = INITIAL_GAME, action) {
 
   case 'join':
     state = emit(state, 'join', state.nicks.you, action.key);
-    return update(state, { lobby: { status: { $set: 'joining' }}});
+    return update(state, { lobbyStatus: { $set: 'joining' }});
 
   case 'new_game':
     state = emit(state, 'new_game', state.nicks.you);
-    return update(state, { lobby: { status: { $set: 'advertising' }}});
+    return update(state, { lobbyStatus: { $set: 'advertising' }});
 
   case 'cancel_new_game':
     state = emit(state, 'cancel_new_game');
-    return update(state, { lobby: { status: { $set: 'normal' }}});
+    return update(state, { lobbyStatus: { $set: 'normal' }});
 
   case 'select_tile': {
     let idx = action.idx;
