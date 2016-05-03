@@ -197,46 +197,29 @@ function emit(state, type, ...args) {
   return update(state, { messages: { $push: [{ type, args }]}});
 }
 
+function makeAction(type, ...argNames) {
+  return function(...args) {
+    let action = { type: type };
+    for (let i = 0; i < argNames.length; i++) {
+      action[argNames[i]] = args[i];
+    }
+    return action;
+  };
+}
+
 export const actions = {
   socket(event, data) {
     return { type: 'socket_' + event, data: data };
   },
-
-  join(key) {
-    return { type: 'join', key };
-  },
-
-  newGame() {
-    return { type: 'new_game' };
-  },
-
-  cancelNewGame() {
-    return { type: 'cancel_new_game' };
-  },
-
-  beat() {
-    return { type: 'beat' };
-  },
-
-  setNick(nick) {
-    return { type: 'set_nick', nick };
-  },
-
-  selectTile(idx) {
-    return { type: 'select_tile', idx };
-  },
-
-  unselectTile(handIdx) {
-    return { type: 'unselect_tile', handIdx };
-  },
-
-  submitHand() {
-    return { type: 'submit_hand' };
-  },
-
-  discard(idx) {
-    return { type: 'discard', idx };
-  },
+  join: makeAction('join', 'key'),
+  newGame: makeAction('new_game'),
+  cancelNewGame: makeAction('cancel_new_game'),
+  beat: makeAction('beat'),
+  setNick: makeAction('set_nick', 'nick'),
+  selectTile: makeAction('select_tile', 'idx'),
+  unselectTile: makeAction('unselect_tile', 'handIdx'),
+  submitHand: makeAction('submit_hand'),
+  discard: makeAction('discard', 'idx'),
 };
 
 export function createSimpleGameStore() {
