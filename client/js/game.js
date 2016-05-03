@@ -16,20 +16,28 @@ const loggerMiddleware = createLogger({
 });
 
 const INITIAL_GAME = {
+  // -- General --
   connected: false,
+  messages: [], // messages to be sent via socket
   status: 'lobby',
-  lobbyStatus: 'normal',
-  games: [],
   nicks: { you: '', opponent: '' },
-  messages: [],
   beatNum: 0,
   move: null,
-  handData: [],
-  tiles: null,
-  discards: [],
+
+  // -- Lobby --
+  lobbyStatus: 'normal',
+  games: [],
+
+  // -- Game conditions --
   player: null,
   east: null,
   doraInd: null,
+
+  // -- Tiles on the table --
+  handData: [],
+  tiles: null,
+  discards: [],
+  opponentDiscards: [],
 };
 
 const SOCKET_EVENTS = [
@@ -42,11 +50,43 @@ const SOCKET_EVENTS = [
 ];
 
 
-function game(state = INITIAL_GAME, action) {
+function reduceGame(state = INITIAL_GAME, action) {
+  state = reduceGameGeneral(state, action);
+  state = reduceGameLobby(state, action);
+  state = reduceGamePhaseOne(state, action);
+  state = reduceGamePhaseTwo(state, action);
+  return state;
+}
+
+function reduceGameGeneral(state, action) {
   switch (action.type) {
 
   case 'socket_connect':
     return update(state, { connected: { $set: true }});
+
+  case 'socket_start_move':
+    // TODO timelimit
+    return update(state, {
+      move: { $set: { type: action.data.type }}
+    });
+
+  case 'beat': {
+    let beatNum = state.beatNum;
+    if (state.status === 'lobby' && beatNum % 25 === 0)
+      state = emit(state, 'get_games');
+    return update(state, { beatNum: { $set: beatNum+1 }});
+  }
+
+  case 'flush':
+    return update(state, { messages: { $set: [] }});
+
+  default:
+    return state;
+  }
+}
+
+function reduceGameLobby(state, action) {
+  switch(action.type) {
 
   case 'socket_games':
     return update(state, { games: { $set: action.data }});
@@ -60,31 +100,6 @@ function game(state = INITIAL_GAME, action) {
         opponent: nicks[1-you]
       }}});
   }
-
-  case 'socket_phase_one': {
-    let { tiles, 'dora_ind': doraInd, you, east } = action.data;
-    tiles = tiles.slice();
-    tiles.sort();
-    return update(state, {
-      status: { $set: 'phase_one' },
-      tiles: { $set: tiles },
-      doraInd: { $set: doraInd },
-      player: { $set: you },
-      east: { $set: east }
-    });
-  }
-
-  case 'socket_phase_two':
-    return update(state, {
-      status: { $set: 'phase_two' },
-      playerTurn: { $set: state.east }
-    });
-
-  case 'socket_start_move':
-    // TODO timelimit
-    return update(state, {
-      move: { $set: { type: action.data.type }}
-    });
 
   case 'set_nick':
     return update(state, { nicks: { you: { $set: action.nick }}});
@@ -100,6 +115,27 @@ function game(state = INITIAL_GAME, action) {
   case 'cancel_new_game':
     state = emit(state, 'cancel_new_game');
     return update(state, { lobbyStatus: { $set: 'normal' }});
+
+  default:
+    return state;
+  }
+}
+
+function reduceGamePhaseOne(state, action) {
+  switch(action.type) {
+
+  case 'socket_phase_one': {
+    let { tiles, 'dora_ind': doraInd, you, east } = action.data;
+    tiles = tiles.slice();
+    tiles.sort();
+    return update(state, {
+      status: { $set: 'phase_one' },
+      tiles: { $set: tiles },
+      doraInd: { $set: doraInd },
+      player: { $set: you },
+      east: { $set: east }
+    });
+  }
 
   case 'select_tile': {
     let idx = action.idx;
@@ -130,6 +166,20 @@ function game(state = INITIAL_GAME, action) {
     return update(state, { move: { $set: null }});
   }
 
+  default:
+    return state;
+  }
+}
+
+function reduceGamePhaseTwo(state, action) {
+  switch(action.type) {
+
+  case 'socket_phase_two':
+    return update(state, {
+      status: { $set: 'phase_two' },
+      playerTurn: { $set: state.east }
+    });
+
   case 'discard':
     state = emit(state, 'discard', state.tiles[action.idx]);
     return update(state, {
@@ -137,16 +187,6 @@ function game(state = INITIAL_GAME, action) {
       tiles: { [action.idx]: { $set: null }},
       move: { $set: null },
     });
-
-  case 'flush':
-    return update(state, { messages: { $set: [] }});
-
-  case 'beat': {
-    let beatNum = state.beatNum;
-    if (state.status === 'lobby' && beatNum % 25 === 0)
-      state = emit(state, 'get_games');
-    return update(state, { beatNum: { $set: beatNum+1 }});
-  }
 
   default:
     return state;
@@ -200,12 +240,12 @@ export const actions = {
 };
 
 export function createSimpleGameStore() {
-  return createStore(game);
+  return createStore(reduceGame);
 }
 
 export function startGame() {
   let middleware = applyMiddleware(loggerMiddleware);
-  let store = createStore(game, middleware);
+  let store = createStore(reduceGame, middleware);
 
   let path = window.location.pathname;
   path = path.substring(1, path.lastIndexOf('/')+1);
