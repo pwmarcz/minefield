@@ -1,23 +1,9 @@
-// vendored old version of socket.io
-/* global io */
-
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { createGameStore, useSocket, startBeat } from './game';
+import { startGame } from './game';
 import { GameUi } from './ui';
 
 
-let path = window.location.pathname;
-path = path.substring(1, path.lastIndexOf('/')+1);
-
-let socket = io.connect('/minefield', {
-  reconnect: false,
-  resource: path+'socket.io',
-  'sync disconnect on unload': true,
-});
-
-let store = createGameStore(true);
-useSocket(store, socket);
-startBeat(store);
+let store = startGame();
 
 ReactDOM.render(<GameUi store={store} />, document.getElementById('ui'));

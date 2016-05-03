@@ -2,7 +2,7 @@
 
 import { assert } from 'chai';
 import {
-  createGameStore,
+  createSimpleGameStore,
   socketAction,
   joinAction,
   newGameAction,
@@ -12,7 +12,7 @@ import {
 
 describe('game', function() {
   beforeEach(function() {
-    this.store = createGameStore();
+    this.store = createSimpleGameStore();
   });
 
   function assertLastCall(store, type, ...args) {

@@ -1,3 +1,5 @@
+// vendored old version of socket.io
+/* global io */
 
 // import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
@@ -86,11 +88,26 @@ export function cancelNewGameAction() {
   return { type: 'cancel_new_game' };
 }
 
-export function createGameStore(logging) {
-  let middleware = undefined;
-  if (logging)
-    middleware = applyMiddleware(loggerMiddleware);
-  return createStore(game, middleware);
+export function createSimpleGameStore() {
+  return createStore(game);
+}
+
+export function startGame() {
+  let middleware = applyMiddleware(loggerMiddleware);
+  let store = createStore(game, middleware);
+
+  let path = window.location.pathname;
+  path = path.substring(1, path.lastIndexOf('/')+1);
+  let socket = io.connect('/minefield', {
+    reconnect: false,
+    resource: path+'socket.io',
+    'sync disconnect on unload': true,
+  });
+
+  useSocket(store, socket);
+  startBeat(store);
+
+
 }
 
 export function useSocket(store, socket) {
