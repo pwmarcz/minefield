@@ -128,6 +128,7 @@ function useSocket(store, socket) {
   function listen() {
     let { messages } = store.getState();
     if (messages.length > 0) {
+      console.log('emit', messages);
       messages.forEach(({ type, args }) => socket.emit(type, ...args));
       store.dispatch({ type: 'flush' });
     }

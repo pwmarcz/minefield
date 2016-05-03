@@ -1,6 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Lobby } from './lobby';
+import { GameLobby } from './lobby';
 
 
 export function Ui({ connected, status, nicks }) {
@@ -13,7 +13,7 @@ export function Ui({ connected, status, nicks }) {
   if (status === 'lobby') {
     // empty table
     table = <div className="table" />;
-    popup = <Lobby />;
+    popup = <GameLobby />;
   }
 
   return (
