@@ -1,6 +1,6 @@
-import { assert } from 'chai';
-import { createStore } from 'redux';
+/* global describe, it, beforeEach */
 
+import { assert } from 'chai';
 import {
   createGameStore,
   socketAction,

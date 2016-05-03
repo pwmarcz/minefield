@@ -10,7 +10,7 @@ const FILTERED_ACTIONS = [
 ];
 
 const loggerMiddleware = createLogger({
-  predicate: (getState, action) => (FILTERED_ACTIONS.indexOf(action.type) == -1)
+  predicate: (getState, action) => (FILTERED_ACTIONS.indexOf(action.type) === -1)
 });
 
 const INITIAL_GAME = {
@@ -23,11 +23,11 @@ const INITIAL_GAME = {
   nicks: { you: '', opponent: '' },
   messages: [],
   beatNum: 0,
-}
+};
 
 const SOCKET_EVENTS = [
   'connect', 'games',
-]
+];
 
 
 function game(state = INITIAL_GAME, action) {
@@ -54,11 +54,12 @@ function game(state = INITIAL_GAME, action) {
   case 'flush':
     return update(state, { messages: { $set: [] }});
 
-  case 'beat':
+  case 'beat': {
     let beatNum = state.beatNum;
-    if (state.status == 'lobby' && beatNum % 25 == 0)
+    if (state.status === 'lobby' && beatNum % 25 === 0)
       state = emit(state, 'get_games');
     return update(state, { beatNum: { $set: beatNum+1 }});
+  }
 
   default:
     return state;

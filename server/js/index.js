@@ -1,7 +1,11 @@
+// vendored old version of socket.io
+/* global io */
+
 import React from 'react';
 import ReactDOM from 'react-dom';
 import { createGameStore, useSocket, startBeat } from './game';
-import { Ui, GameUi } from './ui';
+import { GameUi } from './ui';
+
 
 let path = window.location.pathname;
 path = path.substring(1, path.lastIndexOf('/')+1);

@@ -1,0 +1,24 @@
+{
+  "plugins": ["react"],
+  "extends": ["eslint:recommended", "plugin:react/recommended"],
+  "parserOptions": {
+    "ecmaVersion": 6,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "rules": {
+    "indent": [2, 2],
+    "no-unused-vars": [2, {"vars": "local", "args": "none", "ignore"}],
+    "no-trailing-spaces": [2],
+    "comma-dangle": [0], // neither require nor disallow
+    "semi": [2, "always"],
+    "camelcase": [1, {"properties": "always"}],
+    "eqeqeq": [1],
+    "react/prop-types": [0]
+  },
+  "env": {
+    "browser": true,
+  },
+}

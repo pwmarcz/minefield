@@ -10,7 +10,7 @@ export function Ui({ connected, status }) {
   }
 
   let table, popup;
-  if (status == 'lobby') {
+  if (status === 'lobby') {
     // empty table
     table = <div className="table" />;
     popup = <Lobby />;
@@ -58,14 +58,8 @@ function NickBar({ you, opponent }) {
 
 function StatusBar({ clockTime, message }) {
   var clock;
-  if (typeof clockTime == 'number' && clockTime >= 0) {
+  if (typeof clockTime === 'number' && clockTime >= 0) {
     var clockTimeSeconds = Math.ceil(clockTime / 1000);
-    function padZeros(number, n) {
-      var s = number.toString();
-      while (s.length < n)
-        s = '0' + s;
-      return s;
-    }
     var className = 'clock';
     if (clockTimeSeconds <= 10)
       className += ' warning';
@@ -79,4 +73,11 @@ function StatusBar({ clockTime, message }) {
       {clock}
     </div>
   );
+}
+
+function padZeros(number, n) {
+  var s = number.toString();
+  while (s.length < n)
+    s = '0' + s;
+  return s;
 }
