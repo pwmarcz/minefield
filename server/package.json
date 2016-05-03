@@ -1,5 +1,8 @@
 {
   "name": "minefield",
+  "description": "JS client for Minefield game",
+  "repository": "https://github.com/pwmarcz/minefield",
+  "license": "MIT",
   "dependencies": {
     "style-loader": "*",
     "css-loader": "*",
