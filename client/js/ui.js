@@ -58,7 +58,7 @@ function NickBar({ you, opponent }) {
       <span>
         You: <strong className="you">{you}</strong>
       </span>
-      <span style={{float: 'right'}}>
+      <span style={{ float: 'right' }}>
         Opponent: <strong className="opponent">{opponent}</strong>
       </span>
     </div>

@@ -154,7 +154,7 @@ function reduceGamePhaseOne(state, action) {
     let idx = action.idx;
     let tile = state.tiles[idx];
     let newHandData = state.handData.slice();
-    newHandData.push({tile, idx});
+    newHandData.push({ tile, idx });
     newHandData.sort((a, b) => a.tile.localeCompare(b.tile));
     return update(state, {
       tiles: { [idx]: { $set: null }},
@@ -219,7 +219,7 @@ function reduceGamePhaseTwo(state, action) {
 }
 
 function emit(state, type, ...args) {
-  return update(state, { messages: { $push: [{ type, args }]}});
+  return update(state, { messages: { $push: [{ type, args }] }});
 }
 
 function makeAction(type, ...argNames) {

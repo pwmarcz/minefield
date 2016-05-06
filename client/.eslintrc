@@ -16,6 +16,9 @@
     "semi": [2, "always"],
     "camelcase": [1, {"properties": "always"}],
     "eqeqeq": [1],
+    "object-curly-spacing": [1, "always", {
+      "objectsInObjects": false,
+    }],
     "react/prop-types": [0]
   },
   "env": {
