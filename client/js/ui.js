@@ -2,19 +2,20 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { GameLobby } from './lobby';
 import { GameTablePhaseOne, GameTablePhaseTwo } from './table';
+import { GameEndPopup } from './end';
 
 
-export function Ui({ connected, status, nicks, clockTime }) {
+export function Ui({ connected, status, ron, draw, nicks, clockTime }) {
   let overlay;
   if (!connected) {
     overlay = <Overlay message="Connecting to server" />;
   }
 
-  let table, popup;
+  let table, lobby;
   if (status === 'lobby') {
     // empty table
     table = <div className="table" />;
-    popup = <GameLobby />;
+    lobby = <GameLobby />;
   } else if (status === 'phase_one') {
     table = <GameTablePhaseOne />;
   } else if (status === 'phase_two') {
@@ -26,18 +27,19 @@ export function Ui({ connected, status, nicks, clockTime }) {
       {overlay}
       <NickBar you={nicks.you} opponent={nicks.opponent} />
       {table}
-      {popup}
+      {lobby}
+      <GameEndPopup />
       <StatusBar clockTime={clockTime} message='todo' />
     </div>
   );
 }
 
-function mapStateToProps({ connected, status, nicks, move, beatNum }) {
+function mapStateToProps({ connected, status, ron, draw, nicks, move, beatNum }) {
   let clockTime;
   if (move) {
     clockTime = (move.deadline - beatNum)*100;
   }
-  return { connected, status, nicks, clockTime };
+  return { connected, status, ron, draw, nicks, clockTime };
 }
 
 export const GameUi = connect(mapStateToProps)(Ui);
