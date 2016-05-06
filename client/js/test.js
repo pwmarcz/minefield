@@ -177,5 +177,22 @@ suite('game', function() {
       this.store.dispatch(actions.socket('discarded', { player: 1, tile: 'X1' }));
       assert.deepEqual(this.store.getState().opponentDiscards, ['X1']);
     });
+
+    describe('game end', function() {
+      test('ron', function() {
+        let ronInfo = {
+          player: 0,
+          yaku: ['kokushi'],
+          yakuman: true,
+          hand: 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(),
+          points: 32000,
+          limit: 5,
+          dora: 0,
+          'uradora_ind': 'M2',
+        };
+        this.store.dispatch(actions.socket('ron', ronInfo));
+        assert.deepEqual(this.store.getState().ron, ronInfo);
+      });
+    });
   });
 });

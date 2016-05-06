@@ -38,6 +38,9 @@ const INITIAL_GAME = {
   tiles: null,
   discards: [],
   opponentDiscards: [],
+
+  // -- Game end --
+  ron: null,
 };
 
 const SOCKET_EVENTS = [
@@ -48,6 +51,7 @@ const SOCKET_EVENTS = [
   'phase_two',
   'start_move',
   'discarded',
+  'ron',
 ];
 
 
@@ -205,6 +209,9 @@ function reduceGamePhaseTwo(state, action) {
       tiles: { [action.idx]: { $set: null }},
       move: { $set: null },
     });
+
+  case 'socket_ron':
+    return update(state, { ron: { $set: action.data }});
 
   default:
     return state;
