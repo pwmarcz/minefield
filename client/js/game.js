@@ -1,7 +1,7 @@
 // vendored old version of socket.io
 /* global io */
 
-// import thunkMiddleware from 'redux-thunk';
+import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
@@ -243,6 +243,11 @@ export const actions = {
     assert.include(SOCKET_EVENTS, event, event + ' not present in SOCKET_EVENTS');
     return { type: 'socket_' + event, data: data };
   },
+  reset() {
+    return function(dispatch) {
+      window.location.reload();
+    };
+  },
   join: makeAction('join', 'key'),
   newGame: makeAction('new_game'),
   cancelNewGame: makeAction('cancel_new_game'),
@@ -259,7 +264,7 @@ export function createSimpleGameStore() {
 }
 
 export function startGame() {
-  let middleware = applyMiddleware(loggerMiddleware);
+  let middleware = applyMiddleware(loggerMiddleware, thunkMiddleware);
   let store = createStore(reduceGame, middleware);
 
   let path = window.location.pathname;

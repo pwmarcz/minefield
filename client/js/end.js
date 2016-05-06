@@ -1,13 +1,14 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { TileList } from './tile';
+import { actions } from './game';
 
 
-export function EndPopup({ player, doraInd, ron, draw }) {
+export function EndPopup({ player, doraInd, ron, draw, onReset }) {
   if (ron) {
-    return <EndRonPopup player={player} doraInd={doraInd} ron={ron} />;
+    return <EndRonPopup player={player} doraInd={doraInd} ron={ron} onReset={onReset} />;
   } else if (draw) {
-    return <EndDrawPopup />;
+    return <EndDrawPopup onReset={onReset} />;
   } else {
     return <div />;
   }
@@ -17,13 +18,16 @@ export const GameEndPopup = connect(
   function mapStateToProps({ player, doraInd, ron, draw }) {
     return { player, doraInd, ron, draw };
   },
-  function mapDispatchToProps() {
-    // TODO new game
-    return {};
+  function mapDispatchToProps(dispatch) {
+    return {
+      onReset() {
+        dispatch(actions.reset());
+      }
+    };
   }
 )(EndPopup);
 
-export function EndRonPopup({ player, doraInd, ron }) {
+export function EndRonPopup({ player, doraInd, ron, onReset }) {
   // TODO display winning tile separately
   let win = player === ron.player;
   let tiles = ron.hand;
@@ -34,33 +38,27 @@ export function EndRonPopup({ player, doraInd, ron }) {
       <h2>Ron!</h2>
       <p>{win ? 'You won!' : 'You lost!'}</p>
       <TileList tiles={tiles} />
-      <p>
-        Dora:
-        <TileList tiles={[doraInd, ron.uradora_ind]} />
-      </p>
-      <p>
-        Yaku:
-        <ul>{ron.yaku.map(item => <li>{item}</li>)}</ul>
-      </p>
+      <p>Dora:</p>
+      <TileList tiles={[doraInd, ron.uradora_ind]} />
+      <p>Yaku:</p>
+      <ul>{ron.yaku.map(item => <li>{item}</li>)}</ul>
       <p>
         Score: {ron.points} points (<b>{limitDesc}</b>)
       </p>
-      {/* TODO reload */}
       <p>
-        <button>New game</button>
+        <button onClick={onReset}>New game</button>
       </p>
     </div>
   );
 }
 
-export function EndDrawPopup() {
+export function EndDrawPopup({ onReset }) {
   return (
     <div className="popup">
       <h2>Draw!</h2>
       <p>The game is a draw!</p>
-      {/* TODO reload */}
       <p>
-        <button>New game</button>
+        <button onClick={onReset}>New game</button>
       </p>
     </div>
   );
