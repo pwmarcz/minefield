@@ -12,8 +12,8 @@ const SAMPLE_TILES = [
   'P1', 'P2', 'P3', 'P4', 'P5', 'P6', 'P7', 'P8', 'P9',
 ];
 
-describe('game', function() {
-  beforeEach(function() {
+suite('game', function() {
+  setup(function() {
     this.store = createSimpleGameStore();
   });
 
@@ -22,12 +22,12 @@ describe('game', function() {
     assert.deepEqual(messages[messages.length-1], { type, args });
   }
 
-  it('on connect', function() {
+  test('on connect', function() {
     this.store.dispatch(actions.socket('connect'));
     assert.isTrue(this.store.getState().connected);
   });
 
-  it('beat', function() {
+  test('beat', function() {
     assert.equal(this.store.getState().beatNum, 0);
 
     this.store.dispatch(actions.beat());
@@ -41,28 +41,28 @@ describe('game', function() {
     assert.equal(this.store.getState().messages.length, 1);
   });
 
-  describe('lobby', function() {
-    it('on games list', function() {
+  suite('lobby', function() {
+    test('on games list', function() {
       let games = ['x', 'y', 'z'];
       this.store.dispatch(actions.socket('games', games));
       assert.deepEqual(this.store.getState().games, games);
     });
 
-    it('join', function() {
+    test('join', function() {
       this.store.dispatch(actions.setNick('Akagi'));
       this.store.dispatch(actions.join('XYZ'));
       assert.equal(this.store.getState().lobbyStatus, 'joining');
       assertLastCall(this.store, 'join', 'Akagi', 'XYZ');
     });
 
-    it('newGame', function() {
+    test('newGame', function() {
       this.store.dispatch(actions.setNick('Akagi'));
       this.store.dispatch(actions.newGame());
       assert.equal(this.store.getState().lobbyStatus, 'advertising');
       assertLastCall(this.store, 'new_game', 'Akagi');
     });
 
-    it('cancelNewGame', function() {
+    test('cancelNewGame', function() {
       this.store.dispatch(actions.newGame());
       this.store.dispatch(actions.cancelNewGame());
       assert.equal(this.store.getState().lobbyStatus, 'normal');
@@ -71,8 +71,8 @@ describe('game', function() {
 
   });
 
-  describe('phase one', function() {
-    it('starting phase one', function() {
+  suite('phase one', function() {
+    test('starting phase one', function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
       assert.equal(this.store.getState().player, 1);
@@ -95,7 +95,7 @@ describe('game', function() {
       assert.deepEqual(this.store.getState().tiles, ['X1', 'X2', 'X3']);
     });
 
-    it('selecting a hand', function() {
+    test('selecting a hand', function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
@@ -121,7 +121,7 @@ describe('game', function() {
       assert.equal(this.store.getState().tiles[2], 'M3');
     });
 
-    it('submitting a hand', function() {
+    test('submitting a hand', function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
@@ -144,8 +144,8 @@ describe('game', function() {
     });
   });
 
-  describe('phase two', function() {
-    beforeEach(function() {
+  suite('phase two', function() {
+    setup(function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
@@ -159,7 +159,7 @@ describe('game', function() {
       this.store.dispatch(actions.socket('phase_two'));
     });
 
-    it('discard', function() {
+    test('discard', function() {
       assert.isNull(this.store.getState().move);
       this.store.dispatch(actions.socket('start_move', { type: 'discard' }));
       assert.isNotNull(this.store.getState().move);
@@ -173,7 +173,7 @@ describe('game', function() {
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
     });
 
-    it('opponent discard', function() {
+    test('opponent discard', function() {
       this.store.dispatch(actions.socket('discarded', { player: 1, tile: 'X1' }));
       assert.deepEqual(this.store.getState().opponentDiscards, ['X1']);
     });
