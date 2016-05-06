@@ -78,7 +78,7 @@ function reduceGameGeneral(state, action) {
     return update(state, { connected: { $set: true }, roomKey: { $set: '' }});
 
   case 'socket_disconnect':
-    return update(state, { disconnected: { $set: true }, roomKey: { $set: '' }});
+    return update(state, { disconnected: { $set: true }});
 
   case 'socket_abort':
       return update(state, { aborted: { $set: action.data }, roomKey: { $set: '' }});
