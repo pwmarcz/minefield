@@ -22,6 +22,12 @@ suite('game', function() {
     assert.deepEqual(messages[messages.length-1], { type, args });
   }
 
+  function waitSeconds(suite, seconds) {
+    for (let i = 0; i < seconds*10; i++) {
+      suite.store.dispatch(actions.beat());
+    }
+  }
+
   test('connect', function() {
     this.store.dispatch(actions.socket('connect'));
     assert.isTrue(this.store.getState().connected);
@@ -81,38 +87,40 @@ suite('game', function() {
 
   });
 
+  test('starting phase one', function() {
+    this.store.dispatch(actions.socket(
+      'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
+    assert.equal(this.store.getState().player, 1);
+    assert.deepEqual(this.store.getState().nicks,
+                     { you: 'Washizu', opponent: 'Akagi' });
+
+    this.store.dispatch(actions.socket(
+      'phase_one', {
+        tiles: ['X3', 'X2', 'X1'],
+        'dora_ind': 'X3',
+        east: 0,
+        you: 0
+      }));
+
+    assert.equal(this.store.getState().status, 'phase_one');
+    assert.equal(this.store.getState().doraInd, 'X3');
+    assert.equal(this.store.getState().east, 0);
+    assert.equal(this.store.getState().player, 0);
+    // the tiles should be sorted
+    assert.deepEqual(this.store.getState().tiles, ['X1', 'X2', 'X3']);
+  });
+
   suite('phase one', function() {
-    test('starting phase one', function() {
-      this.store.dispatch(actions.socket(
-        'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
-      assert.equal(this.store.getState().player, 1);
-      assert.deepEqual(this.store.getState().nicks,
-                       { you: 'Washizu', opponent: 'Akagi' });
-
-      this.store.dispatch(actions.socket(
-        'phase_one', {
-          tiles: ['X3', 'X2', 'X1'],
-          'dora_ind': 'X3',
-          east: 0,
-          you: 0
-        }));
-
-      assert.equal(this.store.getState().status, 'phase_one');
-      assert.equal(this.store.getState().doraInd, 'X3');
-      assert.equal(this.store.getState().east, 0);
-      assert.equal(this.store.getState().player, 0);
-      // the tiles should be sorted
-      assert.deepEqual(this.store.getState().tiles, ['X1', 'X2', 'X3']);
-    });
-
-    test('selecting a hand', function() {
+    setup(function() {
       this.store.dispatch(actions.socket(
         'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
       this.store.dispatch(actions.socket(
         'phase_one', {
           tiles: SAMPLE_TILES, 'dora_ind': 'X3', east: 0, you: 0
         }));
+    });
 
+    test('selecting a hand', function() {
       // M8, M3, P4
       this.store.dispatch(actions.selectTile(7));
       this.store.dispatch(actions.selectTile(2));
@@ -132,14 +140,7 @@ suite('game', function() {
     });
 
     test('submitting a hand', function() {
-      this.store.dispatch(actions.socket(
-        'room', { key: 'K', you: 0, nicks: ['Akagi', 'Washizu'] }));
-      this.store.dispatch(actions.socket(
-        'phase_one', {
-          tiles: SAMPLE_TILES, 'dora_ind': 'X3', east: 0, you: 0
-        }));
-
-      this.store.dispatch(actions.socket('start_move', { type: 'hand' }));
+      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
 
       for (let i = 0; i < 13; i++) {
         this.store.dispatch(actions.selectTile(i));
@@ -151,6 +152,20 @@ suite('game', function() {
 
       this.store.dispatch(actions.socket('phase_two'));
       assert.equal(this.store.getState().status, 'phase_two');
+    });
+
+    test('auto-submit on timeout', function() {
+      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
+
+      // P7, P9
+      this.store.dispatch(actions.selectTile(15));
+      this.store.dispatch(actions.selectTile(17));
+
+      waitSeconds(this, 1);
+
+      let expectedHand = 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P7 P9'.split(' ');
+      assert.deepEqual(this.store.getState().handData.map(a => a.tile), expectedHand);
+      assertLastCall(this.store, 'hand', expectedHand);
     });
   });
 
@@ -171,16 +186,25 @@ suite('game', function() {
 
     test('discard', function() {
       assert.isNull(this.store.getState().move);
-      this.store.dispatch(actions.socket('start_move', { type: 'discard' }));
+      this.store.dispatch(actions.socket('start_move', { type: 'discard', 'time_limit': 1 }));
       assert.isNotNull(this.store.getState().move);
       this.store.dispatch(actions.discard(13));
       assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
       assert.isNull(this.store.getState().move);
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
+      assert.equal(this.store.getState().tiles[13], null);
 
       // 'discarded' message shouldn't result in additional tile
       this.store.dispatch(actions.socket('discarded', { player: 0, tile: SAMPLE_TILES[13] }));
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
+    });
+
+    test('auto-discard on timeout', function() {
+      this.store.dispatch(actions.socket('start_move', { type: 'discard', 'time_limit': 1 }));
+      waitSeconds(this, 1);
+      assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
+      assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
+      assert.equal(this.store.getState().tiles[0], null);
     });
 
     test('opponent discard', function() {
@@ -194,7 +218,7 @@ suite('game', function() {
           player: 0,
           yaku: ['kokushi'],
           yakuman: true,
-          hand: 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(),
+          hand: 'M1 M9 P1 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split(' '),
           points: 32000,
           limit: 5,
           dora: 0,

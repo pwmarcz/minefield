@@ -160,38 +160,72 @@ function reduceGamePhaseOne(state, action) {
     });
   }
 
-  case 'select_tile': {
-    let idx = action.idx;
-    let tile = state.tiles[idx];
-    let newHandData = state.handData.slice();
-    newHandData.push({ tile, idx });
-    newHandData.sort((a, b) => a.tile.localeCompare(b.tile));
-    return update(state, {
-      tiles: { [idx]: { $set: null }},
-      handData: { $set: newHandData }
-    });
-  }
+  case 'select_tile':
+    return selectTiles(state, [action.idx]);
 
   case 'unselect_tile': {
     let handIdx = action.handIdx;
     let { tile, idx } = state.handData[handIdx];
-    let newHandData = state.handData.slice();
-    newHandData.splice(handIdx, 1);
+    let handData = state.handData.slice();
+    handData.splice(handIdx, 1);
     return update(state, {
       tiles: { [idx]: { $set: tile }},
-      handData: { $set: newHandData }
+      handData: { $set: handData }
     });
   }
 
-  case 'submit_hand': {
-    let hand = state.handData.map(a => a.tile);
-    state = emit(state, 'hand', hand);
-    return update(state, { move: { $set: null }});
-  }
+  case 'submit_hand':
+    return submitHand(state);
+
+  case 'beat':
+    if (state.move && state.move.type === 'hand' && state.move.deadline <= state.beatNum) {
+      state = selectFullHand(state);
+      return submitHand(state);
+    } else {
+      return state;
+    }
 
   default:
     return state;
   }
+}
+
+function selectFullHand(state) {
+  let remaining = 13 - state.handData.length;
+  if (remaining === 0)
+    return state;
+
+  let toSelect = [];
+  for (let idx = 0; toSelect.length < remaining && idx < 34; ++idx) {
+    if (state.tiles[idx] !== null) {
+      toSelect.push(idx);
+    }
+  }
+
+  return selectTiles(state, toSelect);
+}
+
+function selectTiles(state, toSelect) {
+  let tiles = state.tiles.slice();
+  let handData = state.handData.slice();
+
+  toSelect.forEach(function(idx) {
+    let tile = tiles[idx];
+    tiles[idx] = null;
+    handData.push({ tile, idx });
+  });
+
+  handData.sort((a, b) => a.tile.localeCompare(b.tile));
+  return update(state, {
+    tiles: { $set: tiles },
+    handData: { $set: handData }
+  });
+}
+
+function submitHand(state) {
+  let hand = state.handData.map(a => a.tile);
+  state = emit(state, 'hand', hand);
+  return update(state, { move: { $set: null }});
 }
 
 function reduceGamePhaseTwo(state, action) {
@@ -213,12 +247,15 @@ function reduceGamePhaseTwo(state, action) {
     }
 
   case 'discard':
-    state = emit(state, 'discard', state.tiles[action.idx]);
-    return update(state, {
-      discards: { $push: [state.tiles[action.idx]] },
-      tiles: { [action.idx]: { $set: null }},
-      move: { $set: null },
-    });
+    return discard(state, action.idx);
+
+  case 'beat': {
+    if (state.move && state.move.type === 'discard' && state.move.deadline <= state.beatNum) {
+      return discardAny(state);
+    } else {
+      return state;
+    }
+  }
 
   case 'socket_ron':
     return update(state, { ron: { $set: action.data }});
@@ -229,6 +266,23 @@ function reduceGamePhaseTwo(state, action) {
   default:
     return state;
   }
+}
+
+function discardAny(state) {
+  for (var idx = 0; idx < 34; ++idx) {
+    if (state.tiles[idx] !== null)
+      return discard(state, idx);
+  }
+  return state;
+}
+
+function discard(state, idx) {
+  state = emit(state, 'discard', state.tiles[idx]);
+  return update(state, {
+    discards: { $push: [state.tiles[idx]] },
+    tiles: { [idx]: { $set: null }},
+    move: { $set: null },
+  });
 }
 
 function emit(state, type, ...args) {
