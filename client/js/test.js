@@ -22,9 +22,19 @@ suite('game', function() {
     assert.deepEqual(messages[messages.length-1], { type, args });
   }
 
-  test('on connect', function() {
+  test('connect', function() {
     this.store.dispatch(actions.socket('connect'));
     assert.isTrue(this.store.getState().connected);
+  });
+
+  test('disconnect', function() {
+    this.store.dispatch(actions.socket('disconnect'));
+    assert.isTrue(this.store.getState().disconnected);
+  });
+
+  test('abort', function() {
+    this.store.dispatch(actions.socket('abort', { culprit: 1 }));
+    assert.deepEqual(this.store.getState().aborted, { culprit: 1 });
   });
 
   test('beat', function() {
@@ -42,7 +52,7 @@ suite('game', function() {
   });
 
   suite('lobby', function() {
-    test('on games list', function() {
+    test('games list', function() {
       let games = ['x', 'y', 'z'];
       this.store.dispatch(actions.socket('games', games));
       assert.deepEqual(this.store.getState().games, games);

@@ -4,19 +4,46 @@ import { TileList } from './tile';
 import { actions } from './game';
 
 
-export function EndPopup({ player, doraInd, ron, draw, onReset }) {
+export function End({ player, doraInd, ron, draw, disconnected, aborted, onReset }) {
   if (ron) {
     return <EndRonPopup player={player} doraInd={doraInd} ron={ron} onReset={onReset} />;
   } else if (draw) {
-    return <EndDrawPopup onReset={onReset} />;
+    return (
+      <div className="popup">
+        <h2>Draw!</h2>
+        <p>The game is a draw!</p>
+        <p>
+          <button onClick={onReset}>New game</button>
+        </p>
+      </div>
+    );
+  } else if (aborted) {
+    return (
+      <div className="popup">
+        <h2>Game aborted</h2>
+        <p>The game was aborted (reason: {aborted.description}).</p>
+        <p>
+          <button onClick={onReset}>New game</button>
+        </p>
+      </div>
+    );
+  } else if (disconnected) {
+    return (
+      <div className="overlay">
+        <div>
+          <div>Disconnected from server</div>
+          <button onClick={onReset}>Reload</button>
+        </div>
+      </div>
+    );
   } else {
-    return <div />;
+    return null;
   }
 }
 
-export const GameEndPopup = connect(
-  function mapStateToProps({ player, doraInd, ron, draw }) {
-    return { player, doraInd, ron, draw };
+export const GameEnd = connect(
+  function mapStateToProps({ player, doraInd, ron, draw, disconnected, aborted }) {
+    return { player, doraInd, ron, draw, disconnected, aborted };
   },
   function mapDispatchToProps(dispatch) {
     return {
@@ -25,7 +52,7 @@ export const GameEndPopup = connect(
       }
     };
   }
-)(EndPopup);
+)(End);
 
 export function EndRonPopup({ player, doraInd, ron, onReset }) {
   // TODO display winning tile separately
@@ -45,18 +72,6 @@ export function EndRonPopup({ player, doraInd, ron, onReset }) {
       <p>
         Score: {ron.points} points (<b>{limitDesc}</b>)
       </p>
-      <p>
-        <button onClick={onReset}>New game</button>
-      </p>
-    </div>
-  );
-}
-
-export function EndDrawPopup({ onReset }) {
-  return (
-    <div className="popup">
-      <h2>Draw!</h2>
-      <p>The game is a draw!</p>
       <p>
         <button onClick={onReset}>New game</button>
       </p>

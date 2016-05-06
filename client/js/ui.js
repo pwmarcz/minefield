@@ -2,7 +2,7 @@ import React from 'react';
 import { connect } from 'react-redux';
 import { GameLobby } from './lobby';
 import { GameTablePhaseOne, GameTablePhaseTwo } from './table';
-import { GameEndPopup } from './end';
+import { GameEnd } from './end';
 
 
 export function Ui({ connected, status, ron, draw, nicks, clockTime }) {
@@ -28,7 +28,7 @@ export function Ui({ connected, status, ron, draw, nicks, clockTime }) {
       <NickBar you={nicks.you} opponent={nicks.opponent} />
       {table}
       {lobby}
-      <GameEndPopup />
+      <GameEnd />
       <StatusBar clockTime={clockTime} message='todo' />
     </div>
   );

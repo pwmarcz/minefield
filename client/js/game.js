@@ -43,10 +43,14 @@ const INITIAL_GAME = {
   // -- Game end --
   ron: null,
   draw: false,
+  disconnected: false,
+  aborted: null,
 };
 
 const SOCKET_EVENTS = [
   'connect',
+  'disconnect',
+  'abort',
   'games',
   'room',
   'phase_one',
@@ -72,8 +76,11 @@ function reduceGameGeneral(state, action) {
   case 'socket_connect':
     return update(state, { connected: { $set: true }});
 
-  // TODO disconnect
-  // TODO abort
+  case 'socket_disconnect':
+    return update(state, { disconnected: { $set: true }});
+
+  case 'socket_abort':
+    return update(state, { aborted: { $set: action.data }});
 
   case 'socket_start_move':
     return update(state, {
