@@ -5,7 +5,6 @@ import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
-import { assert } from 'chai';
 
 
 const FILTERED_ACTIONS = [
@@ -349,8 +348,6 @@ function makeAction(type, ...argNames) {
 
 export const actions = {
   socket(event, data) {
-    // TODO move to tests?
-    assert.include(SOCKET_EVENTS, event, event + ' not present in SOCKET_EVENTS');
     return { type: 'socket_' + event, data: data };
   },
   reset() {
