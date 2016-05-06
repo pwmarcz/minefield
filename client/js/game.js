@@ -22,6 +22,7 @@ const INITIAL_GAME = {
   messages: [], // messages to be sent via socket
   status: 'lobby',
   nicks: { you: '', opponent: '' },
+  roomKey: '',
   beatNum: 0,
   move: null,
 
@@ -74,13 +75,13 @@ function reduceGameGeneral(state, action) {
   switch (action.type) {
 
   case 'socket_connect':
-    return update(state, { connected: { $set: true }});
+    return update(state, { connected: { $set: true }, roomKey: { $set: '' }});
 
   case 'socket_disconnect':
-    return update(state, { disconnected: { $set: true }});
+    return update(state, { disconnected: { $set: true }, roomKey: { $set: '' }});
 
   case 'socket_abort':
-    return update(state, { aborted: { $set: action.data }});
+      return update(state, { aborted: { $set: action.data }, roomKey: { $set: '' }});
 
   case 'socket_start_move':
     return update(state, {
@@ -89,6 +90,10 @@ function reduceGameGeneral(state, action) {
         deadline: state.beatNum + action.data.time_limit * 10,
       }}
     });
+
+  case 'rejoin':
+    state = emit(state, 'rejoin', action.roomKey);
+    return update(state, { roomKey: { $set: action.roomKey }});
 
   case 'beat': {
     return update(state, { beatNum: { $set: state.beatNum+1 }});
@@ -109,13 +114,15 @@ function reduceGameLobby(state, action) {
     return update(state, { games: { $set: action.data }});
 
   case 'socket_room': {
-    let { you, nicks } = action.data;
+    let { you, nicks, key } = action.data;
     return update(state, {
       player: { $set: you },
       nicks: { $set: {
         you: nicks[you],
         opponent: nicks[1-you]
-      }}});
+      }},
+      roomKey: { $set: key },
+    });
   }
 
   case 'beat':
@@ -258,10 +265,10 @@ function reduceGamePhaseTwo(state, action) {
   }
 
   case 'socket_ron':
-    return update(state, { ron: { $set: action.data }});
+    return update(state, { ron: { $set: action.data }, roomKey: { $set: '' }});
 
   case 'socket_draw':
-    return update(state, { draw: { $set: true }});
+    return update(state, { draw: { $set: true }, roomKey: { $set: '' }});
 
   default:
     return state;
@@ -314,6 +321,7 @@ export const actions = {
   cancelNewGame: makeAction('cancel_new_game'),
   beat: makeAction('beat'),
   setNick: makeAction('set_nick', 'nick'),
+  rejoin: makeAction('rejoin', 'roomKey'),
   selectTile: makeAction('select_tile', 'idx'),
   unselectTile: makeAction('unselect_tile', 'handIdx'),
   submitHand: makeAction('submit_hand'),
@@ -336,14 +344,14 @@ export function startGame() {
     'sync disconnect on unload': true,
   });
 
-  useSocket(store, socket);
+  setupSocket(store, socket);
   startBeat(store);
-  useLocalStorage(store);
+  setupBrowser(store);
 
   return store;
 }
 
-function useSocket(store, socket) {
+function setupSocket(store, socket) {
   function listen() {
     let { messages } = store.getState();
     if (messages.length > 0) {
@@ -365,11 +373,19 @@ function startBeat(store) {
   }, 100);
 }
 
-function useLocalStorage(store) {
+function setupBrowser(store) {
   let nick = localStorage.getItem('nick') || '';
+  let roomKey = window.location.hash.slice(1) || '';
+
   store.dispatch(actions.setNick(nick));
+  if (roomKey) {
+    store.dispatch(actions.rejoin(roomKey));
+  }
   store.subscribe(function listen() {
     let nick = store.getState().nicks.you;
     localStorage.setItem('nick', nick);
+
+    let roomKey = store.getState().roomKey;
+    window.location.hash = roomKey;
   });
 }

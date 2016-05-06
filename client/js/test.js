@@ -43,6 +43,12 @@ suite('game', function() {
     assert.deepEqual(this.store.getState().aborted, { culprit: 1 });
   });
 
+  test('rejoin', function() {
+    this.store.dispatch(actions.rejoin('XYZ'));
+    assert.deepEqual(this.store.getState().roomKey, 'XYZ');
+    assertLastCall(this.store, 'rejoin', 'XYZ');
+  });
+
   test('beat', function() {
     assert.equal(this.store.getState().beatNum, 0);
 
@@ -91,6 +97,7 @@ suite('game', function() {
     this.store.dispatch(actions.socket(
       'room', { key: 'K', you: 1, nicks: ['Akagi', 'Washizu'] }));
     assert.equal(this.store.getState().player, 1);
+    assert.equal(this.store.getState().roomKey, 'K');
     assert.deepEqual(this.store.getState().nicks,
                      { you: 'Washizu', opponent: 'Akagi' });
 
