@@ -41,6 +41,7 @@ const INITIAL_GAME = {
 
   // -- Game end --
   ron: null,
+  draw: false,
 };
 
 const SOCKET_EVENTS = [
@@ -52,6 +53,7 @@ const SOCKET_EVENTS = [
   'start_move',
   'discarded',
   'ron',
+  'draw',
 ];
 
 
@@ -212,6 +214,9 @@ function reduceGamePhaseTwo(state, action) {
 
   case 'socket_ron':
     return update(state, { ron: { $set: action.data }});
+
+  case 'socket_draw':
+    return update(state, { draw: { $set: true }});
 
   default:
     return state;

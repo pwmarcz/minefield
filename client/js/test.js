@@ -193,6 +193,11 @@ suite('game', function() {
         this.store.dispatch(actions.socket('ron', ronInfo));
         assert.deepEqual(this.store.getState().ron, ronInfo);
       });
+
+      test('draw', function() {
+        this.store.dispatch(actions.socket('draw'));
+        assert.equal(this.store.getState().draw, true);
+      });
     });
   });
 });
