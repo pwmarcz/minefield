@@ -8,7 +8,6 @@
     "css-loader": "*",
     "sass-loader": "*",
     "node-sass": "*",
-    "file-loader": "*",
 
     "babel-loader": "*",
     "babel-core": "*",

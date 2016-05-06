@@ -33,13 +33,8 @@ module.exports = [
       loaders: [
         {
           test: /\.scss$/,
-          loaders: ['style', 'css', 'sass'],
+          loaders: ['style', 'css?-url', 'sass'],
           exclude: /node_modules/,
-        },
-        {
-          test: /\.svg$/,
-          loader: 'file',
-          query: { name: '[path][name].[ext]', context: './static/' },
         },
       ]
     },
