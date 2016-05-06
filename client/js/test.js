@@ -166,9 +166,16 @@ describe('game', function() {
       this.store.dispatch(actions.discard(13));
       assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
       assert.isNull(this.store.getState().move);
-      assert.equal(this.store.getState().discards[0], SAMPLE_TILES[13]);
+      assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
+
+      // 'discarded' message shouldn't result in additional tile
+      this.store.dispatch(actions.socket('discarded', { player: 0, tile: SAMPLE_TILES[13] }));
+      assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
     });
 
-    // TODO opponent discards
+    it('opponent discard', function() {
+      this.store.dispatch(actions.socket('discarded', { player: 1, tile: 'X1' }));
+      assert.deepEqual(this.store.getState().opponentDiscards, ['X1']);
+    });
   });
 });
