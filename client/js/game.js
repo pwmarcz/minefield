@@ -60,6 +60,7 @@ const SOCKET_EVENTS = [
   'discarded',
   'ron',
   'draw',
+  'hand',
 ];
 
 
@@ -81,7 +82,7 @@ function reduceGameGeneral(state, action) {
     return update(state, { disconnected: { $set: true }});
 
   case 'socket_abort':
-      return update(state, { aborted: { $set: action.data }, roomKey: { $set: '' }});
+    return update(state, { aborted: { $set: action.data }, roomKey: { $set: '' }});
 
   case 'socket_start_move':
     return update(state, {
@@ -167,6 +168,13 @@ function reduceGamePhaseOne(state, action) {
     });
   }
 
+  case 'socket_hand':
+    if (action.data.replay) {
+      return replayHand(state, action.data.hand);
+    } else {
+      return state;
+    }
+
   case 'select_tile':
     return selectTiles(state, [action.idx]);
 
@@ -212,11 +220,27 @@ function selectFullHand(state) {
   return selectTiles(state, toSelect);
 }
 
+function replayHand(state, hand) {
+  let tiles = state.tiles.slice();
+  let toSelect = [];
+  hand.forEach(tile => {
+    for (let idx = 0; idx < 34; ++idx) {
+      if (tiles[idx] === tile) {
+        tiles[idx] = null;
+        toSelect.push(idx);
+        break;
+      }
+    }
+  });
+  state = selectTiles(state, toSelect);
+  return update(state, { move: { $set: null }});
+}
+
 function selectTiles(state, toSelect) {
   let tiles = state.tiles.slice();
   let handData = state.handData.slice();
 
-  toSelect.forEach(function(idx) {
+  toSelect.forEach(idx => {
     let tile = tiles[idx];
     tiles[idx] = null;
     handData.push({ tile, idx });
@@ -246,7 +270,11 @@ function reduceGamePhaseTwo(state, action) {
 
   case 'socket_discarded':
     if (action.data.player === state.player) {
-      return state;
+      if (action.data.replay) {
+        return replayDiscard(state, action.data.tile);
+      } else {
+        return state;
+      }
     } else {
       return update(state, {
         opponentDiscards: { $push: [action.data.tile] }
@@ -283,6 +311,19 @@ function discardAny(state) {
   return state;
 }
 
+function replayDiscard(state, tile) {
+  for (var idx = 0; idx < 34; ++idx) {
+    if (state.tiles[idx] === tile) {
+      return update(state, {
+        discards: { $push: [state.tiles[idx]] },
+        tiles: { [idx]: { $set: null }},
+        move: { $set: null },
+      });
+    }
+  }
+  return state;
+}
+
 function discard(state, idx) {
   state = emit(state, 'discard', state.tiles[idx]);
   return update(state, {
@@ -308,6 +349,7 @@ function makeAction(type, ...argNames) {
 
 export const actions = {
   socket(event, data) {
+    // TODO move to tests?
     assert.include(SOCKET_EVENTS, event, event + ' not present in SOCKET_EVENTS');
     return { type: 'socket_' + event, data: data };
   },

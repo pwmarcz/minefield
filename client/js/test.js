@@ -157,6 +157,12 @@ suite('game', function() {
       assert.equal(this.store.getState().move, null);
       assertLastCall(this.store, 'hand', SAMPLE_TILES.slice(0, 13));
 
+      // 'hand' message shouldn't result in any changes
+      // (cheating a bit because all tiles are different and we wouldn't find them,
+      // so we send a different hand)
+      this.store.dispatch(actions.socket('hand', { hand: SAMPLE_TILES.slice(13, 26) }));
+      assert.equal(this.store.getState().handData.length, 13);
+
       this.store.dispatch(actions.socket('phase_two'));
       assert.equal(this.store.getState().status, 'phase_two');
     });
@@ -173,6 +179,17 @@ suite('game', function() {
       let expectedHand = 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P7 P9'.split(' ');
       assert.deepEqual(this.store.getState().handData.map(a => a.tile), expectedHand);
       assertLastCall(this.store, 'hand', expectedHand);
+    });
+
+    test('replaying a hand', function() {
+      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
+      let expectedHand = 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P7 P9'.split(' ');
+      this.store.dispatch(actions.socket('hand', { hand: expectedHand, replay: true }));
+      assert.deepEqual(this.store.getState().handData.map(a => a.tile), expectedHand);
+      expectedHand.forEach(tile => {
+        assert.notInclude(this.store.getState().tiles, tile);
+      });
+      assert.isNull(this.store.getState().move);
     });
   });
 
@@ -217,6 +234,11 @@ suite('game', function() {
     test('opponent discard', function() {
       this.store.dispatch(actions.socket('discarded', { player: 1, tile: 'X1' }));
       assert.deepEqual(this.store.getState().opponentDiscards, ['X1']);
+    });
+
+    test('replaying a discard', function() {
+      this.store.dispatch(actions.socket('discarded', { player: 0, tile: SAMPLE_TILES[13], replay: true }));
+      assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
     });
 
     describe('game end', function() {
