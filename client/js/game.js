@@ -418,6 +418,8 @@ function startBeat(store) {
 function setupBrowser(store) {
   let nick = localStorage.getItem('nick') || '';
   let roomKey = window.location.hash.slice(1) || '';
+  // HACK: Set room key only once, so that user can edit it if they want.
+  let lastRoomKey = roomKey;
 
   store.dispatch(actions.setNick(nick));
   if (roomKey) {
@@ -428,6 +430,9 @@ function setupBrowser(store) {
     localStorage.setItem('nick', nick);
 
     let roomKey = store.getState().roomKey;
-    window.location.hash = roomKey;
+    if (roomKey !== lastRoomKey) {
+      window.location.hash = roomKey;
+      lastRoomKey = roomKey;
+    }
   });
 }
