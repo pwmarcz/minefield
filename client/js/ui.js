@@ -3,9 +3,10 @@ import { connect } from 'react-redux';
 import { GameLobby } from './lobby';
 import { GameTablePhaseOne, GameTablePhaseTwo } from './table';
 import { GameEnd } from './end';
+import { GameStatusBar } from './status';
 
 
-export function Ui({ connected, status, ron, draw, nicks, clockTime }) {
+export function Ui({ connected, status, ron, draw, nicks }) {
   let overlay;
   if (!connected) {
     overlay = <Overlay message="Connecting to server" />;
@@ -29,17 +30,13 @@ export function Ui({ connected, status, ron, draw, nicks, clockTime }) {
       {table}
       {lobby}
       <GameEnd />
-      <StatusBar clockTime={clockTime} message='todo' />
+      <GameStatusBar />
     </div>
   );
 }
 
 function mapStateToProps({ connected, status, ron, draw, nicks, move, beatNum }) {
-  let clockTime;
-  if (move) {
-    clockTime = (move.deadline - beatNum)*100;
-  }
-  return { connected, status, ron, draw, nicks, clockTime };
+  return { connected, status, ron, draw, nicks };
 }
 
 export const GameUi = connect(mapStateToProps)(Ui);
@@ -65,30 +62,4 @@ function NickBar({ you, opponent }) {
       </span>
     </div>
   );
-}
-
-function StatusBar({ clockTime, message }) {
-  var clock;
-  if (typeof clockTime === 'number' && clockTime >= 0) {
-    var clockTimeSeconds = Math.ceil(clockTime / 1000);
-    var className = 'clock';
-    if (clockTimeSeconds <= 10)
-      className += ' warning';
-    var minutes = Math.floor(clockTimeSeconds / 60);
-    var seconds = padZeros(clockTimeSeconds % 60, 2);
-    clock = <div className={className}>{minutes}:{seconds}</div>;
-  }
-  return (
-    <div className="status">
-      <div className="status-text">{message}</div>
-      {clock}
-    </div>
-  );
-}
-
-function padZeros(number, n) {
-  var s = number.toString();
-  while (s.length < n)
-    s = '0' + s;
-  return s;
 }
