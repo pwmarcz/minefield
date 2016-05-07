@@ -11,8 +11,11 @@ import os
 import functools
 from datetime import datetime
 import unittest
+import json
 
 import gevent
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
 import socketio
 import socketio.namespace
 import socketio.server
@@ -95,18 +98,16 @@ class GameServer(object):
 
     def serve_request(self, environ, start_response):
         path = environ['PATH_INFO'].strip('/')
+        print path
         if path == 'dumpdb':
             start_response('200 OK', [('Content-type', 'text/plain')])
             return [
                 't = %d\n' % self.t,
                 'rooms:\n',
                 self.db.dump_active_rooms()]
-        if path.startswith("socket.io") and 'socketio' in environ:
-            request = {'server': self}
-            try:
-                socketio.socketio_manage(environ, {'/minefield': SocketPlayer}, request)
-            except:
-                logger.exception('server error')
+        if path == 'socket':
+            ws = environ["wsgi.websocket"]
+            SocketPlayer(ws, self).run()
         elif self.debug:
             return self.static_app(environ, start_response)
         else:
@@ -119,12 +120,12 @@ class GameServer(object):
             import static
             static_path = os.path.join(os.path.dirname(__file__), '..', 'client', 'static')
             self.static_app = static.Cling(static_path)
-        self.socketio_server = socketio.server.SocketIOServer(
+        self.wsgi_server = pywsgi.WSGIServer(
             (host, port),
             self.serve_request,
-            resource="socket.io")
+            handler_class=WebSocketHandler)
         self.timer = Timer(self.beat)
-        self.socketio_server.serve_forever()
+        self.wsgi_server.serve_forever()
 
     def stop(self, immediate=False):
         logger.info('stopping')
@@ -199,13 +200,29 @@ class Timer(object):
         self.thread.kill()
 
 
-class SocketPlayer(socketio.namespace.BaseNamespace):
-    def initialize(self):
-        self.server = self.request['server']
+class SocketPlayer(object):
+    def __init__(self, ws, server):
+        self.ws = ws
+        self.server = server
         self.nick = None
         self.room = None
         self.idx = None
         self.key = make_key()
+
+    def run(self):
+        try:
+            while True:
+                message = self.ws.receive()
+                message_data = json.loads(message)
+                message_type = message_data['type']
+                message_args = message_data['args']
+                getattr(self, 'on_' + message_type)(*message_args)
+        except:
+            logger.exception('exception in SocketPlayer')
+
+    def emit(self, message_type, *message_args):
+        message_data = { 'type': message_type, 'args': message_args }
+        self.ws.send(json.dumps(message_data))
 
     def on_new_game(self, nick):
         assert not self.room
