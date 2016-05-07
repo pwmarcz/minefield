@@ -50,12 +50,12 @@ then browse to `localhost:8080`.
 
 ## Deploy
 
-Minefield is currently a static web page plus a WebSocket (SocketIO) server.
+Minefield is currently a static web page plus a WebSocket server.
 To deploy Minefield, you need to:
 
   - run `make serve_prod`, which serves the WebSocket part on port 8080,
   - serve the static files under a given location, for instance `/minefield/`,
-  - serve the WebSocket under the `socket.io` directory, for instance `/minefield/socket.io`.
+  - serve the WebSocket under the `ws` path, for instance `/minefield/ws`.
 
 Here's an example configuration for nginx:
 
@@ -64,7 +64,7 @@ Here's an example configuration for nginx:
     }
 
     location /minefield/socket.io {
-        proxy_pass http://127.0.0.1:8080/socket.io;
+        proxy_pass http://127.0.0.1:8080/ws;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
