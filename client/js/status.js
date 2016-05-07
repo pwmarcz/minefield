@@ -1,5 +1,6 @@
 import React from 'react';
 import { connect } from 'react-redux';
+import { BEATS_PER_SECOND } from './game';
 
 
 export function StatusBar({ clockTime, message }) {
@@ -25,7 +26,7 @@ export const GameStatusBar = connect(
   function mapStateToProps({ status, move, beatNum }) {
     let clockTime, message;
     if (move) {
-      clockTime = (move.deadline - beatNum)*100;
+      clockTime = (move.deadline - beatNum)*1000/BEATS_PER_SECOND;
       if (move.type === 'hand') {
         message = 'Choose your hand and press OK';
       } else if (move.type === 'discard') {

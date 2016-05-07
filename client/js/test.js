@@ -1,10 +1,7 @@
 /* eslint-env node, mocha */
 
 import { assert } from 'chai';
-import {
-  createSimpleGameStore,
-  actions
-} from './game';
+import { createSimpleGameStore, actions, BEATS_PER_SECOND } from './game';
 
 
 const SAMPLE_TILES = [
@@ -23,7 +20,7 @@ suite('game', function() {
   }
 
   function waitSeconds(suite, seconds) {
-    for (let i = 0; i < seconds*10; i++) {
+    for (let i = 0; i < seconds*BEATS_PER_SECOND; i++) {
       suite.store.dispatch(actions.beat());
     }
   }

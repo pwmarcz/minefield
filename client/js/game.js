@@ -7,7 +7,9 @@ import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
 
 
-const DISCARD_DELAY = 1000;
+export const DISCARD_DELAY = 1000;
+
+export const BEATS_PER_SECOND = 10;
 
 const FILTERED_ACTIONS = [
   'beat', 'socket_games', 'flush'
@@ -89,7 +91,7 @@ function reduceGameGeneral(state, action) {
     return update(state, {
       move: { $set: {
         type: action.data.type,
-        deadline: state.beatNum + action.data.time_limit * 10,
+        deadline: state.beatNum + action.data.time_limit * BEATS_PER_SECOND,
       }}
     });
 
@@ -128,7 +130,7 @@ function reduceGameLobby(state, action) {
   }
 
   case 'beat':
-    if (state.status === 'lobby' && state.beatNum % 25 === 1)
+    if (state.status === 'lobby' && state.beatNum % (3*BEATS_PER_SECOND) === 1)
       return emit(state, 'get_games');
     else
       return state;
@@ -425,7 +427,7 @@ function setupSocket(store, socket) {
 function startBeat(store) {
   window.setInterval(() => {
     store.dispatch({ type: 'beat' });
-  }, 100);
+  }, 1000/BEATS_PER_SECOND);
 }
 
 function setupBrowser(store) {
