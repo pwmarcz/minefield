@@ -68,4 +68,7 @@ Here's an example configuration for nginx:
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection "upgrade";
+
+        # Prevent dropping idle connections
+        proxy_read_timeout 7d;
     }
