@@ -216,7 +216,7 @@ class MinefieldAgent(WebSocketAgent):
         if method:
             method(*msg_args)
 
-    def on_disconnect(self):
+    def on_disconnect(self, error):
         self.player.recv_disconnect()
 
     def emit(self, msg_type, *msg_args):
