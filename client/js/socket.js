@@ -37,10 +37,11 @@ export class Socket {
 
   emit(type, ...args) {
     let messageData = JSON.stringify({ type, args });
-    if (this.ws.readyState === WebSocket.OPEN) {
-      this.ws.send(messageData);
-    } else if (this.ws.readyState === WebSocket.CONNECTING) {
+
+    if (!this.ws || this.ws.readyState === WebSocket.CONNECTING) {
       this.queue.push(messageData);
+    } else if (this.ws.readyState === WebSocket.OPEN) {
+      this.ws.send(messageData);
     } else {
       // drop message
     }
