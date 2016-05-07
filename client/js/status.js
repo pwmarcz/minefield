@@ -23,7 +23,7 @@ export function StatusBar({ clockTime, message }) {
 }
 
 export const GameStatusBar = connect(
-  function mapStateToProps({ status, move, beatNum }) {
+  function mapStateToProps({ status, move, beatNum, handData }) {
     let clockTime, message;
     if (move) {
       clockTime = (move.deadline - beatNum)*1000/BEATS_PER_SECOND;
@@ -41,7 +41,9 @@ export const GameStatusBar = connect(
         message = 'Waiting for opponent';
         break;
       case 'phase_one':
-        message = 'Waiting for opponent\'s hand';
+        if (handData.length === 13) {
+          message = 'Waiting for opponent\'s hand';
+        }
         break;
       }
     }
