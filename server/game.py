@@ -223,6 +223,7 @@ class Game(object):
             self.callback(i, 'ron', {
                 'player': 1-player,
                 'hand': full_hand,
+                'tile': tile,
                 'yaku': hand.yaku,
                 'yakuman': hand.yakuman,
                 'dora': hand.dora(),
@@ -326,7 +327,8 @@ class GameTestCase(unittest.TestCase):
             'points': 32000,
             'limit': 5,
             'dora': 0,
-            'uradora_ind': 'M2'
+            'uradora_ind': 'M2',
+            'tile': 'P1'
         })
 
 

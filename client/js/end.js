@@ -55,9 +55,13 @@ export const GameEnd = connect(
 )(End);
 
 export function EndRonPopup({ player, doraInd, ron, onReset }) {
-  // TODO display winning tile separately
   let win = player === ron.player;
-  let tiles = ron.hand;
+
+  // Extract winning tile and present to the right
+  let tiles = ron.hand.slice();
+  tiles.splice(tiles.indexOf(ron.tile), 1);
+  tiles.push(null, ron.tile);
+
   let limitDesc = ['?', 'mangan', 'haneman', 'baiman', 'sanbaiman', 'yakuman'][ron.limit];
 
   return (

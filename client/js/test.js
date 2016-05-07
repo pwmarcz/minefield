@@ -249,6 +249,7 @@ suite('game', function() {
           limit: 5,
           dora: 0,
           'uradora_ind': 'M2',
+          tile: 'P1'
         };
         this.store.dispatch(actions.socket('ron', ronInfo));
         assert.deepEqual(this.store.getState().ron, ronInfo);
