@@ -8,10 +8,10 @@ import rules
 
 class Multiset(Counter):
     def __le__(self, rhs):
-        return all(v <= rhs[k] for k, v in self.iteritems())
+        return all(v <= rhs[k] for k, v in self.items())
 
     def set(self):
-        return {k for k, v in self.iteritems() if v > 0}
+        return {k for k, v in self.items() if v > 0}
 
 def expand_groups(groups):
     return sum((rules.expand_group(group) for group in groups), [])
@@ -133,7 +133,7 @@ class Bot(object):
         if good_count == 0:
             return 0
         prob_none = 1. # probability that no waits are in 17 random tiles
-        for i in xrange(wait_count):
+        for i in range(wait_count):
             prob_none *= (84 - i)/101. # 101 = 136 - 34 - 1; 84 = 101 - 17
         prob_some = 1 - prob_none
         # expected points in case of ron
@@ -152,6 +152,8 @@ class Bot(object):
         if any(pts > 0 for wait, pts in wait_values):
             counts_values = list(self.count_waits(wait_values))
             return self.tenpai_value(counts_values)
+        else:
+            return 0
 
     def choose_tenpai(self, cooperative=False):
         #print ','.join(sorted(tiles))
@@ -181,15 +183,6 @@ class Bot(object):
         self.waits = list(rules.waits(tenpai))
         self.discard_options = self.truncated_multiset(tenpai)
         return tenpai
-
-    def print_tenpai(self, tenpai):
-        for wait in rules.waits(tenpai):
-            hand = rules.best_hand(
-                sorted(tenpai + (wait,)), wait, options=self.options)
-            print hand.limit(), ','.join(hand.yaku),
-            if hand.dora():
-                print 'dora:', hand.dora(),
-            print wait
 
     def opponent_discard(self, tile):
         self.safe_tiles.add(tile)
@@ -229,11 +222,11 @@ class HelperFunctionsTestCase(unittest.TestCase):
                          'M2 M2 M2 M2 M3 M4 S1 S2 S3'.split())
 
     def test_choose_groups(self):
-        groups = [('pon', 'M2'), ('chi', 'M2'), ('chi', 'S1')]
         bot = Bot(tiles='M2 M2 M2 M3 M4 M6 M7 S1 S1 S2 S3'.split())
         chosen = set(tuple(groups) for groups in bot.choose_groups(2))
         self.assertEqual(chosen,
             {(('pon', 'M2'), ('chi', 'S1')), (('chi', 'M2'), ('chi', 'S1'))})
+
 
 @unittest.skip('too slow!')
 class TenpaiChoiceTestCase(unittest.TestCase):

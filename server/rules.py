@@ -1,4 +1,3 @@
-import itertools
 import unittest
 import functools
 
@@ -10,7 +9,7 @@ import functools
 
 # We take advantage of the lexicographical ordering of tiles.
 
-ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in xrange(1,10)
+ALL_TILES = ['%s%s' % (suit, no) for suit in 'MPSX' for no in range(1,10)
     if suit != 'X' or no <= 7]
 
 TERMINALS = {suit + no for suit in 'MPS' for no in '19'}
@@ -68,7 +67,7 @@ def regular(yaku_f):
     return fun
 
 def find_pair(tiles):
-    for i in xrange(len(tiles)-1):
+    for i in range(len(tiles)-1):
         if tiles[i] == tiles[i+1]:
             # don't count false duplicates
             if i+2 < len(tiles) and tiles[i+1] == tiles[i+2]:
@@ -111,8 +110,8 @@ def decompose_regular(tiles):
             yield [pair] + groups
 
 def is_all_pairs(tiles):
-    return len(set(tiles)) == len(tiles) / 2 and all(
-        tiles[i] == tiles[i+1] for i in xrange(0, len(tiles), 2))
+    return len(set(tiles)) == len(tiles) // 2 and all(
+        tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
     return set(tiles) == YAOCHU
@@ -154,7 +153,7 @@ def expand_group(group):
         return list(expand_chi(tile))
 
 def expand_chi(chi_tile):
-    for i in xrange(3):
+    for i in range(3):
         yield chi_tile[0] + str(int(chi_tile[1]) + i)
 
 def group_contains(group, tile):
@@ -420,7 +419,7 @@ class Hand(object):
                 if (type, tile) != self.wait_group:
                     p *= 2
                 fu += p
-        return (fu + 9) / 10 * 10
+        return (fu + 9) // 10 * 10
 
     def limit(self):
         return limit(self.fan(), self.fu())

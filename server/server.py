@@ -316,7 +316,7 @@ class ServerTest(unittest.TestCase):
         player = self.MockSocketPlayer(self.server)
         player.on_new_game('Akagi')
         self.assertEquals(len(self.server.waiting_players), 1)
-        self.assertEquals(self.server.waiting_players.values()[0], player)
+        self.assertEquals(list(self.server.waiting_players.values())[0], player)
 
     def test_new_game_disconnect(self):
         player = self.MockSocketPlayer(self.server)
@@ -365,7 +365,7 @@ def main():
 
     init_logging()
 
-    print 'Starting server:', args
+    print('Starting server:', args)
     fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
     server = GameServer(fname, use_bots=True)
 
