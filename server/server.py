@@ -117,7 +117,8 @@ class GameServer(object):
         self.debug = debug
         if debug:
             import static
-            self.static_app = static.Cling('static')
+            static_path = os.path.join(os.path.dirname(__file__), '..', 'client', 'static')
+            self.static_app = static.Cling(static_path)
         self.socketio_server = socketio.server.SocketIOServer(
             (host, port),
             self.serve_request,

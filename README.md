@@ -29,15 +29,14 @@ Install Python libraries:
 Server make targets are:
 
   - `make env` - install server packages
-  - `make css` - recompile CSS
-  - `make js` - recompile JS
-  - `make watch` - recompiles CSS and JS on each change
+  - `make static` - recompile static assets
+  - `make watch` - recompile static assets on each change
   - `make serve` - serve the website in development mode
   - `make serve_prod` - serve the website in production mode
 
 ## Run (in developer mode)
 
-    $ make watch  # watch SCSS for changes
+    $ make watch
     $ make serve
 
 then browse to `localhost:8080`.
@@ -46,9 +45,9 @@ You can also run browse to `localhost:8080/?debug=1` to for some helpful shortcu
 
 ## Test
 
-To run the Python (server) tests, just execute `make test`.
-
-To run the JavaScript tests, browse to `localhost:8080/?test=1` (broken at the moment, sorry).
+  - `make test` - run Python (server) tests
+  - `make test_js` - run JavaScript tests
+  - `make watch_test_js` - run JavaScript tests on each change
 
 ## Deploy
 

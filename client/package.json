@@ -1,0 +1,32 @@
+{
+  "name": "minefield",
+  "description": "JS client for Minefield game",
+  "repository": "https://github.com/pwmarcz/minefield",
+  "license": "MIT",
+  "dependencies": {
+    "style-loader": "*",
+    "css-loader": "*",
+    "sass-loader": "*",
+    "node-sass": "*",
+    "extract-text-webpack-plugin": "*",
+
+    "babel-loader": "*",
+    "babel-core": "*",
+    "babel-preset-es2015": "*",
+    "babel-preset-react": "*",
+    "babel-register": "*",
+
+    "mocha": "*",
+    "chai": "*",
+
+    "webpack": "*",
+
+    "redux": "*",
+    "redux-thunk": "*",
+    "redux-logger": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-addons-update": "*",
+    "react-redux": "*"
+  }
+}

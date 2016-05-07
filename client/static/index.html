@@ -5,55 +5,11 @@
        <TITLE>Minefield Mahjong</TITLE>
        <meta name="viewport" content="width=630">
        <link rel="shortcut icon" href="img/favicon.png">
-       <link rel="stylesheet" type="text/css" href="css/default.auto.css">
-       <link rel="stylesheet" type="text/css" href="css/sprites.auto.css">
-       <link rel="stylesheet" type="text/css" href="lib/qunit-1.15.0.css">
-       <script src="lib/jquery-2.1.1.min.js"></script>
-       <script src="lib/prefixfree.min.js"></script>
+       <link rel="stylesheet" href="css/bundle-css.auto.css">
+       <script src="bundle-vendor.auto.js"></script>
+       <script src="bundle.auto.js"></script>
+
        <script src="lib/socket.io.min.js"></script>
-       <script src="js/part.js"></script>
-       <script src="js/tiles.js"></script>
-       <script src="js/table.js"></script>
-       <script src="js/lobby.js"></script>
-       <script src="js/ui.js"></script>
-       <script src="lib/qunit-1.15.0.js"></script>
-       <script src="lib/sinon-timers-1.10.3.js"></script>
-       <script src="js/tests.js"></script>
-       <script src="js/util.js"></script>
-       <script><!--
-         if (window.QUnit) QUnit.config.autostart = false;
-
-         $(function() {
-             var params = getParams();
-
-             if (params.debug) {
-                 localStorage.setItem('debug', 'true');
-             }
-             else if (params.nodebug) {
-                 localStorage.setItem('debug', 'false');
-             }
-
-             if (localStorage.getItem('debug') == 'true') {
-                 $('.links').show();
-             }
-
-             if (params.test) {
-                 $('body').prepend('<div id="qunit">');
-                 $('.main').wrap('<div id="qunit-fixture">');
-                 QUnit.start();
-             } else {
-                 window.ui = Ui($('.main'));
-
-                 if (params.phase1) {
-                     ui.test_phase_1();
-                 } else if (params.phase2) {
-                     ui.test_phase_2();
-                 } else if (params.ron) {
-                     ui.test_ron();
-                 }
-             }
-         });
-       --></script>
        <script>
          (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
          (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
@@ -71,84 +27,9 @@
             data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_white_ffffff.png">
      </a>
 
-     <div id="templates" style="display: none;">
-       <div class="lobby">
-         <h2>Minefield <sup class="note">beta</sup></h2>
-         <div class="games">
-           <div class="scroll">
-             <table>
-             </table>
-           </div>
-         </div><!-- .games -->
-         <br>
-         <table>
-           <tr>
-             <td><input name="nick" placeholder="Your name"></td>
-             <td class="vs"> </td>
-             <td>
-               <button class="new-game">New game</button>
-               <button class="cancel-new-game">Cancel</button>
-             </td>
-           </tr>
-         </table>
-       </div><!-- lobby -->
-
-       <div class="table">
-         <div class="dora-display"></div>
-         <div class="east-display"></div>
-         <div class="opponent-discards any-discards"></div>
-         <div class="opponent-stick any-stick" style="display:none"></div>
-         <div class="stick any-stick" style="display:none"></div>
-         <div class="discards any-discards"></div>
-         <div class="tiles"></div>
-         <div class="hand"></div>
-         <button class="submit-hand">OK</button>
-         <!-- timer -->
-       </div><!-- .table -->
-
-       <div class="ui">
-         <div class="nicks">
-           <span>
-             You: <strong class="you"></strong>
-           </span>
-           <span style="float: right;">
-             Opponent: <strong class="opponent"></strong>
-           </span>
-         </div>
-         <div class="table"></div>
-         <div class="lobby popup"></div>
-         <div class="end-draw popup" style="display: none">
-           <h2>Draw</h2>
-           The game is a draw!
-           <br>
-           <button class="reload">New game</button>
-         </div>
-         <div class="end-ron popup" style="display: none">
-           <h2>Ron!</h2>
-           <div class="message"></div>
-           <div class="winning-hand"></div>
-           Dora:
-           <div class="doras-ind"></div>
-           Yaku:
-           <ul class="yaku"></ul>
-           Score: <span class="points"></span> points (<b><span class="limit"></span></b>)
-           <br>
-           <button class="reload">New game</button>
-         </div>
-         <div class="overlay main-part" style="display: none">
-           <div>
-             <div class="message">Foo</div>
-             <button class="reload" style="display: none">Restart</button>
-           </div>
-         </div>
-         <div class="status">
-           <div class="status-text"></div>
-           <div class="clock" style="display:none"></div>
-         </div>
-       </div><!-- .ui -->
-     </div><!-- .templates -->
-
      <div class="page">
+       <div id="ui"></div>
+
        <div>
          <p>
            We're now open source!
@@ -157,6 +38,8 @@
        </div>
 
        <div class="ui main"></div>
+
+       <div id="start"></div>
 
        <div class="links" style="display: none;">
          <b><a href=".">client</a></b>
@@ -226,7 +109,14 @@
            and we like to play with all the shiny new features :)</p>
          <p>However, if this is a problem for you, don't hesitate to contact us - we might be able to help.</p>
          <h2>What technology do you use?</h2>
-         <p>The client uses websockets and the <a href="http://socket.io">socket.io</a> library. The server is written in Python.</p>
+         <p>
+           The client uses websockets and the <a href="http://socket.io">socket.io</a> library.
+           For the user interface, we use <a href="https://facebook.github.io/react/">React</a> and
+           <a href="http://redux.js.org/">Redux</a>.
+         </p>
+         <p>
+           The server is written in Python.
+         </p>
          <h2>How do I contact you?</h2>
          <p>We welcome all kinds of questions, wishes, suggestions, bug reports, corrections to this FAQ and other feedback!</p>
          <p>Simply write an e-mail to <a href="mailto:pwmarcz at gmail dot com">pwmarcz at gmail dot com</a>.</p>

@@ -83,21 +83,6 @@ body {
     left: 50px;
     width: 500px;
     height: 400px;
-    padding: 5px 10px;
-    background: rgba(255,255,255,0.8);
-    color: black;
-    border-radius: 5px;
-    box-shadow: 0 0 10px 10px darkgreen;
-    overflow-y: auto;
-
-    h2 {
-      text-align: center;
-      margin: 5px 0;
-    }
-
-    .reload {
-      margin-top: 1em;
-    }
   }
 
   .nicks, .status {
@@ -123,6 +108,28 @@ body {
         color: red;
       }
     }
+  }
+}
+
+.popup {
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.8);
+  color: black;
+  border-radius: 5px;
+  box-shadow: 0 0 10px 10px darkgreen;
+  overflow-y: auto;
+
+  h2 {
+    text-align: center;
+    margin: 5px 0;
+  }
+
+  .reload {
+    margin-top: 1em;
+  }
+
+  p {
+    margin: 10px 0;
   }
 }
 

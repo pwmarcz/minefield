@@ -1,9 +1,0 @@
-{
-    "undef": true,
-    "browser": true,
-    "jquery": true,
-    "predef": [
-        "console"
-    ],
-    "indent": 4
-}
