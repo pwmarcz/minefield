@@ -5,3 +5,4 @@
 *.log
 node_modules/
 server/env
+server/env3
