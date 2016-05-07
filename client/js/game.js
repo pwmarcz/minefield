@@ -5,6 +5,7 @@ import thunkMiddleware from 'redux-thunk';
 import createLogger from 'redux-logger';
 import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
+import { Socket } from './socket';
 
 
 export const DISCARD_DELAY = 1000;
@@ -377,17 +378,17 @@ export function startGame() {
   let middleware = applyMiddleware(loggerMiddleware, thunkMiddleware, delayMiddleware);
   let store = createStore(reduceGame, middleware);
 
-  let path = window.location.pathname;
-  path = path.substring(1, path.lastIndexOf('/')+1);
-  let socket = io.connect('/minefield', {
-    reconnect: false,
-    resource: path+'socket.io',
-    'sync disconnect on unload': true,
-  });
-
+  let socket = new Socket();
   setupSocket(store, socket);
   startBeat(store);
   setupBrowser(store);
+
+  let path = window.location.pathname;
+  path = path.substring(1, path.lastIndexOf('/')+1);
+  let socketProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  let socketHost = window.location.host;
+  let socketPath = path + 'ws';
+  socket.connect(socketProtocol + '//' + socketHost + '/' + socketPath);
 
   return store;
 }

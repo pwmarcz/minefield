@@ -1,7 +1,6 @@
 static==1.0.2
 gevent
-git+git://github.com/pwmarcz/gevent-socketio.git
-socketIO-client==0.5.3
+gevent-websocket
 nose==1.3.0
 watchdog==0.7.1
 raven==5.0.0

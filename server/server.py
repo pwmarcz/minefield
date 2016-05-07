@@ -11,11 +11,13 @@ import os
 import functools
 from datetime import datetime
 import unittest
+import json
 
 import gevent
-import socketio
-import socketio.namespace
-import socketio.server
+from gevent import pywsgi
+from geventwebsocket.handler import WebSocketHandler
+# TODO relative imports
+from websocketagent import WebSocketAgent
 
 from room import Room
 from database import Database
@@ -60,7 +62,7 @@ class GameServer(object):
             # save to database, to assign ID
             self.db.save_room(room)
         else:
-            player.emit('join_failed', 'Opponent not found.')
+            player.send('join_failed', 'Opponent not found.')
 
     def rejoin_player(self, player, key):
         for room in self.rooms:
@@ -101,10 +103,10 @@ class GameServer(object):
                 't = %d\n' % self.t,
                 'rooms:\n',
                 self.db.dump_active_rooms()]
-        if path.startswith("socket.io") and 'socketio' in environ:
-            request = {'server': self}
+        elif path == 'ws':
             try:
-                socketio.socketio_manage(environ, {'/minefield': SocketPlayer}, request)
+                agent = MinefieldAgent(self)
+                return agent(environ, start_response)
             except:
                 logger.exception('server error')
         elif self.debug:
@@ -119,12 +121,12 @@ class GameServer(object):
             import static
             static_path = os.path.join(os.path.dirname(__file__), '..', 'client', 'static')
             self.static_app = static.Cling(static_path)
-        self.socketio_server = socketio.server.SocketIOServer(
+        self.wsgi_server = pywsgi.WSGIServer(
             (host, port),
             self.serve_request,
-            resource="socket.io")
+            handler_class=WebSocketHandler)
         self.timer = Timer(self.beat)
-        self.socketio_server.serve_forever()
+        self.wsgi_server.serve_forever()
 
     def stop(self, immediate=False):
         logger.info('stopping')
@@ -199,9 +201,34 @@ class Timer(object):
         self.thread.kill()
 
 
-class SocketPlayer(socketio.namespace.BaseNamespace):
-    def initialize(self):
-        self.server = self.request['server']
+class MinefieldAgent(WebSocketAgent):
+    def __init__(self, server):
+        self.server = server
+
+    def on_connect(self):
+        self.player = SocketPlayer(self.server, self)
+
+    def on_message(self, message):
+        data = json.loads(message)
+        msg_type = data['type']
+        msg_args = data['args']
+        method = getattr(self.player, 'on_' + msg_type, None)
+        if method:
+            method(*msg_args)
+
+    def on_disconnect(self):
+        self.player.recv_disconnect()
+
+    def emit(self, msg_type, *msg_args):
+        data = {'type': msg_type, 'args': msg_args}
+        message = json.dumps(data)
+        self.send(message)
+
+
+class SocketPlayer(object):
+    def __init__(self, server, agent):
+        self.server = server
+        self.agent = agent
         self.nick = None
         self.room = None
         self.idx = None
@@ -228,12 +255,12 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
         self.server.rejoin_player(self, key)
 
     def on_get_games(self):
-        self.emit('games', self.server.describe_games())
+        self.send('games', self.server.describe_games())
 
     def set_room(self, room, idx):
         self.room = room
         self.idx = idx
-        self.emit('room', {'key': self.room.keys[self.idx],
+        self.send('room', {'key': self.room.keys[self.idx],
                            'nicks': self.room.nicks,
                            'you': self.idx});
 
@@ -252,10 +279,10 @@ class SocketPlayer(socketio.namespace.BaseNamespace):
         raise Exception("'boom' received")
 
     def send(self, msg_type, msg):
-        self.emit(msg_type, msg)
+        self.agent.emit(msg_type, msg)
 
     def shutdown(self):
-        self.disconnect()
+        self.agent.disconnect()
 
     def exception_handler_decorator(self, fn):
         @functools.wraps(fn)
@@ -276,10 +303,10 @@ class ServerTest(unittest.TestCase):
             self.messages = []
             self.disconnected = False
 
-        def emit(self, *args):
+        def send(self, *args):
             self.messages.append(tuple(args))
 
-        def disconnect(self):
+        def shutdown(self):
             self.disconnected = True
 
     def setUp(self):
