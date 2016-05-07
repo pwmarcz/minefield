@@ -4,8 +4,8 @@ all: env node static
 
 .PHONY: env
 env:
-	[ -e server/env/bin/python ] || virtualenv --python=/usr/bin/python3 server/env/
-	server/env/bin/pip install -q -r server/requirements.txt
+	[ -e server/env3/bin/python ] || virtualenv --python=/usr/bin/python3 server/env3/
+	server/env3/bin/pip install -q -r server/requirements.txt
 
 .PHONY: node
 node:
@@ -17,7 +17,7 @@ static:
 
 .PHONY: test
 test:
-	server/env/bin/nosetests server/*.py -v
+	server/env3/bin/nosetests server/*.py -v
 
 .PHONY: test_js
 test_js:
@@ -33,8 +33,8 @@ watch:
 
 .PHONY: serve
 serve:
-	server/env/bin/python server/server.py --debug --host 0.0.0.0 --port 8080
+	server/env3/bin/python server/server.py --debug --host 0.0.0.0 --port 8080
 
 .PHONY: serve_prod
 serve_prod:
-	server/env/bin/python server/server.py --host 127.0.0.1 --port 8080
+	server/env3/bin/python server/server.py --host 127.0.0.1 --port 8080
