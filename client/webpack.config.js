@@ -1,7 +1,12 @@
+var CommonsChunkPlugin = require('webpack').optimize.CommonsChunkPlugin;
+
 module.exports = [
   {
     name: 'js',
-    entry: "./js/index.js",
+    entry: {
+      vendor: ['react', 'react-dom', 'redux', 'react-redux'],
+      app: "./js/index.js",
+    },
     output: {
       path: __dirname + '/static/',
       filename: 'bundle.auto.js',
@@ -16,6 +21,13 @@ module.exports = [
         },
       ]
     },
+    plugins: [
+      new CommonsChunkPlugin({
+        name: "vendor",
+        filename: "bundle-vendor.auto.js",
+        minChunks: Infinity,
+      })
+    ]
   },
   {
     name: 'css',

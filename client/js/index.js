@@ -5,7 +5,9 @@ import { GameUi } from './ui';
 import { Provider } from 'react-redux';
 
 
-let store = startGame();
+document.addEventListener("DOMContentLoaded", function() {
+  let store = startGame();
 
-ReactDOM.render(<Provider store={store}><GameUi /></Provider>,
-                document.getElementById('ui'));
+  ReactDOM.render(<Provider store={store}><GameUi /></Provider>,
+                  document.getElementById('ui'));
+});
