@@ -21,14 +21,15 @@ Required packages (as of Ubuntu 14.04):
     nodejs
     npm
 
-Install Python libraries:
+You also need a recent Node.js version.
+
+Install libraries:
 
     $ cd server
     $ make
 
-Server make targets are:
+Make targets are:
 
-  - `make env` - install server packages
   - `make static` - recompile static assets
   - `make watch` - recompile static assets on each change
   - `make serve` - serve the website in development mode
@@ -40,8 +41,6 @@ Server make targets are:
     $ make serve
 
 then browse to `localhost:8080`.
-
-You can also run browse to `localhost:8080/?debug=1` to for some helpful shortcuts.
 
 ## Test
 
@@ -61,7 +60,7 @@ To deploy Minefield, you need to:
 Here's an example configuration for nginx:
 
     location /minefield {
-        /path/to/minefield/server/static;
+        /path/to/minefield/client/static;
     }
 
     location /minefield/socket.io {
