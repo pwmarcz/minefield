@@ -10,7 +10,7 @@ import { Socket } from './socket';
 
 export const DISCARD_DELAY = 1000;
 
-export const BEATS_PER_SECOND = 10;
+export const BEATS_PER_SECOND = 1;
 
 const FILTERED_ACTIONS = [
   'beat', 'socket_games', 'flush'
