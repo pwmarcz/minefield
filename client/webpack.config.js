@@ -1,4 +1,5 @@
 var CommonsChunkPlugin = require('webpack').optimize.CommonsChunkPlugin;
+var ExtractTextPlugin = require('extract-text-webpack-plugin');
 
 module.exports = [
   {
@@ -38,17 +39,20 @@ module.exports = [
       ],
     },
     output: {
-      path: __dirname + '/static/',
+      path: __dirname + '/static/css/',
       filename: 'bundle-css.auto.js',
     },
     module: {
       loaders: [
         {
           test: /\.scss$/,
-          loaders: ['style', 'css?-url', 'sass'],
+          loader: ExtractTextPlugin.extract('css?-url!sass'),
           exclude: /node_modules/,
         },
       ]
     },
+    plugins: [
+      new ExtractTextPlugin('bundle-css.auto.css')
+    ]
   }
 ];

@@ -8,6 +8,7 @@
     "css-loader": "*",
     "sass-loader": "*",
     "node-sass": "*",
+    "extract-text-webpack-plugin": "*",
 
     "babel-loader": "*",
     "babel-core": "*",
