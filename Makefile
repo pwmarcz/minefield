@@ -32,9 +32,9 @@ watch:
 	cd client && ./node_modules/.bin/webpack --watch
 
 .PHONY: serve
-serve: static
+serve:
 	server/env/bin/python server/server.py --debug --host 0.0.0.0 --port 8080
 
 .PHONY: serve_prod
-serve_prod: env static
+serve_prod:
 	server/env/bin/python server/server.py --host 127.0.0.1 --port 8080
