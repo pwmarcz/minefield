@@ -227,12 +227,10 @@ function replayHand(state, hand) {
   let tiles = state.tiles.slice();
   let toSelect = [];
   hand.forEach(tile => {
-    for (let idx = 0; idx < 34; ++idx) {
-      if (tiles[idx] === tile) {
-        tiles[idx] = null;
-        toSelect.push(idx);
-        break;
-      }
+    let idx = tiles.indexOf(tile);
+    if (idx !== -1) {
+      tiles[idx] = null;
+      toSelect.push(idx);
     }
   });
   state = selectTiles(state, toSelect);
