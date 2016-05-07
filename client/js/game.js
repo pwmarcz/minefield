@@ -7,6 +7,8 @@ import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
 
 
+const DISCARD_DELAY = 1000;
+
 const FILTERED_ACTIONS = [
   'beat', 'socket_games', 'flush'
 ];
@@ -372,7 +374,7 @@ export function createSimpleGameStore() {
 }
 
 export function startGame() {
-  let middleware = applyMiddleware(loggerMiddleware, thunkMiddleware);
+  let middleware = applyMiddleware(loggerMiddleware, thunkMiddleware, delayMiddleware);
   let store = createStore(reduceGame, middleware);
 
   let path = window.location.pathname;
@@ -388,6 +390,20 @@ export function startGame() {
   setupBrowser(store);
 
   return store;
+}
+
+const delayMiddleware = store => next => action => {
+  if (shouldDelay(action)) {
+    setTimeout(() => next(action), DISCARD_DELAY);
+  } else {
+    return next(action);
+  }
+};
+
+function shouldDelay(action) {
+  return (action.type === 'socket_ron' || action.type === 'socket_draw' ||
+          action.type === 'socket_start_move') &&
+         !(action.data && action.data.replay);
 }
 
 function setupSocket(store, socket) {
