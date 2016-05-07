@@ -298,7 +298,7 @@ class SocketPlayer(object):
 class ServerTest(unittest.TestCase):
     class MockSocketPlayer(SocketPlayer):
         def __init__(self, server):
-            super(ServerTest.MockSocketPlayer, self).__init__(server, agent=None)
+            super().__init__(server, agent=None)
             self.request = {'server': server}
             self.messages = []
             self.disconnected = False
