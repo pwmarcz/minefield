@@ -81,7 +81,7 @@ class Game(object):
     def abort(self, culprit, description):
         '''Abort the game and provide explanation.'''
 
-        for i in xrange(2):
+        for i in range(2):
             self.callback(i, 'abort',
                           {'culprit': culprit, 'description': description})
             self.finished = True
@@ -91,7 +91,7 @@ class Game(object):
         '''Make time advance by 1 second in the game, handling possible timeouts.
         To be called by external code. Optional.'''
         self.t += 1
-        for i in xrange(2):
+        for i in range(2):
             if self.moves[i] is not None and self.t >= self.moves[i][1]:
                 self.abort(i, 'time limit exceeded')
                 return
@@ -118,7 +118,7 @@ class Game(object):
         })
 
     def start(self):
-        for i in xrange(2):
+        for i in range(2):
             self.callback(i, 'phase_one',
                           {'tiles': self.initial_tiles[i],
                            'dora_ind': self.dora_ind,
@@ -154,7 +154,7 @@ class Game(object):
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
-            for i in xrange(2):
+            for i in range(2):
                 self.callback(i, 'phase_two', {})
             self.start_move(0, 'discard', self.DISCARD_TIME_LIMIT)
         else:
@@ -165,7 +165,7 @@ class Game(object):
             'fanpai_winds': [SEAT_WINDS[player^self.east]],
             'dora_ind': self.dora_ind,
             'uradora_ind': self.uradora_ind if uradora else None,
-            'hotei': all(len(self.discards[i]) == DISCARDS for i in xrange(2)),
+            'hotei': all(len(self.discards[i]) == DISCARDS for i in range(2)),
             'ippatsu': len(self.discards[1-player]) == 1,
         }
 
@@ -189,7 +189,7 @@ class Game(object):
 
         self.end_move(player)
 
-        for i in xrange(2):
+        for i in range(2):
             self.callback(i, 'discarded',
                           {'player': player,
                            'tile': tile})
@@ -202,7 +202,7 @@ class Game(object):
         # draw
         if len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
-            for i in xrange(2):
+            for i in range(2):
                 self.callback(i, 'draw', {})
         # normal turn
         else:
@@ -219,7 +219,7 @@ class Game(object):
         hand = rules.best_hand(full_hand, tile,
                                options=self.options(1-player, uradora=True))
         self.finished = True
-        for i in xrange(2):
+        for i in range(2):
             self.callback(i, 'ron', {
                 'player': 1-player,
                 'hand': full_hand,
@@ -293,8 +293,8 @@ class GameTestCase(unittest.TestCase):
         self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
                         'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
 
-        for i in xrange(DISCARDS):
-            for j in xrange(2):
+        for i in range(DISCARDS):
+            for j in range(2):
                 # Just discard the first choice
                 t = self.g.tiles[j][0]
                 self.discard(j, t)

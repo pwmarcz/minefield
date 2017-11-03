@@ -133,7 +133,7 @@ class Bot(object):
         if good_count == 0:
             return 0
         prob_none = 1. # probability that no waits are in 17 random tiles
-        for i in xrange(wait_count):
+        for i in range(wait_count):
             prob_none *= (84 - i)/101. # 101 = 136 - 34 - 1; 84 = 101 - 17
         prob_some = 1 - prob_none
         # expected points in case of ron
