@@ -154,8 +154,8 @@ class Bot(object):
             return self.tenpai_value(counts_values)
 
     def choose_tenpai(self, cooperative=False):
-        #print ','.join(sorted(tiles))
-        #print 'dora_ind:', options.get('dora_ind')
+        #print(','.join(sorted(tiles)))
+        #print('dora_ind:', options.get('dora_ind'))
         tenpais = set()
         evaluated_tenpais = list()
         for t in itertools.chain(
@@ -186,10 +186,10 @@ class Bot(object):
         for wait in rules.waits(tenpai):
             hand = rules.best_hand(
                 sorted(tenpai + (wait,)), wait, options=self.options)
-            print hand.limit(), ','.join(hand.yaku),
+            print(hand.limit(), ','.join(hand.yaku))
             if hand.dora():
-                print 'dora:', hand.dora(),
-            print wait
+                print('dora:', hand.dora())
+            print(wait)
 
     def opponent_discard(self, tile):
         self.safe_tiles.add(tile)

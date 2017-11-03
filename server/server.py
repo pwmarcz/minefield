@@ -365,7 +365,7 @@ def main():
 
     init_logging()
 
-    print 'Starting server:', args
+    print('Starting server:', args)
     fname = os.path.join(os.path.dirname(__file__), 'minefield.db')
     server = GameServer(fname, use_bots=True)
 
