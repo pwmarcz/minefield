@@ -315,8 +315,7 @@ class ServerTest(unittest.TestCase):
     def test_new_game(self):
         player = self.MockSocketPlayer(self.server)
         player.on_new_game('Akagi')
-        self.assertEquals(len(self.server.waiting_players), 1)
-        self.assertEquals(self.server.waiting_players.values()[0], player)
+        self.assertEquals(list(self.server.waiting_players.values()), [player])
 
     def test_new_game_disconnect(self):
         player = self.MockSocketPlayer(self.server)

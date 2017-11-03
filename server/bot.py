@@ -8,10 +8,10 @@ import rules
 
 class Multiset(Counter):
     def __le__(self, rhs):
-        return all(v <= rhs[k] for k, v in self.iteritems())
+        return all(v <= rhs[k] for k, v in self.items())
 
     def set(self):
-        return {k for k, v in self.iteritems() if v > 0}
+        return {k for k, v in self.items() if v > 0}
 
 def expand_groups(groups):
     return sum((rules.expand_group(group) for group in groups), [])
