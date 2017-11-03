@@ -9,7 +9,7 @@ env:
 
 .PHONY: node
 node:
-	cd client && npm install
+	cd client && yarn
 
 .PHONY: static
 static:

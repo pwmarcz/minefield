@@ -2,7 +2,7 @@
 /* global io */
 
 import thunkMiddleware from 'redux-thunk';
-import createLogger from 'redux-logger';
+import { createLogger } from 'redux-logger';
 import { createStore, applyMiddleware } from 'redux';
 import update from 'react-addons-update';
 import { Socket } from './socket';
