@@ -8,10 +8,10 @@ import rules
 
 class Multiset(Counter):
     def __le__(self, rhs):
-        return all(v <= rhs[k] for k, v in self.iteritems())
+        return all(v <= rhs[k] for k, v in self.items())
 
     def set(self):
-        return {k for k, v in self.iteritems() if v > 0}
+        return {k for k, v in self.items() if v > 0}
 
 def expand_groups(groups):
     return sum((rules.expand_group(group) for group in groups), [])
@@ -133,7 +133,7 @@ class Bot(object):
         if good_count == 0:
             return 0
         prob_none = 1. # probability that no waits are in 17 random tiles
-        for i in xrange(wait_count):
+        for i in range(wait_count):
             prob_none *= (84 - i)/101. # 101 = 136 - 34 - 1; 84 = 101 - 17
         prob_some = 1 - prob_none
         # expected points in case of ron
@@ -154,8 +154,8 @@ class Bot(object):
             return self.tenpai_value(counts_values)
 
     def choose_tenpai(self, cooperative=False):
-        #print ','.join(sorted(tiles))
-        #print 'dora_ind:', options.get('dora_ind')
+        #print(','.join(sorted(tiles)))
+        #print('dora_ind:', options.get('dora_ind'))
         tenpais = set()
         evaluated_tenpais = list()
         for t in itertools.chain(
@@ -171,7 +171,8 @@ class Bot(object):
                 continue
             tenpais.add(t)
             val = self.eval_tenpai(t)
-            evaluated_tenpais.append((val, t))
+            if val is not None:
+                evaluated_tenpais.append((val, t))
         value, tenpai = max(evaluated_tenpais)
         tenpai = list(tenpai)
         return tenpai
@@ -186,10 +187,10 @@ class Bot(object):
         for wait in rules.waits(tenpai):
             hand = rules.best_hand(
                 sorted(tenpai + (wait,)), wait, options=self.options)
-            print hand.limit(), ','.join(hand.yaku),
+            print(hand.limit(), ','.join(hand.yaku))
             if hand.dora():
-                print 'dora:', hand.dora(),
-            print wait
+                print('dora:', hand.dora())
+            print(wait)
 
     def opponent_discard(self, tile):
         self.safe_tiles.add(tile)
@@ -237,7 +238,7 @@ class HelperFunctionsTestCase(unittest.TestCase):
 
 @unittest.skip('too slow!')
 class TenpaiChoiceTestCase(unittest.TestCase):
-    def asserTenpai(self, tenpai):
+    def assertTenpai(self, tenpai):
         wait_values = rules.eval_waits(tenpai)
         self.assertTrue(any(pts > 0 for wait, pts in wait_values))
 
@@ -248,14 +249,14 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                 'S1 S2 S2 S3 S4 S6 S7 S7 S8 '
                 'X1 X2 X2 X4 X4 X4 X5 X6 X7'.split(),
             options={'dora_ind': 'X4', 'fanpai_winds': ['X3']})
-        self.asserTenpai(bot.choose_tenpai())
+        self.assertTenpai(bot.choose_tenpai())
         bot = Bot(
             tiles='M2 M3 M4 M4 M5 M8 '
                 'P1 P2 P2 P3 P5 P6 P7 P7 P7 P8 P8 P9 P9'
                 'S1 S2 S3 S4 S5 S6 S8 S9 S9 '
                 'X1 X2 X2 X5 X5 X5'.split(),
             options={'dora_ind': 'X4', 'fanpai_winds': ['X1']})
-        self.asserTenpai(bot.choose_tenpai())
+        self.assertTenpai(bot.choose_tenpai())
         bot = Bot(
             tiles='M2 M3 M3 M4 M5 M6 M6 M7 M8 M9 M9 '
                 'P1 P2 P2 P5 P6 P9 '
@@ -263,8 +264,34 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                 'X3 X3 X4 X5 X5 X6 X7 X7 X7'.split(),
             options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
         tenpai = bot.choose_tenpai()
-        self.asserTenpai(tenpai)
+        self.assertTenpai(tenpai)
         self.assertEqual(len(list(rules.waits(tenpai))), 3)
+
+        # only kokushi possible
+        tenpai = bot.choose_tenpai()
+        bot = Bot(
+            tiles='M1 M2 M4 M5 M7 M8 M9 '
+                  'P1 P2 P4 P5 P7 P8 P9 '
+                  'S1 S2 S4 S5 S7 S8 S9 '
+                  'X1 X1 X1 X1 X2 X2 '
+                  'X3 X3 X4 X4 X5 X5 X7'.split(),
+            options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
+        tenpai = bot.choose_tenpai()
+        self.assertTenpai(tenpai)
+        self.assertEqual(list(rules.waits(tenpai)), ['X6'])
+
+        # no tenpai possible (broken)
+        #tenpai = bot.choose_tenpai()
+        #bot = Bot(
+        #    tiles='M1 M2 M4 M5 M7 M8 '
+        #          'P1 P2 P4 P5 P7 P8 '
+        #          'S1 S2 S4 S5 S7 S8 '
+        #          'X1 X1 X1 X1 X2 X2 X2 '
+        #          'X3 X3 X4 X4 X5 X5 X6 X7'.split(),
+        #    options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
+        #tenpai = bot.choose_tenpai()
+        #self.assertIsNone(tenpai)
+
         # very slow!
         #bot = Bot(
         #    tiles=rules.ALL_TILES,

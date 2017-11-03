@@ -18,7 +18,7 @@ class Serializer(object):
 
     def dump(self, obj):
         data = {}
-        for k, v in obj.__dict__.iteritems():
+        for k, v in obj.__dict__.items():
             if k in self.exclude_keys:
                 continue
             hook = getattr(self, 'dump_'+k, None)
@@ -31,7 +31,7 @@ class Serializer(object):
 
     def load(self, data):
         obj = self.cls.__new__(self.cls)
-        for k, v in data.iteritems():
+        for k, v in data.items():
             hook = getattr(self, 'load_'+k, None)
             if hook:
                 setattr(obj, k, hook(v))
