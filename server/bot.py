@@ -238,7 +238,7 @@ class HelperFunctionsTestCase(unittest.TestCase):
 
 @unittest.skip('too slow!')
 class TenpaiChoiceTestCase(unittest.TestCase):
-    def asserTenpai(self, tenpai):
+    def assertTenpai(self, tenpai):
         wait_values = rules.eval_waits(tenpai)
         self.assertTrue(any(pts > 0 for wait, pts in wait_values))
 
@@ -249,14 +249,14 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                 'S1 S2 S2 S3 S4 S6 S7 S7 S8 '
                 'X1 X2 X2 X4 X4 X4 X5 X6 X7'.split(),
             options={'dora_ind': 'X4', 'fanpai_winds': ['X3']})
-        self.asserTenpai(bot.choose_tenpai())
+        self.assertTenpai(bot.choose_tenpai())
         bot = Bot(
             tiles='M2 M3 M4 M4 M5 M8 '
                 'P1 P2 P2 P3 P5 P6 P7 P7 P7 P8 P8 P9 P9'
                 'S1 S2 S3 S4 S5 S6 S8 S9 S9 '
                 'X1 X2 X2 X5 X5 X5'.split(),
             options={'dora_ind': 'X4', 'fanpai_winds': ['X1']})
-        self.asserTenpai(bot.choose_tenpai())
+        self.assertTenpai(bot.choose_tenpai())
         bot = Bot(
             tiles='M2 M3 M3 M4 M5 M6 M6 M7 M8 M9 M9 '
                 'P1 P2 P2 P5 P6 P9 '
@@ -264,7 +264,7 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                 'X3 X3 X4 X5 X5 X6 X7 X7 X7'.split(),
             options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
         tenpai = bot.choose_tenpai()
-        self.asserTenpai(tenpai)
+        self.assertTenpai(tenpai)
         self.assertEqual(len(list(rules.waits(tenpai))), 3)
 
         # only kokushi possible
@@ -277,7 +277,7 @@ class TenpaiChoiceTestCase(unittest.TestCase):
                   'X3 X3 X4 X4 X5 X5 X7'.split(),
             options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
         tenpai = bot.choose_tenpai()
-        self.asserTenpai(tenpai)
+        self.assertTenpai(tenpai)
         self.assertEqual(list(rules.waits(tenpai)), ['X6'])
 
         # no tenpai possible (broken)
