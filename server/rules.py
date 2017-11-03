@@ -111,7 +111,7 @@ def decompose_regular(tiles):
             yield [pair] + groups
 
 def is_all_pairs(tiles):
-    return len(set(tiles)) == len(tiles) / 2 and all(
+    return len(set(tiles)) == len(tiles) // 2 and all(
         tiles[i] == tiles[i+1] for i in range(0, len(tiles), 2))
 
 def is_kokushi(tiles):
@@ -420,7 +420,7 @@ class Hand(object):
                 if (type, tile) != self.wait_group:
                     p *= 2
                 fu += p
-        return (fu + 9) / 10 * 10
+        return (fu + 9) // 10 * 10
 
     def limit(self):
         return limit(self.fan(), self.fu())
