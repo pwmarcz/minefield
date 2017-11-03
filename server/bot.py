@@ -171,7 +171,8 @@ class Bot(object):
                 continue
             tenpais.add(t)
             val = self.eval_tenpai(t)
-            evaluated_tenpais.append((val, t))
+            if val is not None:
+                evaluated_tenpais.append((val, t))
         value, tenpai = max(evaluated_tenpais)
         tenpai = list(tenpai)
         return tenpai
@@ -265,6 +266,32 @@ class TenpaiChoiceTestCase(unittest.TestCase):
         tenpai = bot.choose_tenpai()
         self.asserTenpai(tenpai)
         self.assertEqual(len(list(rules.waits(tenpai))), 3)
+
+        # only kokushi possible
+        tenpai = bot.choose_tenpai()
+        bot = Bot(
+            tiles='M1 M2 M4 M5 M7 M8 M9 '
+                  'P1 P2 P4 P5 P7 P8 P9 '
+                  'S1 S2 S4 S5 S7 S8 S9 '
+                  'X1 X1 X1 X1 X2 X2 '
+                  'X3 X3 X4 X4 X5 X5 X7'.split(),
+            options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
+        tenpai = bot.choose_tenpai()
+        self.asserTenpai(tenpai)
+        self.assertEqual(list(rules.waits(tenpai)), ['X6'])
+
+        # no tenpai possible (broken)
+        #tenpai = bot.choose_tenpai()
+        #bot = Bot(
+        #    tiles='M1 M2 M4 M5 M7 M8 '
+        #          'P1 P2 P4 P5 P7 P8 '
+        #          'S1 S2 S4 S5 S7 S8 '
+        #          'X1 X1 X1 X1 X2 X2 X2 '
+        #          'X3 X3 X4 X4 X5 X5 X6 X7'.split(),
+        #    options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
+        #tenpai = bot.choose_tenpai()
+        #self.assertIsNone(tenpai)
+
         # very slow!
         #bot = Bot(
         #    tiles=rules.ALL_TILES,
