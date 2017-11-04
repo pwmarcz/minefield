@@ -293,7 +293,7 @@ class TenpaiChoiceTestCase(unittest.TestCase):
             tiles='M1 M2 M4 M5 M7 M8 '
                   'P1 P2 P4 P5 P7 P8 '
                   'S1 S2 S4 S5 S7 S8 '
-                  'X1 X1 X1 X1 X2 X2 X2 '
+                  'X1 X1 X1 X1 X2 X2 X2 X2 '
                   'X3 X3 X4 X4 X5 X5 X6 X7'.split(),
             options={'dora_ind': 'M3', 'fanpai_winds': ['X3']})
         tenpai = bot.choose_tenpai()
