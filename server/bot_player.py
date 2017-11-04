@@ -58,7 +58,12 @@ class BotPlayer(object):
         def run():
             logger.info('Choosing tenpai...')
             hand = self.bot.choose_tenpai(cooperative=True)
-            logger.info('Tenpai found')
+            if hand:
+                logger.info('Tenpai found')
+            else:
+                # Extremely unlikely.
+                logger.warning('Tenpai not found, using any hand')
+                hand = self.bot.choose_any_hand()
             self.room.send_to_game(self.idx, 'hand', hand)
         self.thread = gevent.spawn(run)
 
