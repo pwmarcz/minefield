@@ -454,7 +454,7 @@ def eval_waits(tiles, options={}):
 
 def best_hand(tiles, wait, options={}):
     hands = all_hands(tiles, wait, options=options)
-    return max((hand.fan(), hand.fu(), hand) for hand in hands)[2]
+    return max(((hand.fan(), hand.fu(), hand) for hand in hands), key=lambda k: (k[0], k[1]))[2]
 
 def eval_hand(tiles, wait, options={}):
     hand = best_hand(tiles, wait, options=options)
@@ -517,9 +517,7 @@ class RulesTestCase(unittest.TestCase):
     def test_best_hand_sort(self):
         tiles = 'M7 M7 M8 M8 M9 M9 S1 S2 S3 X1 X1 X3 X3 X3'.split()
         wait  = 'M7'
-        print(tiles)
-        hand = best_hand(tiles, wait, {'fanpai_winds': ['X1'], 'dora_ind': 'X4'})
-        print(hand)
+        best_hand(tiles, wait, {'fanpai_winds': ['X1'], 'dora_ind': 'X4'})
 
 class BaseHandTestCase(unittest.TestCase):
     def assertYaku(self, tiles_str, wait, yaku_sets):
