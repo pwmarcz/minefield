@@ -25,7 +25,7 @@ class Game(object):
     EXTRA_TIME = 10
 
     def __init__(self,
-                 east=0,
+                 east=None,
                  callback=dummy_callback):
         self.callback = callback
 
@@ -34,7 +34,10 @@ class Game(object):
         if not DEBUG:
             random.shuffle(all_tiles)
 
-        self.east = east
+        if east == None:
+            self.east = random.randrange(2)
+        else:
+            self.east = east
 
         # Tiles available for players
         n = PLAYER_TILES
@@ -74,9 +77,9 @@ class Game(object):
     @property
     def player_turn(self):
         if len(self.discards[0]) == len(self.discards[1]):
-            return 0
+            return self.east
         else:
-            return 1
+            return 1-self.east
 
     def abort(self, culprit, description):
         '''Abort the game and provide explanation.'''
@@ -156,7 +159,7 @@ class Game(object):
             # start the second phase
             for i in range(2):
                 self.callback(i, 'phase_two', {})
-            self.start_move(0, 'discard', self.DISCARD_TIME_LIMIT)
+            self.start_move(self.east, 'discard', self.DISCARD_TIME_LIMIT)
         else:
             self.callback(player, 'wait_for_phase_two', {})
 
@@ -244,7 +247,7 @@ class GameTestCase(unittest.TestCase):
 
         self.messages = deque()
 
-        self.g = Game(callback=self.callback)
+        self.g = Game(east=0, callback=self.callback)
         self.g.start()
 
     def assertMessage(self, player, msg_type, msg={}):
