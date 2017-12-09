@@ -514,6 +514,13 @@ class RulesTestCase(unittest.TestCase):
         self.assertEquals(dora_for_ind('X6'), 'X7')
         self.assertEquals(dora_for_ind('X7'), 'X5')
 
+    def test_best_hand_sort(self):
+        tiles = 'M7 M7 M8 M8 M9 M9 S1 S2 S3 X1 X1 X3 X3 X3'.split()
+        wait  = 'M7'
+        print(tiles)
+        hand = best_hand(tiles, wait, {'fanpai_winds': ['X1'], 'dora_ind': 'X4'})
+        print(hand)
+
 class BaseHandTestCase(unittest.TestCase):
     def assertYaku(self, tiles_str, wait, yaku_sets):
         tiles = tiles_str.split()
