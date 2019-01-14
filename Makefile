@@ -17,7 +17,7 @@ static:
 
 .PHONY: test
 test:
-	server/env/bin/nosetests server/*.py -v
+	server/env/bin/pytest server/*.py -v
 
 .PHONY: test_js
 test_js:
