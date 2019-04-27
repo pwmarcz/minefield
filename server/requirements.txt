@@ -1,6 +1,6 @@
-static==1.0.2
+static>=1.0.2
 gevent
 gevent-websocket
-watchdog==0.7.1
-raven==5.0.0
+watchdog>=0.7.1
+raven>=5.0.0
 pytest
