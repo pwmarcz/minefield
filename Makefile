@@ -5,7 +5,7 @@ all: env node static
 .PHONY: env
 env:
 	[ -e server/env/bin/python ] || virtualenv --python=python3 server/env/
-	[ -e server/env/bin/python ] || server/env/bin/pip install -q -r server/requirements.txt
+	[ -e server/env/bin/pip-sync ] || server/env/bin/pip install -q -r server/requirements.txt
 	server/env/bin/pip-sync
 
 .PHONY: node
