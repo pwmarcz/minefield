@@ -4,29 +4,27 @@
   "repository": "https://github.com/pwmarcz/minefield",
   "license": "MIT",
   "dependencies": {
-    "style-loader": "*",
-    "css-loader": "*",
-    "sass-loader": "*",
-    "node-sass": "*",
-    "extract-text-webpack-plugin": "*",
-
+    "@babel/core": "*",
     "babel-loader": "*",
-    "babel-core": "*",
-    "babel-preset-es2015": "*",
-    "babel-preset-react": "*",
-    "babel-register": "*",
-
-    "mocha": "*",
+    "@babel/preset-env": "*",
+    "@babel/preset-react": "*",
     "chai": "*",
-
-    "webpack": "*",
-
-    "redux": "*",
-    "redux-thunk": "*",
-    "redux-logger": "*",
+    "css-loader": "*",
+    "mini-css-extract-plugin": "*",
+    "mocha": "*",
+    "node-sass": "*",
     "react": "*",
-    "react-dom": "*",
     "react-addons-update": "*",
-    "react-redux": "*"
+    "react-dom": "*",
+    "react-redux": "*",
+    "redux": "*",
+    "redux-logger": "*",
+    "redux-thunk": "*",
+    "sass-loader": "*",
+    "style-loader": "*",
+    "webpack": "*"
+  },
+  "devDependencies": {
+    "webpack-cli": "^3.3.10"
   }
 }

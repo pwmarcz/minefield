@@ -1,11 +1,9 @@
-var CommonsChunkPlugin = require('webpack').optimize.CommonsChunkPlugin;
-var ExtractTextPlugin = require('extract-text-webpack-plugin');
+var MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = [
   {
     name: 'js',
     entry: {
-      vendor: ['react', 'react-dom', 'redux', 'react-redux'],
       app: "./js/index.js",
     },
     output: {
@@ -13,22 +11,27 @@ module.exports = [
       filename: 'bundle.auto.js',
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.js$/,
           loader: 'babel-loader',
           exclude: /node_modules/,
-          query: { presets: ['es2015', 'react'] },
+          query: { presets: ['@babel/preset-env', '@babel/preset-react'] },
         },
       ]
     },
-    plugins: [
-      new CommonsChunkPlugin({
-        name: "vendor",
-        filename: "bundle-vendor.auto.js",
-        minChunks: Infinity,
-      })
-    ]
+    optimization: {
+      splitChunks: {
+        cacheGroups: {
+          vendor: {
+            test: /[/]node_modules[/]/,
+            name: 'vendor',
+            chunks: 'all',
+            filename: 'bundle-vendor.auto.js',
+          }
+        }
+      }
+    }
   },
   {
     name: 'css',
@@ -43,16 +46,22 @@ module.exports = [
       filename: 'bundle-css.auto.js',
     },
     module: {
-      loaders: [
+      rules: [
         {
           test: /\.scss$/,
-          loader: ExtractTextPlugin.extract('css-loader?-url!sass-loader'),
+          use: [
+            MiniCssExtractPlugin.loader,
+            'css-loader?-url',
+            'sass-loader',
+          ],
           exclude: /node_modules/,
         },
       ]
     },
     plugins: [
-      new ExtractTextPlugin('bundle-css.auto.css')
+      new MiniCssExtractPlugin({
+          filename: 'bundle-css.auto.css'
+        })
     ]
   }
 ];
