@@ -5,9 +5,9 @@
   "license": "MIT",
   "dependencies": {
     "@babel/core": "*",
-    "babel-loader": "*",
     "@babel/preset-env": "*",
     "@babel/preset-react": "*",
+    "babel-loader": "*",
     "chai": "*",
     "css-loader": "*",
     "mini-css-extract-plugin": "*",
