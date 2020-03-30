@@ -94,6 +94,10 @@ impl Tile {
         self == S2 || self == S3 || self == S4 || self == S6 || self == S8 || self == X6
     }
 
+    pub fn is_yakuhai(self, player_wind: Tile) -> bool {
+        self == X5 || self == X6 || self == X7 || self == player_wind
+    }
+
     pub fn suit(self) -> Suit {
         if M1 <= self && self <= M9 {
             Suit::Man
