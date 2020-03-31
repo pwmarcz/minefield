@@ -1,7 +1,8 @@
 #![warn(clippy::all)]
 
-extern crate num_enum;
+extern crate itertools;
 
+pub mod bot;
 pub mod fu;
 pub mod hand;
 pub mod search;

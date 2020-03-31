@@ -1,24 +1,25 @@
 use std::convert::TryInto;
 
 use crate::hand::{Group, Hand};
-use crate::tiles::{Tile, NUM_TILES};
+use crate::tiles::{Tile, TileSet, NUM_TILES};
 
 pub struct Search {
     wait: Tile,
-    set: [isize; NUM_TILES],
+    tiles: TileSet,
     num_remaining: isize,
     groups: Vec<Group>,
 }
 
 impl Search {
-    pub fn from_tiles(tiles: &[Tile; 14], wait: Tile) -> Self {
+    pub fn from_tiles(tiles: &[Tile], wait: Tile) -> Self {
+        assert!(tiles.len() == 14);
         let mut set = [0; NUM_TILES];
         for &tile in tiles {
             set[tile as usize] += 1;
         }
         Search {
             wait,
-            set,
+            tiles: TileSet::make(tiles),
             num_remaining: tiles.len() as isize,
             groups: vec![],
         }
@@ -53,20 +54,18 @@ impl Search {
     }
 
     fn get(&self, tile: Tile) -> isize {
-        self.set[tile as usize]
+        self.tiles.get(tile)
     }
 
     fn add(&mut self, tile: Tile, n: isize) {
-        let i = tile as usize;
-        assert!(self.set[i] + n >= 0);
         assert!(self.num_remaining + n >= 0);
-        self.set[i] += n;
         self.num_remaining += n;
+        self.tiles.add(tile, n);
     }
 
     fn find_groups(&self) -> Vec<Group> {
         let mut groups: Vec<Group> = vec![];
-        for tile in Tile::all() {
+        for tile in self.tiles.distinct() {
             let n = self.get(tile);
             if n >= 3 {
                 groups.push(Group::Pon(tile));
@@ -105,7 +104,7 @@ impl Search {
 
     fn backtrack(&mut self, results: &mut Vec<Hand>) {
         if self.num_remaining == 2 {
-            for tile in Tile::all() {
+            for tile in self.tiles.distinct() {
                 if self.get(tile) == 2 {
                     self.gather(tile, results);
                 }
@@ -125,7 +124,7 @@ impl Search {
 
     fn find_kokushi(&self) -> Option<Hand> {
         let mut double = None;
-        for tile in Tile::all() {
+        for tile in self.tiles.distinct() {
             if tile.is_yaochu() {
                 match self.get(tile) {
                     0 => return None,
@@ -145,7 +144,7 @@ impl Search {
 
     fn find_pairs(&self) -> Option<Hand> {
         let mut pairs = vec![];
-        for tile in Tile::all() {
+        for tile in self.tiles.distinct() {
             match self.get(tile) {
                 0 => (),
                 2 => pairs.push(tile),
