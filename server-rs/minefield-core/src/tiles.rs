@@ -124,7 +124,11 @@ impl Tile {
     }
 
     pub fn sanshoku(t1: Tile, t2: Tile, t3: Tile) -> bool {
-        M1 <= t1 && t1 <= M9 && (t1 as u8) + 9 == (t2 as u8) && (t1 as u8) + 18 == (t3 as u8)
+        let mut tiles = vec![t1, t2, t3];
+        tiles.sort();
+        (M1 <= tiles[0] && tiles[0] <= M9)
+            && (tiles[0] as u8) + 9 == (tiles[1] as u8)
+            && (tiles[0] as u8) + 18 == (tiles[2] as u8)
     }
 
     pub fn itsuu(t1: Tile, t2: Tile, t3: Tile) -> bool {

@@ -218,7 +218,7 @@ where
 {
     f(groups[0], groups[1], groups[2])
         || f(groups[0], groups[1], groups[3])
-        || f(groups[0], groups[2], groups[2])
+        || f(groups[0], groups[2], groups[3])
         || f(groups[1], groups[2], groups[3])
 }
 
@@ -281,18 +281,17 @@ fn chuuren(suits: u8, tiles: &[Tile]) -> bool {
 mod tests {
     use super::Yaku::*;
     use super::*;
-    use crate::search::Search;
+    use crate::search::search;
     use crate::tiles::Tile::*;
 
     fn assert_yaku(tiles: &[Tile; 14], wait: Tile, expected: Vec<Vec<Yaku>>) {
         let player_wind = X1;
-        let mut search = Search::from_tiles(tiles, wait);
         let mut result = vec![];
 
         println!("tiles: {:?}", tiles);
-        for hand in search.find_all().iter() {
+        for hand in search(tiles, wait) {
             println!("hand: {:?}", hand);
-            result.push(yaku(hand, player_wind));
+            result.push(yaku(&hand, player_wind));
         }
         assert_eq!(result, expected);
     }

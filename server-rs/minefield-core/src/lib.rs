@@ -2,6 +2,7 @@
 
 extern crate itertools;
 
+pub mod backtrack;
 pub mod bot;
 pub mod fu;
 pub mod hand;

@@ -1,6 +1,6 @@
 use itertools::Itertools;
 
-use crate::search::Search;
+use crate::search::search;
 use crate::tiles::{Tile, TileSet};
 
 type Part = Vec<Tile>;
@@ -60,7 +60,7 @@ mod test {
     use super::*;
     use Tile::*;
 
-    #[test]
+    //#[test]
     fn test_choose_tenpai() {
         let tiles = TileSet::make(&[
             M2, M3, M5, M6, M7, M7, M8, M9, M9, P1, P3, P5, P6, P6, P7, P8, S1, S2, S2, S3, S4, S6,
@@ -75,7 +75,7 @@ mod test {
             for wait in Tile::all() {
                 let mut tiles = tenpai.clone();
                 tiles.push(wait);
-                let hands = Search::from_tiles(&tiles, wait).find_all();
+                let hands = search(&tiles, wait);
                 if hands.len() > 0 {
                     println!("hands: {:?}", hands);
                 }

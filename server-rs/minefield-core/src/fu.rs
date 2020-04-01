@@ -45,16 +45,15 @@ pub fn fu(hand: &Hand, player_wind: Tile) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::search::Search;
+    use crate::search::search;
     use crate::tiles::Tile::*;
 
     fn assert_fu(tiles: &[Tile; 14], wait: Tile, expected: &[usize]) {
         let player_wind = X1;
-        let mut search = Search::from_tiles(tiles, wait);
         let mut result = vec![];
 
         println!("tiles: {:?}", tiles);
-        for hand in search.find_all().iter() {
+        for hand in search(tiles, wait).iter() {
             println!("hand: {:?}", hand);
             result.push(fu(hand, player_wind));
         }
@@ -184,7 +183,7 @@ mod tests {
         assert_fu(
             &[P1, P2, P3, P3, P3, P3, S2, S2, S5, S6, S7, S9, S9, S9],
             P3,
-            &[40, 50],
+            &[50, 40],
         );
     }
 }

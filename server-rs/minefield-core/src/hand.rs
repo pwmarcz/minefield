@@ -9,6 +9,22 @@ pub enum Group {
 use Group::*;
 
 impl Group {
+    pub fn from_tiles(tiles: &[Tile]) -> Option<Self> {
+        if tiles.len() != 3 {
+            return None;
+        }
+        let t1 = tiles[0];
+        let t2 = tiles[1];
+        let t3 = tiles[2];
+        if t1 == t2 && t2 == t3 {
+            Some(Pon(t1))
+        } else if t1.has_next() && t2.has_next() && t1.next() == t2 && t2.next() == t3 {
+            Some(Chi(t1))
+        } else {
+            None
+        }
+    }
+
     pub fn is_chi(self) -> bool {
         match self {
             Chi(_) => true,
