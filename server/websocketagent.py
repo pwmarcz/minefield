@@ -76,3 +76,4 @@ class WebSocketAgent(object):
         finally:
             self.on_disconnect(error)
             del self._socket
+        return []
