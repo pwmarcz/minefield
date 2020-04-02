@@ -4,9 +4,9 @@ use crate::tiles::Tile;
 
 pub fn fu(hand: &Hand, player_wind: Tile) -> usize {
     match hand {
-        Hand::Normal(pair, groups, wait, wait_type) => {
-            let wait_group = wait_type.map(|i| groups[i as usize]);
+        Hand::Normal(pair, groups, wait, wait_group) => {
             let is_open_wait = wait_group.map_or(false, |g| g.is_open_wait(*wait));
+            let is_pon_wait = wait_group.map_or(false, |g| g.is_pon());
 
             // pinfu
             if groups.iter().all(|g| g.is_chi()) && !pair.is_yakuhai(player_wind) && is_open_wait {
@@ -18,7 +18,7 @@ pub fn fu(hand: &Hand, player_wind: Tile) -> usize {
             if pair.is_yakuhai(player_wind) {
                 fu += 2;
             }
-            if !wait_group.map_or(false, |g| g.is_pon()) && !is_open_wait {
+            if !is_pon_wait && !is_open_wait {
                 fu += 2;
             }
             for group in groups.iter() {
@@ -28,7 +28,7 @@ pub fn fu(hand: &Hand, player_wind: Tile) -> usize {
                         p *= 2;
                     }
                     // Closed pon
-                    if !wait_group.map_or(false, |g| g == *group) {
+                    if *wait_group != Some(*group) {
                         p *= 2;
                     }
                     fu += p;

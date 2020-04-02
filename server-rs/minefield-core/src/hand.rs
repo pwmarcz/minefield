@@ -98,8 +98,8 @@ impl Group {
 
 #[derive(Debug, PartialEq, PartialOrd, Eq, Ord)]
 pub enum Hand {
-    // pair, groups, wait, group_num
-    Normal(Tile, [Group; 4], Tile, Option<u8>),
+    // pair, groups, wait, wait_group
+    Normal(Tile, [Group; 4], Tile, Option<Group>),
     // pair, groups, wait
     Pairs([Tile; 7], Tile),
     // double, wait

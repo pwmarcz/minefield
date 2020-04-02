@@ -36,7 +36,7 @@ impl BacktrackStrategy<Hand> for NormalSearch {
 
         for i in 0..4 {
             if (i == 0 || bt.stack[i] != bt.stack[i - 1]) && bt.stack[i].contains(&wait) {
-                results.push(Hand::Normal(pair, groups, wait, Some(i as u8)));
+                results.push(Hand::Normal(pair, groups, wait, Some(groups[i])));
             }
         }
         results
@@ -125,7 +125,7 @@ mod tests {
                 P5,
                 [Chi(M1), Chi(M1), Pon(X1), Pon(X2)],
                 M1,
-                Some(0)
+                Some(Chi(M1))
             ),]
         );
     }
@@ -148,7 +148,7 @@ mod tests {
         assert_eq!(
             results,
             vec![
-                Hand::Normal(X1, [Chi(M1), Chi(M1), Chi(P1), Chi(P1)], M1, Some(0)),
+                Hand::Normal(X1, [Chi(M1), Chi(M1), Chi(P1), Chi(P1)], M1, Some(Chi(M1))),
                 Hand::Pairs([M1, M2, M3, P1, P2, P3, X1], M1),
             ]
         );

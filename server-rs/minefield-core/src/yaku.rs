@@ -118,15 +118,13 @@ fn normal_yaku(hand: &Hand, player_wind: Tile, tiles: &[Tile]) -> Vec<Yaku> {
     use Tile::*;
 
     let mut result = vec![];
-    if let Hand::Normal(pair, groups, wait, wait_type) = hand {
+    if let Hand::Normal(pair, groups, wait, wait_group) = hand {
         let mut pon_count = 0;
         for group in groups.iter() {
             if group.is_pon() {
                 pon_count += 1;
             }
         }
-
-        let wait_group = wait_type.map(|i| groups[i as usize]);
 
         if groups[0] == groups[1] && groups[2] == groups[3] {
             result.push(Yaku::Ryanpeiko);
@@ -143,15 +141,18 @@ fn normal_yaku(hand: &Hand, player_wind: Tile, tiles: &[Tile]) -> Vec<Yaku> {
 
         if pon_count == 4 {
             result.push(Yaku::Toitoi);
-            if wait_type.is_none() {
+            if wait_group.is_none() {
                 result.push(Yaku::Suuanko);
             } else {
                 result.push(Yaku::Sananko);
             }
         }
 
-        if pon_count == 3 && wait_group.map_or(true, |g| g.is_chi()) {
-            result.push(Yaku::Sananko);
+        if pon_count == 3 {
+            match wait_group {
+                None | Some(Group::Chi(_)) => result.push(Yaku::Sananko),
+                Some(Group::Pon(_)) => (),
+            }
         }
 
         if sanshokudojun(*groups) {
