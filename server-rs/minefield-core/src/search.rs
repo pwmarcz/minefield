@@ -11,9 +11,9 @@ impl BacktrackStrategy<Hand> for NormalSearch {
         // println!("{:?} {:?}", bt.stack, bt.remaining);
 
         if bt.remaining > 2 {
-            bt.find_groups(true)
+            bt.filter(bt.find_groups())
         } else {
-            bt.find_pairs(false)
+            bt.find_pairs()
         }
     }
     fn check(&self, bt: &Backtrack) -> Vec<Hand> {
@@ -40,23 +40,6 @@ impl BacktrackStrategy<Hand> for NormalSearch {
             }
         }
         results
-    }
-}
-
-struct PairSearch(Tile);
-
-impl BacktrackStrategy<Hand> for PairSearch {
-    fn generate(&self, bt: &Backtrack) -> Vec<Vec<Tile>> {
-        // println!("{:?} {:?}", bt.stack, bt.remaining);
-        bt.find_pairs(true)
-    }
-    fn check(&self, bt: &Backtrack) -> Vec<Hand> {
-        // println!("{:?}", bt.stack);
-        assert!(bt.stack.len() == 7);
-
-        let pairs_vec: Vec<Tile> = bt.stack.iter().map(|part| part[0]).collect();
-        let pairs = pairs_vec.as_slice().try_into().expect("wrong size");
-        vec![Hand::Pairs(pairs, self.0)]
     }
 }
 

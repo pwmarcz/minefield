@@ -47,7 +47,7 @@ impl Backtrack {
         }
     }
 
-    pub fn find_groups(&self, filter: bool) -> Vec<Vec<Tile>> {
+    pub fn find_groups(&self) -> Vec<Vec<Tile>> {
         let mut result = vec![];
         for t in self.tiles.distinct() {
             if self.tiles.get(t) >= 3 {
@@ -61,30 +61,57 @@ impl Backtrack {
                 }
             }
         }
-        if filter {
-            self.filter(&mut result);
-            result.sort();
-        }
+        result.sort();
         result
     }
 
-    pub fn find_pairs(&self, filter: bool) -> Vec<Vec<Tile>> {
+    pub fn find_pairs(&self) -> Vec<Vec<Tile>> {
         let mut result = vec![];
         for t in self.tiles.distinct() {
             if self.tiles.get(t) >= 2 {
                 result.push(vec![t, t]);
             }
         }
-        if filter {
-            self.filter(&mut result);
-            result.sort();
-        }
+        result.sort();
         result
     }
 
-    pub fn filter(&self, parts: &mut Vec<Vec<Tile>>) {
+    pub fn find_single(&self) -> Vec<Vec<Tile>> {
+        let mut result = vec![];
+        for t in self.tiles.distinct() {
+            result.push(vec![t]);
+        }
+        result.sort();
+        result
+    }
+
+    pub fn find_incomplete_groups(&self) -> Vec<Vec<Tile>> {
+        let mut result = vec![];
+        for t in self.tiles.distinct() {
+            if self.tiles.get(t) >= 2 {
+                result.push(vec![t, t]);
+            }
+            if t.has_next() {
+                let t2 = t.next();
+                if self.tiles.get(t2) >= 1 {
+                    result.push(vec![t, t2]);
+                }
+                if t2.has_next() {
+                    let t3 = t2.next();
+                    if self.tiles.get(t3) >= 1 {
+                        result.push(vec![t, t3]);
+                    }
+                }
+            }
+        }
+        result.sort();
+        result
+    }
+
+    pub fn filter(&self, mut parts: Vec<Vec<Tile>>) -> Vec<Vec<Tile>> {
         if let Some(last_part) = self.stack.last() {
             parts.retain(|part| part >= last_part);
         }
+        parts
     }
 }

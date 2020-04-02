@@ -1,7 +1,5 @@
 #![warn(clippy::all)]
 
-extern crate itertools;
-
 pub mod backtrack;
 pub mod bot;
 pub mod fu;

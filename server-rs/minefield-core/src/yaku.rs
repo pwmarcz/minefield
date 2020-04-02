@@ -1,3 +1,4 @@
+use crate::fu::fu;
 use crate::hand::{Group, Hand};
 use crate::tiles::Tile;
 
@@ -276,6 +277,49 @@ fn chuuren(suits: u8, tiles: &[Tile]) -> bool {
         }
     }
     true
+}
+
+const BASE_POINTS: [usize; 7] = [0, 8000, 12000, 16000, 24000, 32000, 64000];
+
+pub fn score(mut fan: usize, fu: usize) -> usize {
+    // riichi
+    if fan < 13 {
+        fan += 1;
+    }
+
+    match fan {
+        // no mangan
+        0..=2 => 0,
+        3 if fu < 60 => 0,
+        4 if fu < 30 => 0,
+        // mangan
+        3..=5 => BASE_POINTS[1],
+        // haneman
+        6..=7 => BASE_POINTS[2],
+        // baiman
+        8..=10 => BASE_POINTS[3],
+        // sanbaiman
+        11..=12 => BASE_POINTS[4],
+        // yakuman
+        13 => BASE_POINTS[5],
+        // double yakuman
+        _ => BASE_POINTS[6],
+    }
+}
+
+pub fn score_hand(hand: &Hand, player_wind: Tile, dora: Tile) -> usize {
+    let yaku = yaku(hand, player_wind);
+    if yaku.is_empty() {
+        return 0;
+    }
+    let fu = fu(hand, player_wind);
+    let mut fan = yaku.iter().map(|y| y.fan()).sum();
+    for tile in hand.tiles().iter() {
+        if *tile == dora {
+            fan += 1;
+        }
+    }
+    score(fan, fu)
 }
 
 #[cfg(test)]
