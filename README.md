@@ -25,11 +25,11 @@ You also need a recent Node.js version.
 
 Install libraries:
 
-    $ cd server
     $ make
 
 Make targets are:
 
+  - `make env` - update virtualenv
   - `make static` - recompile static assets
   - `make watch` - recompile static assets on each change
   - `make serve` - serve the website in development mode

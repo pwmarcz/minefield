@@ -51,28 +51,28 @@ class WebSocketAgent(object):
     def __call__(self, environ, start_response):
         """Process a single WebSocket request"""
         self._socket = environ["wsgi.websocket"]
-        self.on_connect()
-
         # run the receive loop
-        while True:
-            try:
-                error = None
+        try:
+            self.on_connect()
+            while True:
+                try:
+                    error = None
 
-                # socket already closed?
-                if self._socket.closed:
+                    # socket already closed?
+                    if self._socket.closed:
+                        break
+
+                    # wait for a new message
+                    message = self._socket.receive()
+
+                    # socket closing?
+                    if message is None:
+                        break
+
+                    # process the new message
+                    self.on_message(message)
+                except WebSocketError as error:
                     break
-
-                # wait for a new message
-                message = self._socket.receive()
-
-                # socket closing?
-                if message is None:
-                    break
-
-                # process the new message
-                self.on_message(message)
-            except WebSocketError as error:
-                break
-
-        self.on_disconnect(error)
-        del self._socket
+        finally:
+            self.on_disconnect(error)
+            del self._socket
