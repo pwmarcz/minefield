@@ -17,7 +17,6 @@ pub enum Msg {
     Rejoin(String),
     Join(String, String),
     CancelNewGame,
-    // hack: this is args: [[tiles]]
     Hand(Vec<Tile>),
     Discard(Tile),
 
