@@ -1,4 +1,6 @@
 // use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
+
+use failure::{Error, Fail};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -18,7 +20,13 @@ pub struct Game {
     pub key: String,
 }
 
-pub fn serialize_msg(msg: &Msg) -> Result<String, serde_json::Error> {
+#[derive(Debug, Fail)]
+pub enum ProtocolError {
+    #[fail(display = "invalid message")]
+    BadMsg,
+}
+
+pub fn serialize_msg(msg: &Msg) -> Result<String, Error> {
     let value = serde_json::to_value(&msg)?;
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let content = value["content"].clone();
@@ -32,25 +40,27 @@ pub fn serialize_msg(msg: &Msg) -> Result<String, serde_json::Error> {
         "args": args_arr,
     });
 
-    serde_json::to_string(&new_value)
+    let result = serde_json::to_string(&new_value)?;
+    Ok(result)
 }
 
-pub fn deserialize_msg(data: &str) -> Result<Msg, serde_json::Error> {
+pub fn deserialize_msg(data: &str) -> Result<Msg, Error> {
     let value: serde_json::Value = serde_json::from_str(data)?;
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let args: Vec<Value> = serde_json::from_value(value["args"].clone())?;
     let new_value = match args.len() {
-        0 => json!({
+        0 => Ok(json!({
             "type": type_str,
-        }),
-        1 => json!({
+        })),
+        1 => Ok(json!({
             "type": type_str,
             "content": args[0],
-        }),
-        _ => json!([]), // TODO error
-    };
+        })),
+        _ => Err(ProtocolError::BadMsg),
+    }?;
 
-    serde_json::from_value(new_value)
+    let result = serde_json::from_value(new_value)?;
+    Ok(result)
 }
 
 #[cfg(test)]
