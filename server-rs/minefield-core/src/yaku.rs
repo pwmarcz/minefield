@@ -2,7 +2,10 @@ use crate::fu::fu;
 use crate::hand::{Group, Hand};
 use crate::tiles::Tile;
 
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum Yaku {
     // 1
     Pinfu,
@@ -607,6 +610,20 @@ mod tests {
             &[M1, M1, M1, M2, M3, M4, M4, M5, M6, M7, M8, M9, M9, M9],
             M4,
             vec![vec![Chuuren], vec![Chuuren]],
+        );
+    }
+}
+
+#[cfg(test)]
+mod serde_tests {
+    use super::*;
+    extern crate serde_json;
+
+    #[test]
+    fn test_serialize() {
+        assert_eq!(
+            serde_json::to_string(&Yaku::Chuuren).unwrap(),
+            "\"chuuren\""
         );
     }
 }

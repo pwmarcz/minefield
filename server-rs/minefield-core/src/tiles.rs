@@ -1,4 +1,6 @@
-#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash)]
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum Tile {
     // man
@@ -213,5 +215,16 @@ impl<'a> Iterator for TileSetIterator<'a> {
             self.current += 1;
         }
         None
+    }
+}
+
+#[cfg(test)]
+mod serde_tests {
+    use super::*;
+    extern crate serde_json;
+
+    #[test]
+    fn test_serialize() {
+        assert_eq!(serde_json::to_string(&X5).unwrap(), "\"X5\"");
     }
 }

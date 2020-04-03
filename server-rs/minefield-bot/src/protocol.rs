@@ -4,12 +4,48 @@ use failure::{Error, Fail};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
+use minefield_core::tiles::Tile;
+use minefield_core::yaku::Yaku;
+
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 #[serde(tag = "type", content = "content")]
 #[serde(rename_all = "snake_case")]
 pub enum Msg {
+    // client messages
     GetGames,
+    NewGame(String),
+    Rejoin(String),
+    Join(String, String),
+    CancelNewGame,
+    Hand(Vec<Tile>),
+    Discard(Tile),
+
+    // server messages
     Games(Vec<Game>),
+    Room {
+        you: usize,
+        nicks: [String; 2],
+        key: String,
+    },
+    PhaseOne {
+        tiles: Vec<Tile>,
+        dora_ind: Tile,
+        you: usize,
+        east: usize,
+    },
+    PhaseTwo,
+    Discarded {
+        player: usize,
+        tile: Tile,
+    },
+    Ron {
+        hand: Vec<Tile>,
+        tile: Tile,
+        limit: usize,
+        yaku: Vec<Yaku>,
+        points: usize,
+    },
+    Draw,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
@@ -30,10 +66,10 @@ pub fn serialize_msg(msg: &Msg) -> Result<String, Error> {
     let value = serde_json::to_value(&msg)?;
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let content = value["content"].clone();
-    let args_arr = if content == Value::Null {
-        json!([])
-    } else {
-        json!([content])
+    let args_arr = match content {
+        Value::Null => json!([]),
+        Value::Array(values) if values.len() > 1 => Value::Array(values),
+        _ => json!([content]),
     };
     let new_value = json!({
         "type": type_str,
@@ -49,15 +85,18 @@ pub fn deserialize_msg(data: &str) -> Result<Msg, Error> {
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let args: Vec<Value> = serde_json::from_value(value["args"].clone())?;
     let new_value = match args.len() {
-        0 => Ok(json!({
+        0 => json!({
             "type": type_str,
-        })),
-        1 => Ok(json!({
+        }),
+        1 => json!({
             "type": type_str,
             "content": args[0],
-        })),
-        _ => Err(ProtocolError::BadMsg),
-    }?;
+        }),
+        _ => json!({
+            "type": type_str,
+            "content": Value::Array(args),
+        }),
+    };
 
     let result = serde_json::from_value(new_value)?;
     Ok(result)
@@ -67,39 +106,29 @@ pub fn deserialize_msg(data: &str) -> Result<Msg, Error> {
 mod test {
     use super::*;
 
-    #[test]
-    fn test_serialize_msg() {
-        assert_eq!(
-            serialize_msg(&Msg::GetGames).unwrap(),
-            r#"{"args":[],"type":"get_games"}"#
-        );
-        assert_eq!(
-            serialize_msg(&Msg::Games(vec![Game {
-                _type: String::from("player"),
-                nick: String::from("bot"),
-                key: String::from("xxx"),
-            }]))
-            .unwrap(),
-            r#"{"args":[[{"key":"xxx","nick":"bot","type":"player"}]],"type":"games"}"#
-        );
+    fn check(msg: Msg, text: &str) {
+        assert_eq!(serialize_msg(&msg).unwrap(), text);
+        assert_eq!(deserialize_msg(text).unwrap(), msg);
     }
 
     #[test]
-    fn test_deserialize_msg() {
-        assert_eq!(
-            deserialize_msg(r#"{"args":[],"type":"get_games"}"#).unwrap(),
-            Msg::GetGames
-        );
-        assert_eq!(
-            deserialize_msg(
-                r#"{"args":[[{"key":"xxx","nick":"bot","type":"player"}]],"type":"games"}"#
-            )
-            .unwrap(),
+    fn test_serialize_msg() {
+        check(Msg::GetGames, r#"{"args":[],"type":"get_games"}"#);
+        check(
             Msg::Games(vec![Game {
                 _type: String::from("player"),
                 nick: String::from("bot"),
                 key: String::from("xxx"),
-            }])
+            }]),
+            r#"{"args":[[{"key":"xxx","nick":"bot","type":"player"}]],"type":"games"}"#,
         );
+        check(
+            Msg::Join(String::from("bot"), String::from("xxx")),
+            r#"{"args":["bot","xxx"],"type":"join"}"#,
+        );
+        check(
+            Msg::Discard(Tile::X1),
+            r#"{"args":["X1"],"type":"discard"}"#,
+        )
     }
 }
