@@ -1,6 +1,6 @@
 // use serde::ser::{Serialize, SerializeMap, SerializeSeq, Serializer};
 
-use failure::{Error, Fail};
+use failure::Error;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -17,6 +17,7 @@ pub enum Msg {
     Rejoin(String),
     Join(String, String),
     CancelNewGame,
+    // hack: this is args: [[tiles]]
     Hand(Vec<Tile>),
     Discard(Tile),
 
@@ -27,18 +28,26 @@ pub enum Msg {
         nicks: [String; 2],
         key: String,
     },
+    StartMove {
+        #[serde(rename = "type")]
+        type_: MoveType,
+        time_limit: usize,
+    },
+    EndMove,
     PhaseOne {
         tiles: Vec<Tile>,
         dora_ind: Tile,
         you: usize,
         east: usize,
     },
+    WaitForPhaseTwo,
     PhaseTwo,
     Discarded {
         player: usize,
         tile: Tile,
     },
     Ron {
+        player: usize,
         hand: Vec<Tile>,
         tile: Tile,
         limit: usize,
@@ -46,20 +55,24 @@ pub enum Msg {
         points: usize,
     },
     Draw,
+    Abort {
+        description: String,
+    },
+}
+
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum MoveType {
+    Hand,
+    Discard,
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
 pub struct Game {
     #[serde(rename = "type")]
-    pub _type: String,
+    pub type_: String,
     pub nick: String,
     pub key: String,
-}
-
-#[derive(Debug, Fail)]
-pub enum ProtocolError {
-    #[fail(display = "invalid message")]
-    BadMsg,
 }
 
 pub fn serialize_msg(msg: &Msg) -> Result<String, Error> {
@@ -68,7 +81,7 @@ pub fn serialize_msg(msg: &Msg) -> Result<String, Error> {
     let content = value["content"].clone();
     let args_arr = match content {
         Value::Null => json!([]),
-        Value::Array(values) if values.len() > 1 => Value::Array(values),
+        Value::Array(values) if values.len() > 1 && type_str != "hand" => Value::Array(values),
         _ => json!([content]),
     };
     let new_value = json!({
@@ -85,13 +98,28 @@ pub fn deserialize_msg(data: &str) -> Result<Msg, Error> {
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let args: Vec<Value> = serde_json::from_value(value["args"].clone())?;
     let new_value = match args.len() {
-        0 => json!({
+        0 | 1 if type_str == "end_move" => json!({
             "type": type_str,
         }),
-        1 => json!({
-            "type": type_str,
-            "content": args[0],
-        }),
+        1 => {
+            if type_str == "hand" {
+                json!({
+                    "type": type_str,
+                    "content": args[0]["hand"]
+                })
+            } else {
+                match &args[0] {
+                    Value::Object(map) if map.len() == 0 => json!({
+                        "type": type_str,
+                    }),
+                    _ => json!({
+                        "type": type_str,
+                        "content": args[0]
+                    }),
+                }
+            }
+        }
+
         _ => json!({
             "type": type_str,
             "content": Value::Array(args),
@@ -116,7 +144,7 @@ mod test {
         check(Msg::GetGames, r#"{"args":[],"type":"get_games"}"#);
         check(
             Msg::Games(vec![Game {
-                _type: String::from("player"),
+                type_: String::from("player"),
                 nick: String::from("bot"),
                 key: String::from("xxx"),
             }]),
