@@ -102,6 +102,47 @@ pub fn find_best_tenpai(tiles: &[Tile], dora: Tile, player_wind: Tile) -> Option
     best_tenpai
 }
 
+pub struct Bot {
+    initial_tiles: Vec<Tile>,
+    tile_set: TileSet,
+    safe_tiles: TileSet,
+    dora: Tile,
+    player_wind: Tile,
+}
+
+impl Bot {
+    pub fn new(initial_tiles: &[Tile], dora_ind: Tile, player_wind: Tile) -> Self {
+        Bot {
+            initial_tiles: initial_tiles.to_vec(),
+            tile_set: TileSet::from_tiles(initial_tiles),
+            safe_tiles: TileSet::new(),
+            dora: dora_ind.next_wrap(),
+            player_wind,
+        }
+    }
+
+    pub fn choose_hand(&mut self) -> (Vec<Tile>, bool) {
+        let (hand, found) = match find_best_tenpai(&self.initial_tiles, self.dora, self.player_wind)
+        {
+            Some(hand) => (hand, true),
+            None => (self.initial_tiles[..13].to_vec(), false),
+        };
+        self.tile_set.add_all(&hand, -1);
+
+        (hand, found)
+    }
+
+    pub fn choose_discard(&mut self) -> Tile {
+        let first_tile = self.tile_set.distinct().next().unwrap();
+        self.tile_set.add(first_tile, -1);
+        first_tile
+    }
+
+    pub fn opponent_discard(&mut self, tile: Tile) {
+        self.safe_tiles.add(tile, 1)
+    }
+}
+
 // Release only - debug mode is too slow
 #[cfg(test)]
 mod test {

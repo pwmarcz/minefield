@@ -14,7 +14,7 @@ pub trait BacktrackStrategy<TResult> {
 impl Backtrack {
     pub fn from_tiles(tiles: &[Tile], remaining: usize) -> Self {
         Backtrack {
-            tiles: TileSet::make(tiles),
+            tiles: TileSet::from_tiles(tiles),
             stack: vec![],
             remaining,
         }

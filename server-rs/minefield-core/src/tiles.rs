@@ -156,13 +156,19 @@ impl Iterator for TileIterator {
 
 pub struct TileSet([isize; NUM_TILES]);
 
-impl TileSet {
-    pub fn empty() -> Self {
+impl Default for TileSet {
+    fn default() -> Self {
         TileSet([0; NUM_TILES])
     }
+}
 
-    pub fn make(tiles: &[Tile]) -> Self {
-        let mut ts = Self::empty();
+impl TileSet {
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    pub fn from_tiles(tiles: &[Tile]) -> Self {
+        let mut ts = Self::new();
         for tile in tiles.iter() {
             ts.add(*tile, 1);
         }

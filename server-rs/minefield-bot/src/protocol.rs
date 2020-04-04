@@ -97,7 +97,7 @@ pub fn deserialize_msg(data: &str) -> Result<Msg, Error> {
     let type_str: String = serde_json::from_value(value["type"].clone())?;
     let args: Vec<Value> = serde_json::from_value(value["args"].clone())?;
     let new_value = match args.len() {
-        0 | 1 if type_str == "end_move" => json!({
+        0 => json!({
             "type": type_str,
         }),
         1 => {
