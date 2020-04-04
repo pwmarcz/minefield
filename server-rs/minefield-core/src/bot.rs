@@ -70,36 +70,80 @@ fn find_all_tenpai(tiles: &[Tile]) -> Vec<Vec<Tile>> {
     result
 }
 
-pub fn find_best_tenpai(tiles: &[Tile], dora: Tile, player_wind: Tile) -> Option<Vec<Tile>> {
+pub fn find_best_tenpai(all_tiles: &[Tile], dora: Tile, player_wind: Tile) -> Option<Vec<Tile>> {
+    let tile_set = TileSet::from_tiles(all_tiles);
     let mut best_tenpai = None;
-    let mut best_score = 0;
+    let mut best_value = 0.0;
 
     let mut seen = HashSet::new();
 
-    let tenpais = find_all_tenpai(tiles);
+    let tenpais = find_all_tenpai(all_tiles);
     for mut tiles in tenpais.into_iter() {
         tiles.sort();
         if seen.contains(&tiles) {
             continue;
         }
         seen.insert(tiles.clone());
-        for wait in Tile::all() {
-            tiles.push(wait);
-            // TODO: evaluate tenpai based on waits
-            for hand in search(&tiles, wait) {
-                let score = score_hand(&hand, player_wind, dora);
-                if best_score == 0 || score > best_score {
-                    let mut tenpai = tiles.clone();
-                    tenpai.pop();
-                    best_tenpai = Some(tenpai);
-                    best_score = score;
-                }
+
+        if let Some(value) = eval_tenpai(&tiles, dora, player_wind, &tile_set) {
+            if value > best_value {
+                best_tenpai = Some(tiles);
+                best_value = value;
             }
-            tiles.pop();
         }
     }
-    println!("best: {:?} score: {:}", best_tenpai, best_score);
+    println!("best: {:?} value: {:}", best_tenpai, best_value);
     best_tenpai
+}
+
+fn eval_tenpai(tiles: &[Tile], dora: Tile, player_wind: Tile, tile_set: &TileSet) -> Option<f64> {
+    let mut tiles = tiles.to_vec();
+    let mut all = vec![];
+    let mut good = vec![];
+    let mut all_count = 0;
+    let mut good_count = 0;
+
+    for wait in Tile::all() {
+        tiles.push(wait);
+        let hands = search(&tiles, wait);
+        let max_score = hands
+            .iter()
+            .map(|hand| score_hand(hand, player_wind, dora))
+            .max()
+            .unwrap_or(0);
+
+        let count = 4 - tile_set.get(wait);
+        // TODO dora
+        if count == 0 {
+            continue;
+        }
+
+        all.push((count, max_score));
+        all_count += count;
+        if max_score > 0 {
+            good.push((count, max_score));
+            good_count += count;
+        }
+
+        tiles.pop();
+    }
+
+    if good_count == 0 {
+        return None;
+    }
+
+    let mut prob_none: f64 = 1.0; // probability that no waits are in 17 random tiles
+    for i in 0..all_count {
+        prob_none *= ((84 - i) as f64) / 101.0; // 101 = 136 - 34 - 1; 84 = 101 - 17;
+    }
+    let prob_some = 1.0 - prob_none;
+    let expected_win = good
+        .iter()
+        .map(|(count, score)| (*count as f64) * (*score as f64))
+        .sum::<f64>()
+        / (all_count as f64);
+
+    Some(prob_some * expected_win * (good_count as f64) / (all_count as f64))
 }
 
 pub struct Bot {
