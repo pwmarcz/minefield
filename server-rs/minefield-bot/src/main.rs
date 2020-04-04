@@ -24,6 +24,11 @@ fn main() {
                 .takes_value(true),
         )
         .arg(Arg::with_name("nick").long("nick").takes_value(true))
+        .arg(
+            Arg::with_name("spawn")
+                .long("spawn")
+                .help("Keep spawning new bots after the existing one starts a game"),
+        )
         .get_matches();
 
     let server_url = matches
@@ -32,5 +37,9 @@ fn main() {
 
     let nick = matches.value_of("nick").unwrap_or("RustBot");
 
-    bot::run_bot(server_url, nick).unwrap();
+    if matches.is_present("spawn") {
+        bot::spawn_bots(server_url, nick).unwrap();
+    } else {
+        bot::run_bot(server_url, nick).unwrap();
+    }
 }

@@ -1,7 +1,7 @@
+use std::thread;
+
 use failure::Error;
 use log::{error, info};
-use websocket::client::sync::Client;
-use websocket::sync::Stream;
 use websocket::ClientBuilder;
 
 use minefield_core::bot::Bot;
@@ -10,7 +10,24 @@ use minefield_core::tiles::Tile;
 use crate::comm;
 use crate::protocol::{MoveType, Msg};
 
+type Client =
+    websocket::client::sync::Client<Box<dyn websocket::sync::stream::NetworkStream + Send>>;
+
 pub fn run_bot(url: &str, nick: &str) -> Result<(), Error> {
+    let (client, bot, you) = connect(url, nick)?;
+    play(client, bot, you)
+}
+
+pub fn spawn_bots(url: &str, nick: &str) -> Result<(), Error> {
+    loop {
+        let (client, bot, you) = connect(url, nick)?;
+        thread::spawn(move || {
+            play(client, bot, you).unwrap();
+        });
+    }
+}
+
+pub fn connect(url: &str, nick: &str) -> Result<(Client, Bot, usize), Error> {
     let mut builder = ClientBuilder::new(url)?;
     let mut client = builder.connect(None)?;
 
@@ -33,7 +50,7 @@ pub fn run_bot(url: &str, nick: &str) -> Result<(), Error> {
             } => {
                 let player_wind = if you == east { Tile::X1 } else { Tile::X3 };
                 let bot = Bot::new(&tiles, dora_ind, player_wind);
-                return play(client, bot, you);
+                return Ok((client, bot, you));
             }
             msg => {
                 error!("unknown message {:?}", msg);
@@ -43,7 +60,7 @@ pub fn run_bot(url: &str, nick: &str) -> Result<(), Error> {
     }
 }
 
-fn play<S: Stream>(mut client: Client<S>, mut bot: Bot, you: usize) -> Result<(), Error> {
+fn play(mut client: Client, mut bot: Bot, you: usize) -> Result<(), Error> {
     loop {
         match comm::recv_msg(&mut client)? {
             Msg::StartMove { move_type, .. } => match move_type {
