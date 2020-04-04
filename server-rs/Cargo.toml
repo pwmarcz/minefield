@@ -1,0 +1,9 @@
+[workspace]
+
+members = [
+    "minefield-core",
+    "minefield-bot",
+]
+
+[profile.test]
+opt-level = 3
