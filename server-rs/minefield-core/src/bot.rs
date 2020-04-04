@@ -70,10 +70,27 @@ fn find_all_tenpai(tiles: &[Tile]) -> Vec<Vec<Tile>> {
     result
 }
 
+fn find_all_waits(tiles: &[Tile]) -> Vec<Tile> {
+    let mut result = vec![];
+    let mut tiles = tiles.to_vec();
+
+    for wait in Tile::all() {
+        tiles.push(wait);
+        let hands = search(&tiles, wait);
+        if !hands.is_empty() {
+            result.push(wait);
+        }
+        tiles.pop();
+    }
+
+    result
+}
+
 pub struct Bot {
     initial_tiles: Vec<Tile>,
     tile_set: TileSet,
-    safe_tiles: TileSet,
+    safe_tiles: HashSet<Tile>,
+    waits: HashSet<Tile>,
     dora_ind: Tile,
     dora: Tile,
     player_wind: Tile,
@@ -84,7 +101,8 @@ impl Bot {
         Bot {
             initial_tiles: initial_tiles.to_vec(),
             tile_set: TileSet::from_tiles(initial_tiles),
-            safe_tiles: TileSet::new(),
+            safe_tiles: HashSet::new(),
+            waits: HashSet::new(),
             dora_ind,
             dora: dora_ind.next_wrap(),
             player_wind,
@@ -97,18 +115,21 @@ impl Bot {
             None => (self.initial_tiles[..13].to_vec(), false),
         };
         self.tile_set.add_all(&hand, -1);
+        for wait in find_all_waits(&hand) {
+            self.waits.insert(wait);
+        }
 
         (hand, found)
     }
 
     pub fn choose_discard(&mut self) -> Tile {
-        let first_tile = self.tile_set.distinct().next().unwrap();
-        self.tile_set.add(first_tile, -1);
-        first_tile
+        let discard = self.find_discard();
+        self.tile_set.add(discard, -1);
+        discard
     }
 
     pub fn opponent_discard(&mut self, tile: Tile) {
-        self.safe_tiles.add(tile, 1)
+        self.safe_tiles.insert(tile);
     }
 
     fn find_best_tenpai(&self) -> Option<Vec<Tile>> {
@@ -186,6 +207,28 @@ impl Bot {
             / (all_count as f64);
 
         Some(prob_some * expected_win * (good_count as f64) / (all_count as f64))
+    }
+
+    fn find_discard(&self) -> Tile {
+        // safe tile, if any
+        let remaining_set = self.tile_set.as_hash_set();
+        let mut safe = remaining_set.intersection(&self.safe_tiles);
+        if let Some(tile) = safe.next() {
+            return *tile;
+        }
+
+        // most common (but not in our waits)
+        let mut most_common: Vec<Tile> = self.tile_set.distinct().collect();
+        most_common.sort_by_key(|t| self.tile_set.get(*t));
+        for tile in most_common.iter() {
+            if !self.waits.contains(tile) {
+                return *tile;
+            }
+        }
+
+        // furiten ahoy
+        assert!(!most_common.is_empty());
+        most_common[0]
     }
 }
 

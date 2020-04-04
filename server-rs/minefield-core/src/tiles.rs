@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Hash, Serialize, Deserialize)]
@@ -200,6 +202,14 @@ impl TileSet {
 
     pub fn contains(&self, other: &Self) -> bool {
         other.distinct().all(|t| self.get(t) >= other.get(t))
+    }
+
+    pub fn as_hash_set(&self) -> HashSet<Tile> {
+        let mut set = HashSet::new();
+        for tile in self.distinct() {
+            set.insert(tile);
+        }
+        set
     }
 }
 
