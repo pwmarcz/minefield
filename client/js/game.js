@@ -91,7 +91,7 @@ function reduceGameGeneral(state, action) {
   case 'socket_start_move':
     return update(state, {
       move: { $set: {
-        move_type: action.data.move_type,
+        type: action.data.move_type,
         deadline: state.beatNum + action.data.time_limit * BEATS_PER_SECOND,
       }}
     });
@@ -197,7 +197,7 @@ function reduceGamePhaseOne(state, action) {
     return submitHand(state);
 
   case 'beat':
-    if (state.move && state.move.move_type === 'hand' && state.move.deadline <= state.beatNum) {
+    if (state.move && state.move.type === 'hand' && state.move.deadline <= state.beatNum) {
       state = selectFullHand(state);
       return submitHand(state);
     } else {
@@ -287,7 +287,7 @@ function reduceGamePhaseTwo(state, action) {
     return discard(state, action.idx);
 
   case 'beat': {
-    if (state.move && state.move.move_type === 'discard' && state.move.deadline <= state.beatNum) {
+    if (state.move && state.move.type === 'discard' && state.move.deadline <= state.beatNum) {
       return discardAny(state);
     } else {
       return state;
