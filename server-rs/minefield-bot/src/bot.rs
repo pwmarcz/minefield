@@ -14,7 +14,12 @@ pub fn run_bot(url: &str, nick: &str) -> Result<(), Error> {
     let mut builder = ClientBuilder::new(url)?;
     let mut client = builder.connect(None)?;
 
-    comm::send_msg(&mut client, &Msg::NewGame(nick.to_owned()))?;
+    comm::send_msg(
+        &mut client,
+        &Msg::NewGame {
+            nick: nick.to_owned(),
+        },
+    )?;
 
     loop {
         match comm::recv_msg(&mut client)? {
@@ -41,19 +46,19 @@ pub fn run_bot(url: &str, nick: &str) -> Result<(), Error> {
 fn play<S: Stream>(mut client: Client<S>, mut bot: Bot, you: usize) -> Result<(), Error> {
     loop {
         match comm::recv_msg(&mut client)? {
-            Msg::StartMove { type_, .. } => match type_ {
+            Msg::StartMove { move_type, .. } => match move_type {
                 MoveType::Hand => {
                     info!("looking for tenpai...");
                     let hand = bot.choose_hand();
-                    comm::send_msg(&mut client, &Msg::Hand(hand))?;
+                    comm::send_msg(&mut client, &Msg::Hand { hand })?;
                 }
 
                 MoveType::Discard => {
                     let tile = bot.choose_discard();
-                    comm::send_msg(&mut client, &Msg::Discard(tile))?;
+                    comm::send_msg(&mut client, &Msg::Discard { tile })?;
                 }
             },
-            Msg::Hand(_) => {}
+            Msg::Hand { .. } => {}
             Msg::EndMove => {}
             Msg::WaitForPhaseTwo => {}
             Msg::PhaseTwo => {}

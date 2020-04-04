@@ -5,7 +5,7 @@ use websocket::{Message, OwnedMessage};
 
 use log::info;
 
-use crate::protocol::{deserialize_msg, serialize_msg, Msg};
+use crate::protocol::Msg;
 
 #[derive(Debug, Fail)]
 pub enum CommError {
@@ -16,7 +16,7 @@ pub enum CommError {
 }
 
 pub fn send_msg<S: Stream>(client: &mut Client<S>, msg: &Msg) -> Result<(), Error> {
-    let data = serialize_msg(msg)?;
+    let data = serde_json::to_string(msg)?;
 
     info!("send: {:?}", msg);
     info!("send raw: {:}", data);
@@ -30,7 +30,7 @@ pub fn recv_msg<S: Stream>(client: &mut Client<S>) -> Result<Msg, Error> {
     info!("recv raw: {:?}", message);
 
     let msg = match message {
-        OwnedMessage::Text(data) => deserialize_msg(&data)?,
+        OwnedMessage::Text(data) => serde_json::from_str(&data)?,
         _ => {
             return Err(CommError::InvalidMessageType.into());
         }
