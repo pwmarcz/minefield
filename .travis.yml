@@ -1,7 +1,31 @@
-language: python
-python:
-  - "3.7"
-  - "3.8"
+jobs:
+  include:
+    - name: "Server (Python)"
+      language: python
+      python: "3.8"
+      install: make env
+      script: make test
 
-install: "make"
-script: "make test"
+    - name: "Client (JS)"
+      language: node_js
+      node_js: 10
+      before_install:
+        - curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+        - echo "deb http://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+        - sudo apt-get update -qq
+        - sudo apt-get install -y -qq yarn
+      cache:
+        directories:
+          - $HOME/.yarn-cache
+      install: make node
+      script: make test_js
+
+    - name: "Server (Rust)"
+      language: rust
+      rust: stable
+      cache: cargo
+      install:
+        - cd server-rs
+        - cargo build --verbose --all
+      script:
+        - cargo test --verbose --all
