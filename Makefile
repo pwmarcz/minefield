@@ -22,11 +22,11 @@ test:
 
 .PHONY: test_js
 test_js:
-	cd client && node_modules/.bin/mocha js/test.js --compilers 'js:babel-register' --ui tdd
+	cd client && node_modules/.bin/mocha js/test.js --require @babel/register --ui tdd
 
 .PHONY: watch_test_js
 watch_test_js:
-	cd client && node_modules/.bin/mocha js/test.js --compilers 'js:babel-register' --ui tdd --watch
+	cd client && node_modules/.bin/mocha js/test.js --require @babel/register --ui tdd --watch
 
 .PHONY: watch
 watch:
