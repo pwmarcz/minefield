@@ -95,7 +95,7 @@ mod test {
 
     #[test]
     fn test_serialize_msg() {
-        check(Msg::GetGames, r#"{"args":[],"type":"get_games"}"#);
+        check(Msg::GetGames, r#"{"type":"get_games"}"#);
         check(
             Msg::Games {
                 games: vec![Game {
@@ -104,18 +104,18 @@ mod test {
                     key: String::from("xxx"),
                 }],
             },
-            r#"{"args":[[{"key":"xxx","nick":"bot","type":"player"}]],"type":"games"}"#,
+            r#"{"type":"games","games":[{"type":"player","nick":"bot","key":"xxx"}]}"#,
         );
         check(
             Msg::Join {
                 nick: String::from("bot"),
                 key: String::from("xxx"),
             },
-            r#"{"args":["bot","xxx"],"type":"join"}"#,
+            r#"{"type":"join","nick":"bot","key":"xxx"}"#,
         );
         check(
             Msg::Discard { tile: Tile::X1 },
-            r#"{"args":["X1"],"type":"discard"}"#,
+            r#"{"type":"discard","tile":"X1"}"#,
         )
     }
 }
