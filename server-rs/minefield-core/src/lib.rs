@@ -1,5 +1,8 @@
 #![warn(clippy::all)]
 
+extern crate env_logger;
+extern crate log;
+
 pub mod backtrack;
 pub mod bot;
 pub mod fu;

@@ -1,5 +1,7 @@
 use std::collections::HashSet;
 
+use log::{info, warn};
+
 use crate::backtrack::{Backtrack, BacktrackStrategy};
 use crate::search::search;
 use crate::tiles::{Tile, TileSet};
@@ -109,17 +111,23 @@ impl Bot {
         }
     }
 
-    pub fn choose_hand(&mut self) -> (Vec<Tile>, bool) {
-        let (hand, found) = match self.find_best_tenpai() {
-            Some(hand) => (hand, true),
-            None => (self.initial_tiles[..13].to_vec(), false),
+    pub fn choose_hand(&mut self) -> Vec<Tile> {
+        let hand: Vec<Tile> = match self.find_best_tenpai() {
+            Some(hand) => {
+                info!("found a tenpai");
+                hand
+            }
+            None => {
+                warn!("no tenpai!");
+                self.initial_tiles[..13].to_vec()
+            }
         };
         self.tile_set.add_all(&hand, -1);
         for wait in find_all_waits(&hand) {
             self.waits.insert(wait);
         }
 
-        (hand, found)
+        hand
     }
 
     pub fn choose_discard(&mut self) -> Tile {
@@ -214,6 +222,7 @@ impl Bot {
         let remaining_set = self.tile_set.as_hash_set();
         let mut safe = remaining_set.intersection(&self.safe_tiles);
         if let Some(tile) = safe.next() {
+            info!("found safe tile");
             return *tile;
         }
 
@@ -222,12 +231,14 @@ impl Bot {
         most_common.sort_by_key(|t| self.tile_set.get(*t));
         for tile in most_common.iter() {
             if !self.waits.contains(tile) {
+                info!("found common tile");
                 return *tile;
             }
         }
 
         // furiten ahoy
         assert!(!most_common.is_empty());
+        warn!("furiten!");
         most_common[0]
     }
 }

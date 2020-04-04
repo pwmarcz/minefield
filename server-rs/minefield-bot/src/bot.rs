@@ -1,5 +1,5 @@
 use failure::Error;
-use log::{error, info, warn};
+use log::{error, info};
 use websocket::client::sync::Client;
 use websocket::sync::Stream;
 use websocket::ClientBuilder;
@@ -44,10 +44,7 @@ fn play<S: Stream>(mut client: Client<S>, mut bot: Bot, you: usize) -> Result<()
             Msg::StartMove { type_, .. } => match type_ {
                 MoveType::Hand => {
                     info!("looking for tenpai...");
-                    let (hand, found) = bot.choose_hand();
-                    if !found {
-                        warn!("no tenpai!");
-                    }
+                    let hand = bot.choose_hand();
                     comm::send_msg(&mut client, &Msg::Hand(hand))?;
                 }
 
