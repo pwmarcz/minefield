@@ -62,7 +62,7 @@ class GameServer(object):
             # save to database, to assign ID
             self.db.save_room(room)
         else:
-            player.send('join_failed', 'Opponent not found.')
+            player.send('join_failed', description='Opponent not found.')
 
     def rejoin_player(self, player, key):
         for room in self.rooms:
@@ -210,17 +210,16 @@ class MinefieldAgent(WebSocketAgent):
 
     def on_message(self, message):
         data = json.loads(message)
-        msg_type = data['type']
-        msg_args = data['args']
+        msg_type = data.pop('type')
         method = getattr(self.player, 'on_' + msg_type, None)
         if method:
-            method(*msg_args)
+            method(**data)
 
     def on_disconnect(self, error):
         self.player.recv_disconnect()
 
-    def emit(self, msg_type, *msg_args):
-        data = {'type': msg_type, 'args': msg_args}
+    def emit(self, msg_type, **msg_args):
+        data = {'type': msg_type, **msg_args}
         message = json.dumps(data)
         self.send(message)
 
@@ -234,7 +233,7 @@ class SocketPlayer(object):
         self.idx = None
         self.key = make_key()
 
-    def on_new_game(self, nick):
+    def on_new_game(self, *, nick):
         assert not self.room
         self.nick = nick
         self.server.add_player(self)
@@ -246,40 +245,40 @@ class SocketPlayer(object):
         else:
             self.server.remove_player(self)
 
-    def on_join(self, nick, key):
+    def on_join(self, *, nick, key):
         assert not self.room
         self.nick = nick
         self.server.join_player(self, key)
 
-    def on_rejoin(self, key):
+    def on_rejoin(self, *, key):
         self.server.rejoin_player(self, key)
 
     def on_get_games(self):
-        self.send('games', self.server.describe_games())
+        self.send('games', games=self.server.describe_games())
 
     def set_room(self, room, idx):
         self.room = room
         self.idx = idx
-        self.send('room', {'key': self.room.keys[self.idx],
+        self.send('room', **{'key': self.room.keys[self.idx],
                            'nicks': self.room.nicks,
-                           'you': self.idx});
+                           'you': self.idx})
 
     def recv_disconnect(self):
         logger.info("[disconnect] %s", self.nick)
         self.server.remove_player(self)
         self.shutdown()
 
-    def on_hand(self, msg):
-        self.room.send_to_game(self.idx, 'hand', msg)
+    def on_hand(self, **msg):
+        self.room.send_to_game(self.idx, 'hand', **msg)
 
-    def on_discard(self, msg):
-        self.room.send_to_game(self.idx, 'discard', msg)
+    def on_discard(self, **msg):
+        self.room.send_to_game(self.idx, 'discard', **msg)
 
     def on_boom(self):
         raise Exception("'boom' received")
 
-    def send(self, msg_type, msg):
-        self.agent.emit(msg_type, msg)
+    def send(self, msg_type, **msg):
+        self.agent.emit(msg_type, **msg)
 
     def shutdown(self):
         self.agent.disconnect()
@@ -303,8 +302,8 @@ class ServerTest(unittest.TestCase):
             self.messages = []
             self.disconnected = False
 
-        def send(self, *args):
-            self.messages.append(tuple(args))
+        def send(self, msg_type, **args):
+            self.messages.append((msg_type, args))
 
         def shutdown(self):
             self.disconnected = True
@@ -314,21 +313,21 @@ class ServerTest(unittest.TestCase):
 
     def test_new_game(self):
         player = self.MockSocketPlayer(self.server)
-        player.on_new_game('Akagi')
+        player.on_new_game(nick='Akagi')
         self.assertEquals(list(self.server.waiting_players.values()), [player])
 
     def test_new_game_disconnect(self):
         player = self.MockSocketPlayer(self.server)
-        player.on_new_game('Akagi')
+        player.on_new_game(nick='Akagi')
         player.recv_disconnect()
         self.assertEquals(len(self.server.waiting_players), 0)
         self.assertTrue(player.disconnected)
 
     def test_join(self):
         player1 = self.MockSocketPlayer(self.server)
-        player1.on_new_game('Akagi')
+        player1.on_new_game(nick='Akagi')
         player2 = self.MockSocketPlayer(self.server)
-        player2.on_join('Washizu', player1.key)
+        player2.on_join(nick='Washizu', key=player1.key)
         self.assertEquals(len(self.server.waiting_players), 0)
         self.assertEquals(len(self.server.rooms), 1)
         self.assertEquals(self.server.rooms[0].nicks, ['Akagi', 'Washizu'])
@@ -337,17 +336,17 @@ class ServerTest(unittest.TestCase):
 
     def test_join_failed(self):
         player1 = self.MockSocketPlayer(self.server)
-        player1.on_join('Akagi', 'nonexistent key')
+        player1.on_join(nick='Akagi', key='nonexistent key')
         self.assertEquals(player1.messages[0][0], 'join_failed')
 
     def test_abort(self):
         player1 = self.MockSocketPlayer(self.server)
-        player1.on_new_game('Akagi')
+        player1.on_new_game(nick='Akagi')
         player2 = self.MockSocketPlayer(self.server)
-        player2.on_join('Washizu', player1.key)
+        player2.on_join(nick='Washizu', key=player1.key)
 
         # send an invalid request
-        player1.on_hand(['X1'])
+        player1.on_hand(hand=['X1'])
         self.assertEquals(player1.messages[-1][0], 'abort')
         self.assertEquals(player2.messages[-1][0], 'abort')
 

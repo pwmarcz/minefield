@@ -16,18 +16,18 @@ export class Socket {
   }
 
   onMessage(message) {
-    let { type, args } = JSON.parse(message.data);
-    this.handle(type, ...args);
+    let msg = JSON.parse(message.data);
+    this.handle(msg);
   }
 
   onOpen() {
     this.queue.forEach(messageData => this.ws.send(messageData));
     this.queue = [];
-    this.handle('connect');
+    this.handle({ type: 'connect'});
   }
 
   onClose() {
-    this.handle('disconnect');
+    this.handle({ type: 'connect'});
   }
 
   on(type, handler) {
@@ -35,8 +35,8 @@ export class Socket {
     this.handlers[type].push(handler);
   }
 
-  emit(type, ...args) {
-    let messageData = JSON.stringify({ type, args });
+  emit(msg) {
+    let messageData = JSON.stringify(msg);
 
     if (!this.ws || this.ws.readyState === WebSocket.CONNECTING) {
       this.queue.push(messageData);
@@ -47,9 +47,9 @@ export class Socket {
     }
   }
 
-  handle(type, ...args) {
-    if (this.handlers[type]) {
-      this.handlers[type].forEach(handler => handler(...args));
+  handle(msg) {
+    if (this.handlers[msg.type]) {
+      this.handlers[msg.type].forEach(handler => handler(msg.type, msg));
     }
   }
 }

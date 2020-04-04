@@ -91,13 +91,13 @@ function reduceGameGeneral(state, action) {
   case 'socket_start_move':
     return update(state, {
       move: { $set: {
-        type: action.data.type,
+        move_type: action.data.move_type,
         deadline: state.beatNum + action.data.time_limit * BEATS_PER_SECOND,
       }}
     });
 
   case 'rejoin':
-    state = emit(state, 'rejoin', action.roomKey);
+    state = emit(state, 'rejoin', {'key': action.roomKey});
     return update(state, { roomKey: { $set: action.roomKey }});
 
   case 'beat': {
@@ -116,7 +116,7 @@ function reduceGameLobby(state, action) {
   switch(action.type) {
 
   case 'socket_games':
-    return update(state, { games: { $set: action.data }});
+    return update(state, { games: { $set: action.data.games }});
 
   case 'socket_room': {
     let { you, nicks, key } = action.data;
@@ -140,11 +140,11 @@ function reduceGameLobby(state, action) {
     return update(state, { nicks: { you: { $set: action.nick }}});
 
   case 'join':
-    state = emit(state, 'join', state.nicks.you, action.key);
+    state = emit(state, 'join', {'nick': state.nicks.you, 'key': action.key});
     return update(state, { lobbyStatus: { $set: 'joining' }});
 
   case 'new_game':
-    state = emit(state, 'new_game', state.nicks.you);
+    state = emit(state, 'new_game', {'nick': state.nicks.you});
     return update(state, { lobbyStatus: { $set: 'advertising' }});
 
   case 'cancel_new_game':
@@ -197,7 +197,7 @@ function reduceGamePhaseOne(state, action) {
     return submitHand(state);
 
   case 'beat':
-    if (state.move && state.move.type === 'hand' && state.move.deadline <= state.beatNum) {
+    if (state.move && state.move.move_type === 'hand' && state.move.deadline <= state.beatNum) {
       state = selectFullHand(state);
       return submitHand(state);
     } else {
@@ -257,7 +257,7 @@ function selectTiles(state, toSelect) {
 
 function submitHand(state) {
   let hand = state.handData.map(a => a.tile);
-  state = emit(state, 'hand', hand);
+  state = emit(state, 'hand', {'hand': hand});
   return update(state, { move: { $set: null }});
 }
 
@@ -287,7 +287,7 @@ function reduceGamePhaseTwo(state, action) {
     return discard(state, action.idx);
 
   case 'beat': {
-    if (state.move && state.move.type === 'discard' && state.move.deadline <= state.beatNum) {
+    if (state.move && state.move.move_type === 'discard' && state.move.deadline <= state.beatNum) {
       return discardAny(state);
     } else {
       return state;
@@ -327,7 +327,7 @@ function replayDiscard(state, tile) {
 }
 
 function discard(state, idx) {
-  state = emit(state, 'discard', state.tiles[idx]);
+  state = emit(state, 'discard', {'tile': state.tiles[idx]});
   return update(state, {
     discards: { $push: [state.tiles[idx]] },
     tiles: { [idx]: { $set: null }},
@@ -335,8 +335,9 @@ function discard(state, idx) {
   });
 }
 
-function emit(state, type, ...args) {
-  return update(state, { messages: { $push: [{ type, args }] }});
+function emit(state, type, msg = {}) {
+  msg.type = type;
+  return update(state, { messages: { $push: [msg] }});
 }
 
 function makeAction(type, ...argNames) {
@@ -350,8 +351,9 @@ function makeAction(type, ...argNames) {
 }
 
 export const actions = {
-  socket(event, data) {
-    return { type: 'socket_' + event, data: data };
+  socket(type, data = {}) {
+    delete data.type;
+    return { type: 'socket_' + type, data };
   },
   reset() {
     return function(dispatch) {
@@ -411,13 +413,13 @@ function setupSocket(store, socket) {
   function listen() {
     let { messages } = store.getState();
     if (messages.length > 0) {
-      messages.forEach(({ type, args }) => socket.emit(type, ...args));
+      messages.forEach((msg) => socket.emit(msg));
       store.dispatch({ type: 'flush' });
     }
   }
 
   SOCKET_EVENTS.forEach((event) => {
-    socket.on(event, (data) => store.dispatch(actions.socket(event, data)));
+    socket.on(event, (type, data) => store.dispatch(actions.socket(type, data)));
   });
 
   store.subscribe(listen);

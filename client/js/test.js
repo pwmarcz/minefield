@@ -14,9 +14,9 @@ suite('game', function() {
     this.store = createSimpleGameStore();
   });
 
-  function assertLastCall(store, type, ...args) {
+  function assertLastCall(store, type, args = {}) {
     let { messages } = store.getState();
-    assert.deepEqual(messages[messages.length-1], { type, args });
+    assert.deepEqual(messages[messages.length-1], { type, ...args });
   }
 
   function waitSeconds(suite, seconds) {
@@ -43,7 +43,7 @@ suite('game', function() {
   test('rejoin', function() {
     this.store.dispatch(actions.rejoin('XYZ'));
     assert.deepEqual(this.store.getState().roomKey, 'XYZ');
-    assertLastCall(this.store, 'rejoin', 'XYZ');
+    assertLastCall(this.store, 'rejoin', {'key': 'XYZ'});
   });
 
   test('beat', function() {
@@ -63,7 +63,7 @@ suite('game', function() {
   suite('lobby', function() {
     test('games list', function() {
       let games = ['x', 'y', 'z'];
-      this.store.dispatch(actions.socket('games', games));
+      this.store.dispatch(actions.socket('games', {games}));
       assert.deepEqual(this.store.getState().games, games);
     });
 
@@ -71,14 +71,14 @@ suite('game', function() {
       this.store.dispatch(actions.setNick('Akagi'));
       this.store.dispatch(actions.join('XYZ'));
       assert.equal(this.store.getState().lobbyStatus, 'joining');
-      assertLastCall(this.store, 'join', 'Akagi', 'XYZ');
+      assertLastCall(this.store, 'join', {'nick': 'Akagi', 'key': 'XYZ'});
     });
 
     test('newGame', function() {
       this.store.dispatch(actions.setNick('Akagi'));
       this.store.dispatch(actions.newGame());
       assert.equal(this.store.getState().lobbyStatus, 'advertising');
-      assertLastCall(this.store, 'new_game', 'Akagi');
+      assertLastCall(this.store, 'new_game', {'nick': 'Akagi'});
     });
 
     test('cancelNewGame', function() {
@@ -144,7 +144,7 @@ suite('game', function() {
     });
 
     test('submitting a hand', function() {
-      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
+      this.store.dispatch(actions.socket('start_move', { move_type: 'hand', 'time_limit': 1 }));
 
       for (let i = 0; i < 13; i++) {
         this.store.dispatch(actions.selectTile(i));
@@ -152,7 +152,7 @@ suite('game', function() {
 
       this.store.dispatch(actions.submitHand());
       assert.equal(this.store.getState().move, null);
-      assertLastCall(this.store, 'hand', SAMPLE_TILES.slice(0, 13));
+      assertLastCall(this.store, 'hand', {'hand': SAMPLE_TILES.slice(0, 13)});
 
       // 'hand' message shouldn't result in any changes
       // (cheating a bit because all tiles are different and we wouldn't find them,
@@ -165,7 +165,7 @@ suite('game', function() {
     });
 
     test('auto-submit on timeout', function() {
-      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
+      this.store.dispatch(actions.socket('start_move', { move_type: 'hand', 'time_limit': 1 }));
 
       // P7, P9
       this.store.dispatch(actions.selectTile(15));
@@ -175,11 +175,11 @@ suite('game', function() {
 
       let expectedHand = 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P7 P9'.split(' ');
       assert.deepEqual(this.store.getState().handData.map(a => a.tile), expectedHand);
-      assertLastCall(this.store, 'hand', expectedHand);
+      assertLastCall(this.store, 'hand', {'hand': expectedHand});
     });
 
     test('replaying a hand', function() {
-      this.store.dispatch(actions.socket('start_move', { type: 'hand', 'time_limit': 1 }));
+      this.store.dispatch(actions.socket('start_move', { move_type: 'hand', 'time_limit': 1 }));
       let expectedHand = 'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P7 P9'.split(' ');
       this.store.dispatch(actions.socket('hand', { hand: expectedHand, replay: true }));
       assert.deepEqual(this.store.getState().handData.map(a => a.tile), expectedHand);
@@ -207,10 +207,10 @@ suite('game', function() {
 
     test('discard', function() {
       assert.isNull(this.store.getState().move);
-      this.store.dispatch(actions.socket('start_move', { type: 'discard', 'time_limit': 1 }));
+      this.store.dispatch(actions.socket('start_move', { move_type: 'discard', 'time_limit': 1 }));
       assert.isNotNull(this.store.getState().move);
       this.store.dispatch(actions.discard(13));
-      assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
+      assertLastCall(this.store, 'discard', {'tile': SAMPLE_TILES[13] });
       assert.isNull(this.store.getState().move);
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
       assert.equal(this.store.getState().tiles[13], null);
@@ -221,9 +221,9 @@ suite('game', function() {
     });
 
     test('auto-discard on timeout', function() {
-      this.store.dispatch(actions.socket('start_move', { type: 'discard', 'time_limit': 1 }));
+      this.store.dispatch(actions.socket('start_move', { move_type: 'discard', 'time_limit': 1 }));
       waitSeconds(this, 1);
-      assertLastCall(this.store, 'discard', SAMPLE_TILES[13]);
+      assertLastCall(this.store, 'discard', {'tile': SAMPLE_TILES[13] });
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
       assert.equal(this.store.getState().tiles[0], null);
     });
@@ -238,7 +238,7 @@ suite('game', function() {
       assert.deepEqual(this.store.getState().discards, [SAMPLE_TILES[13]]);
     });
 
-    describe('game end', function() {
+    suite('game end', function() {
       test('ron', function() {
         let ronInfo = {
           player: 0,

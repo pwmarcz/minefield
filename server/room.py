@@ -31,11 +31,11 @@ class Room(object):
     def make_keys(self):
         return (make_key(), make_key())
 
-    def send_to_player(self, idx, msg_type, msg):
+    def send_to_player(self, idx, msg_type, **msg):
         self.messages[idx].append((msg_type, msg))
         if self.players[idx]:
             logger.info('[room %s] send to %d: %s %r', self.id, idx, msg_type, msg)
-            self.players[idx].send(msg_type, msg)
+            self.players[idx].send(msg_type, **msg)
 
     def add_player(self, idx, player, n_received=0):
         assert not self.players[idx]
@@ -58,14 +58,14 @@ class Room(object):
             msg = msg.copy()
             msg['replay'] = True
 
-            self.players[idx].send(msg_type, msg)
+            self.players[idx].send(msg_type, **msg)
         self.game.send_move(idx)
 
-    def send_to_game(self, idx, msg_type, msg):
+    def send_to_game(self, idx, msg_type, **msg):
         logger.info('[room %s] receive from %d: %s %r', self.id, idx, msg_type, msg)
         try:
             handler = getattr(self.game, 'on_'+msg_type)
-            handler(idx, msg)
+            handler(idx, **msg)
         except:
             logger.exception('exception after receiving')
             self.abort()
@@ -101,10 +101,10 @@ class RoomTest(unittest.TestCase):
             assert not self.started
             self.started = True
 
-        def on_ping(self, idx, msg):
-            self.callback(1-idx, 'pong', msg)
+        def on_ping(self, idx, **msg):
+            self.callback(1-idx, 'pong', **msg)
 
-        def on_crash(self, idx, msg):
+        def on_crash(self, idx, **msg):
             raise RuntimeError('crashed')
 
         def send_move(self, idx):
@@ -117,7 +117,7 @@ class RoomTest(unittest.TestCase):
             self.room = None
             self.idx = None
 
-        def send(self, msg_type, msg):
+        def send(self, msg_type, **msg):
             self.messages.append((msg_type, msg))
 
         def shutdown(self):
@@ -143,23 +143,23 @@ class RoomTest(unittest.TestCase):
     def test_send_immediately(self):
         player0 = self.MockPlayer()
         room = self.create_room([player0, None])
-        room.game.callback(0, 'ping_0', {})
+        room.game.callback(0, 'ping_0')
         self.assertEquals(len(player0.messages), 1)
         self.assertEquals(player0.messages[0][0], 'ping_0')
 
         player1 = self.MockPlayer()
         room.add_player(1, player1)
-        room.game.callback(1, 'ping_1', {})
+        room.game.callback(1, 'ping_1')
         self.assertEquals(len(player1.messages), 1)
         self.assertEquals(player1.messages[0][0], 'ping_1')
 
     def test_replay_after_connect(self):
         room = self.create_room()
-        room.game.callback(0, 'a', {})
-        room.game.callback(0, 'b', {})
-        room.game.callback(1, 'c', {})
-        room.game.callback(1, 'd', {})
-        room.game.callback(0, 'e', {})
+        room.game.callback(0, 'a')
+        room.game.callback(0, 'b')
+        room.game.callback(1, 'c')
+        room.game.callback(1, 'd')
+        room.game.callback(0, 'e')
         player0 = self.MockPlayer()
         room.add_player(0, player0, n_received=1)
         self.assertEquals(len(player0.messages), 2)
@@ -170,7 +170,7 @@ class RoomTest(unittest.TestCase):
         player0 = self.MockPlayer()
         player1 = self.MockPlayer()
         room = self.create_room([player0, player1])
-        room.send_to_game(1, 'ping', {})
+        room.send_to_game(1, 'ping')
         self.assertEquals(len(player0.messages), 1)
         self.assertEquals(player0.messages[0][0], 'pong')
 
@@ -178,7 +178,7 @@ class RoomTest(unittest.TestCase):
         player0 = self.MockPlayer()
         player1 = self.MockPlayer()
         room = self.create_room([player0, player1])
-        room.send_to_game(0, 'crash', {})
+        room.send_to_game(0, 'crash')
         self.assertTrue(player0.finished)
         self.assertTrue(player1.finished)
 

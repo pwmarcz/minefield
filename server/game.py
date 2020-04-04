@@ -12,9 +12,9 @@ DISCARDS = 17
 
 SEAT_WINDS = ('X1', 'X3')
 
-def dummy_callback(player, msg_type, msg):
+def dummy_callback(to_player, msg_type, **msg_data):
     import pprint
-    pprint.pprint((player, msg_type, msg))
+    pprint.pprint((to_player, msg_type, msg_data))
 
 class Game(object):
     # Time limits, in seconds
@@ -85,8 +85,7 @@ class Game(object):
         '''Abort the game and provide explanation.'''
 
         for i in range(2):
-            self.callback(i, 'abort',
-                          {'culprit': culprit, 'description': description})
+            self.callback(i, 'abort', culprit=culprit, description=description)
             self.finished = True
         self.moves = [None, None]
 
@@ -107,7 +106,7 @@ class Game(object):
 
     def end_move(self, player):
         self.moves[player] = None
-        self.callback(player, 'end_move', {})
+        self.callback(player, 'end_move')
 
     def send_move(self, player):
         if self.moves[player] is None:
@@ -115,21 +114,19 @@ class Game(object):
 
         move_type, deadline = self.moves[player]
         time_limit = deadline - self.t - self.EXTRA_TIME
-        self.callback(player, 'start_move', {
-            'type': move_type,
-            'time_limit': time_limit
-        })
+        self.callback(player, 'start_move',
+                      move_type=move_type, time_limit=time_limit)
 
     def start(self):
         for i in range(2):
             self.callback(i, 'phase_one',
-                          {'tiles': self.initial_tiles[i],
-                           'dora_ind': self.dora_ind,
-                           'you': i,
-                           'east': self.east})
+                          tiles=self.initial_tiles[i],
+                          dora_ind=self.dora_ind,
+                          you=i,
+                          east=self.east)
             self.start_move(i, 'hand', self.HAND_TIME_LIMIT)
 
-    def on_hand(self, player, hand):
+    def on_hand(self, player, *, hand):
         if self.phase != 1:
             self.abort(player, 'on_hand: wrong phase')
             return
@@ -153,15 +150,15 @@ class Game(object):
         self.end_move(player)
 
         # Send the hand back to player (so that he can reconstruct it while replaying).
-        self.callback(player, 'hand', {'hand': hand})
+        self.callback(player, 'hand', hand=hand)
 
         if self.hand[0] and self.hand[1]:
             # start the second phase
             for i in range(2):
-                self.callback(i, 'phase_two', {})
+                self.callback(i, 'phase_two')
             self.start_move(self.east, 'discard', self.DISCARD_TIME_LIMIT)
         else:
-            self.callback(player, 'wait_for_phase_two', {})
+            self.callback(player, 'wait_for_phase_two')
 
     def options(self, player, uradora=False):
         return {
@@ -176,7 +173,7 @@ class Game(object):
         tiles = set(self.discards[player] + self.discards[1-player][:-1])
         return any(wait in tiles for wait in self.waits[player])
 
-    def on_discard(self, player, tile):
+    def on_discard(self, player, *, tile):
         if self.phase != 2:
             self.abort(player, 'on_discard: wrong phase')
             return
@@ -194,8 +191,8 @@ class Game(object):
 
         for i in range(2):
             self.callback(i, 'discarded',
-                          {'player': player,
-                           'tile': tile})
+                          player=player,
+                          tile=tile)
 
         # ron
         if tile in self.waits[1-player] and not self.furiten(1-player):
@@ -206,7 +203,7 @@ class Game(object):
         if len(self.discards[0]) == len(self.discards[1]) == DISCARDS:
             self.finished = True
             for i in range(2):
-                self.callback(i, 'draw', {})
+                self.callback(i, 'draw')
         # normal turn
         else:
             self.start_move(self.player_turn, 'discard', self.DISCARD_TIME_LIMIT)
@@ -223,17 +220,17 @@ class Game(object):
                                options=self.options(1-player, uradora=True))
         self.finished = True
         for i in range(2):
-            self.callback(i, 'ron', {
-                'player': 1-player,
-                'hand': full_hand,
-                'tile': tile,
-                'yaku': hand.yaku,
-                'yakuman': hand.yakuman,
-                'dora': hand.dora(),
-                'points': rules.BASE_POINTS[hand.limit()],
-                'limit': hand.limit(),
-                'uradora_ind': self.uradora_ind,
-            })
+            self.callback(i, 'ron',
+                player=1-player,
+                hand=full_hand,
+                tile=tile,
+                yaku=hand.yaku,
+                yakuman=hand.yakuman,
+                dora=hand.dora(),
+                points=rules.BASE_POINTS[hand.limit()],
+                limit=hand.limit(),
+                uradora_ind=self.uradora_ind,
+            )
 
         return True
 
@@ -262,8 +259,8 @@ class GameTestCase(unittest.TestCase):
         self.assertMessage(0, msg_type, msg)
         self.assertMessage(1, msg_type, msg)
 
-    def callback(self, player, msg_type, msg):
-        self.messages.append((player, msg_type, msg))
+    def callback(self, to_player, msg_type, **msg_data):
+        self.messages.append((to_player, msg_type, msg_data))
 
     def test_init(self):
         # the game has just been created
@@ -273,21 +270,21 @@ class GameTestCase(unittest.TestCase):
                             'dora_ind': 'M1',
                             'you': 0,
                             'east': 0})
-        self.assertMessage(0, 'start_move', {'type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
+        self.assertMessage(0, 'start_move', {'move_type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
         self.assertMessage(1, 'phase_one',
                            {'tiles': TILES[n:n*2],
                             'dora_ind': 'M1',
                             'you': 1,
                             'east': 0})
-        self.assertMessage(1, 'start_move', {'type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
+        self.assertMessage(1, 'start_move', {'move_type': 'hand', 'time_limit': Game.HAND_TIME_LIMIT})
 
     def start_game(self, s1, s2):
         self.test_init()
-        self.g.on_hand(0, s1.split())
+        self.g.on_hand(0, hand=s1.split())
         self.assertMessage(0, 'end_move', {})
         self.assertMessage(0, 'hand', {'hand': s1.split()})
         self.assertMessage(0, 'wait_for_phase_two')
-        self.g.on_hand(1, s2.split())
+        self.g.on_hand(1, hand=s2.split())
         self.assertMessage(1, 'end_move', {})
         self.assertMessage(1, 'hand', {'hand': s2.split()})
         self.assertMessageBoth('phase_two')
@@ -304,8 +301,8 @@ class GameTestCase(unittest.TestCase):
         self.assertMessageBoth('draw')
 
     def discard(self, player, tile):
-        self.assertMessage(player, 'start_move', {'type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
-        self.g.on_discard(player, tile)
+        self.assertMessage(player, 'start_move', {'move_type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
+        self.g.on_discard(player, tile=tile)
         self.assertMessage(player, 'end_move', {})
         self.assertMessageBoth('discarded', {'player': player,
                                              'tile': tile})
@@ -354,20 +351,20 @@ class GameTestCase(unittest.TestCase):
 
     def test_short_hand(self):
         self.test_init()
-        self.g.on_hand(1, 'M1 M2 M3'.split())
+        self.g.on_hand(1, hand='M1 M2 M3'.split())
         self.assertMessageBoth('abort', {'culprit': 1, 'description': 'on_hand: len != 13'})
         self.assertTrue(self.g.finished)
 
     def test_tiles_outside_initial(self):
         self.test_init()
-        self.g.on_hand(0, ['M1']*13)
+        self.g.on_hand(0, hand=['M1']*13)
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'on_hand: tile not found in choices'})
         self.assertTrue(self.g.finished)
 
     def test_hand_time_limit(self):
         self.test_init()
         hand = 'M2 M9 P1 P9 S1 S9 X1 X2 X3 X4 X5 X6 X7'.split()
-        self.g.on_hand(0, hand)
+        self.g.on_hand(0, hand=hand)
         self.assertMessage(0, 'end_move', {})
         self.assertMessage(0, 'hand', {'hand': hand})
         self.assertMessage(0, 'wait_for_phase_two')
@@ -378,7 +375,7 @@ class GameTestCase(unittest.TestCase):
     def test_discard_time_limit(self):
         self.start_game('M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4',
                         'M1 M2 M3 M4 M5 M6 M7 M8 M9 P1 P2 P3 P4')
-        self.assertMessage(0, 'start_move', {'type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
+        self.assertMessage(0, 'start_move', {'move_type': 'discard', 'time_limit': Game.DISCARD_TIME_LIMIT})
         for i in range(self.g.DISCARD_TIME_LIMIT + self.g.EXTRA_TIME):
             self.g.beat()
         self.assertMessageBoth('abort', {'culprit': 0, 'description': 'time limit exceeded'})

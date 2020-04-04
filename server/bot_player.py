@@ -16,7 +16,7 @@ class BotPlayer(object):
         self.key = make_key()
         self.thread = None
 
-    def send(self, msg_type, msg):
+    def send(self, msg_type, **msg):
         if msg_type == 'phase_one':
             self.on_phase_one(msg)
         elif msg_type == 'hand':
@@ -64,7 +64,7 @@ class BotPlayer(object):
                 # Extremely unlikely.
                 logger.warning('Tenpai not found, using any hand')
                 hand = self.bot.choose_any_hand()
-            self.room.send_to_game(self.idx, 'hand', hand)
+            self.room.send_to_game(self.idx, 'hand', hand=hand)
         self.thread = gevent.spawn(run)
 
     def on_discarded(self, msg):
@@ -74,10 +74,10 @@ class BotPlayer(object):
             self.bot.opponent_discard(msg['tile'])
 
     def on_start_move(self, msg):
-        if msg['type'] == 'discard':
+        if msg['move_type'] == 'discard':
             tile = self.bot.discard()
-            self.room.send_to_game(self.idx, 'discard', tile)
-        elif msg['type'] == 'hand':
+            self.room.send_to_game(self.idx, 'discard', tile=tile)
+        elif msg['move_type'] == 'hand':
             self.choose_tenpai()
 
     def shutdown(self):
