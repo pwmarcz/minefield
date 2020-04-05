@@ -163,7 +163,7 @@ impl Bot {
             let hands = search(&tiles, wait);
             let max_score = hands
                 .iter()
-                .map(|hand| score_hand(hand, self.player_wind, self.dora))
+                .map(|hand| score_hand(hand, self.player_wind, self.dora).0)
                 .max()
                 .unwrap_or(0);
 
@@ -171,17 +171,14 @@ impl Bot {
             if wait == self.dora_ind {
                 count -= 1;
             }
-            if count == 0 {
-                continue;
+            if count > 0 {
+                all.push((count, max_score));
+                all_count += count;
+                if max_score > 0 {
+                    good.push((count, max_score));
+                    good_count += count;
+                }
             }
-
-            all.push((count, max_score));
-            all_count += count;
-            if max_score > 0 {
-                good.push((count, max_score));
-                good_count += count;
-            }
-
             tiles.pop();
         }
 

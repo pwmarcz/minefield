@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use minefield_core::tiles::Tile;
 use minefield_core::yaku::Yaku;
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum Msg {
@@ -61,6 +61,8 @@ pub enum Msg {
         tile: Tile,
         limit: usize,
         yaku: Vec<Yaku>,
+        dora: usize,
+        uradora_ind: Tile,
         points: usize,
     },
     Draw,
@@ -70,14 +72,14 @@ pub enum Msg {
     },
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Copy, Clone)]
 #[serde(rename_all = "snake_case")]
 pub enum MoveType {
     Hand,
     Discard,
 }
 
-#[derive(Serialize, Deserialize, Debug, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
 pub struct Game {
     #[serde(rename = "type")]
     pub type_: String,

@@ -7,6 +7,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Copy, Clone, PartialEq, PartialOrd, Eq, Ord, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Yaku {
+    // special
+    Riichi,
+    Ippatsu,
+    Hotei,
     // 1
     Pinfu,
     Iipeiko,
@@ -40,28 +44,25 @@ pub enum Yaku {
     Tsuuiiso,
     Ryuuiiso,
     Chuuren,
-    // special
-    Ippatsu,
-    Hotei,
 }
 
 impl Yaku {
     pub fn fan(self) -> usize {
         use Yaku::*;
         match self {
+            Riichi | Ippatsu | Hotei => 1,
             Pinfu | Iipeiko | Tanyao | Wind | Haku | Hatsu | Chun => 1,
             Sanshokudojun | Sanshokudoko | Itsuu | Chitoitsu | Chanta | Honroto | Toitoi
             | Sananko | Shosangen => 2,
             Ryanpeiko | Junchan | Honitsu => 3,
             Chinitsu => 6,
             Daisangen | Kokushi | Suuanko | Suushi | Chinroto | Tsuuiiso | Ryuuiiso | Chuuren => 13,
-            Ippatsu | Hotei => 1,
         }
     }
 }
 
-pub fn yaku(hand: &Hand, player_wind: Tile) -> Vec<Yaku> {
-    let mut result = vec![];
+pub fn yaku(hand: &Hand, player_wind: Tile, special: &[Yaku]) -> Vec<Yaku> {
+    let mut result = special.to_vec();
 
     let suits = hand.suits();
     let tiles = hand.tiles();
@@ -284,45 +285,48 @@ fn chuuren(suits: u8, tiles: &[Tile]) -> bool {
 
 const BASE_POINTS: [usize; 7] = [0, 8000, 12000, 16000, 24000, 32000, 64000];
 
-pub fn score(mut fan: usize, fu: usize) -> usize {
-    // riichi
+pub fn score(mut fan: usize, fu: usize, dora_count: usize) -> (usize, usize) {
     if fan < 13 {
-        fan += 1;
+        fan = std::cmp::min(13, fan + dora_count);
     }
 
-    match fan {
+    let limit = match fan {
         // no mangan
         0..=2 => 0,
         3 if fu < 60 => 0,
         4 if fu < 30 => 0,
         // mangan
-        3..=5 => BASE_POINTS[1],
+        3..=5 => 1,
         // haneman
-        6..=7 => BASE_POINTS[2],
+        6..=7 => 2,
         // baiman
-        8..=10 => BASE_POINTS[3],
+        8..=10 => 3,
         // sanbaiman
-        11..=12 => BASE_POINTS[4],
+        11..=12 => 4,
         // yakuman
-        13 => BASE_POINTS[5],
+        13 => 5,
         // double yakuman
-        _ => BASE_POINTS[6],
-    }
+        _ => 6,
+    };
+
+    let score = BASE_POINTS[limit];
+    (score, limit)
 }
 
-pub fn score_hand(hand: &Hand, player_wind: Tile, dora: Tile) -> usize {
-    let yaku = yaku(hand, player_wind);
+pub fn score_hand(hand: &Hand, player_wind: Tile, dora: Tile) -> (usize, usize) {
+    let yaku = yaku(hand, player_wind, &[Yaku::Riichi]);
     if yaku.is_empty() {
-        return 0;
+        return (0, 0);
     }
     let fu = fu(hand, player_wind);
-    let mut fan = yaku.iter().map(|y| y.fan()).sum();
+    let fan = yaku.iter().map(|y| y.fan()).sum();
+    let mut dora_count = 0;
     for tile in hand.tiles().iter() {
         if *tile == dora {
-            fan += 1;
+            dora_count += 1;
         }
     }
-    score(fan, fu)
+    score(fan, fu, dora_count)
 }
 
 #[cfg(test)]
@@ -339,7 +343,7 @@ mod tests {
         println!("tiles: {:?}", tiles);
         for hand in search(tiles, wait) {
             println!("hand: {:?}", hand);
-            result.push(yaku(&hand, player_wind));
+            result.push(yaku(&hand, player_wind, &[]));
         }
         assert_eq!(result, expected);
     }

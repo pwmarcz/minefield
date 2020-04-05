@@ -46,6 +46,7 @@ impl BacktrackStrategy for NormalSearch {
 }
 
 pub fn search(tiles: &[Tile], wait: Tile) -> Vec<Hand> {
+    assert_eq!(tiles.len(), 14);
     let mut bt = Backtrack::from_tiles(tiles, 14);
     let mut result = bt.run(&NormalSearch(wait));
 
