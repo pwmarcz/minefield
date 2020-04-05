@@ -1,12 +1,16 @@
 use rand::seq::SliceRandom;
 
+use minefield_core::search::find_all_waits;
 use minefield_core::tiles::Tile;
 
-use crate::protocol::Msg;
+use crate::protocol::{MoveType, Msg};
 
 const PLAYER_TILES: usize = 34;
+const DISCARD_TIME_LIMIT: usize = 15;
+const HAND_TIME_LIMIT: usize = 3 * 60;
+const EXTRA_TIME: usize = 10;
 
-pub type Response = Vec<(usize, Msg)>;
+pub type Buffer = Vec<(usize, Msg)>;
 
 pub struct Game {
     east: usize,
@@ -15,19 +19,6 @@ pub struct Game {
     dora_ind: Tile,
     uradora_ind: Tile,
     finished: bool,
-}
-
-pub struct Player {
-    tiles: Vec<Tile>,
-    is_east: bool,
-    deadline: Option<usize>,
-    phase2: Option<Phase2>,
-}
-
-pub struct Phase2 {
-    hand: Vec<Tile>,
-    discards: Vec<Tile>,
-    waits: Vec<Tile>,
 }
 
 pub enum GameError {
@@ -59,39 +50,82 @@ impl Game {
         }
     }
 
-    pub fn on_start(&self) -> Response {
-        return self.send_to_both(|i| Msg::PhaseOne {
-            tiles: self.players[i].tiles.clone(),
-            dora_ind: self.dora_ind,
-            you: i,
-            east: self.east,
-        });
+    pub fn on_start(&mut self, buffer: &mut Buffer, t: usize) {
+        for i in 0..2 {
+            self.send(
+                buffer,
+                i,
+                Msg::PhaseOne {
+                    tiles: self.players[i].tiles.clone(),
+                    dora_ind: self.dora_ind,
+                    you: i,
+                    east: self.east,
+                },
+            );
+            self.start_move(buffer, t, i, MoveType::Hand);
+        }
     }
 
-    // pub fn on_hand(&mut self, i: usize, hand: &[Tile]) -> Response {
-    //     let mut player = &self.players[i];
-    //     if player.phase2.is_some() {
-    //         return self.abort(i, "received hand in wrong phase");
-    //     }
-    //     if let Err(description) = player.set_hand(hand) {
-    //         return self.abort(i, reason);
-    //     }
-    // }
+    fn start_move(&mut self, buffer: &mut Buffer, t: usize, i: usize, move_type: MoveType) {
+        assert!(self.players[i].deadline.is_none());
+        let time_limit = match move_type {
+            MoveType::Hand => HAND_TIME_LIMIT,
+            MoveType::Discard => DISCARD_TIME_LIMIT,
+        };
+        self.players[i].deadline = Some(t + time_limit + EXTRA_TIME);
+        self.send(
+            buffer,
+            i,
+            Msg::StartMove {
+                move_type,
+                time_limit,
+            },
+        )
+    }
 
-    pub fn abort(&mut self, culprit: usize, description: &str) -> Response {
+    fn end_move(&mut self, buffer: &mut Buffer, i: usize) {
+        self.players[i].deadline = None;
+        self.send(buffer, i, Msg::EndMove);
+    }
+
+    pub fn on_hand(&mut self, buffer: &mut Buffer, i: usize, hand: &[Tile]) {
+        let player = &mut self.players[i];
+        if let Err(description) = player.set_hand(hand) {
+            return self.abort(buffer, i, description);
+        }
+        self.end_move(buffer, i);
+    }
+
+    pub fn abort(&mut self, buffer: &mut Buffer, culprit: usize, description: &str) {
         self.finished = true;
-        self.send_to_both(|_| Msg::Abort {
-            culprit,
-            description: description.to_owned(),
-        })
+        for i in 0..2 {
+            self.send(
+                buffer,
+                i,
+                Msg::Abort {
+                    culprit,
+                    description: description.to_owned(),
+                },
+            );
+        }
     }
 
-    fn send_to_both<F>(&self, f: F) -> Response
-    where
-        F: Fn(usize) -> Msg,
-    {
-        return vec![(0, f(0)), (1, f(1))];
+    fn send(&self, buffer: &mut Buffer, i: usize, msg: Msg) {
+        buffer.push((i, msg));
     }
+}
+
+pub struct Player {
+    tiles: Vec<Tile>,
+    is_east: bool,
+    deadline: Option<usize>,
+    phase2: Option<Phase2>,
+}
+
+pub struct Phase2 {
+    hand: Vec<Tile>,
+    discards: Vec<Tile>,
+    waits: Vec<Tile>,
 }
 
 impl Player {
@@ -102,5 +136,31 @@ impl Player {
             deadline: None,
             phase2: None,
         }
+    }
+
+    fn set_hand(&mut self, hand: &[Tile]) -> Result<(), &'static str> {
+        if self.phase2.is_some() {
+            return Err("already submitted a hand");
+        }
+        if hand.len() != 13 {
+            return Err("len != 13");
+        }
+        for tile in hand.iter() {
+            match self.tiles.iter().position(|t| *t == *tile) {
+                Some(idx) => {
+                    self.tiles.remove(idx);
+                }
+                None => return Err("tile not found in choices"),
+            }
+        }
+        let waits = find_all_waits(hand);
+
+        self.phase2 = Some(Phase2 {
+            hand: hand.to_vec(),
+            discards: vec![],
+            waits,
+        });
+
+        Ok(())
     }
 }

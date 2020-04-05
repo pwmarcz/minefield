@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use log::{info, warn};
 
 use crate::backtrack::{Backtrack, BacktrackStrategy};
-use crate::search::search;
+use crate::search::{find_all_waits, search};
 use crate::tiles::{Tile, TileSet};
 use crate::yaku::score_hand;
 
@@ -71,22 +71,6 @@ fn find_all_tenpai(tiles: &[Tile]) -> Vec<Vec<Tile>> {
     for strategy in [Normal4, Normal3, Pairs, Kokushi].iter() {
         result.append(&mut bt.run(strategy));
     }
-    result
-}
-
-fn find_all_waits(tiles: &[Tile]) -> Vec<Tile> {
-    let mut result = vec![];
-    let mut tiles = tiles.to_vec();
-
-    for wait in Tile::all() {
-        tiles.push(wait);
-        let hands = search(&tiles, wait);
-        if !hands.is_empty() {
-            result.push(wait);
-        }
-        tiles.pop();
-    }
-
     result
 }
 

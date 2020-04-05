@@ -58,6 +58,22 @@ pub fn search(tiles: &[Tile], wait: Tile) -> Vec<Hand> {
     result
 }
 
+pub fn find_all_waits(tiles: &[Tile]) -> Vec<Tile> {
+    let mut result = vec![];
+    let mut tiles = tiles.to_vec();
+
+    for wait in Tile::all() {
+        tiles.push(wait);
+        let hands = search(&tiles, wait);
+        if !hands.is_empty() {
+            result.push(wait);
+        }
+        tiles.pop();
+    }
+
+    result
+}
+
 fn find_pairs(tiles: &TileSet, wait: Tile) -> Option<Hand> {
     let mut pairs = vec![];
     for tile in tiles.distinct() {
