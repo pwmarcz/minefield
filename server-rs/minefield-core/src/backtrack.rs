@@ -6,9 +6,11 @@ pub struct Backtrack {
     pub remaining: usize,
 }
 
-pub trait BacktrackStrategy<TResult> {
+pub trait BacktrackStrategy {
+    type Item;
+
     fn generate(&self, bt: &Backtrack) -> Vec<Vec<Tile>>;
-    fn check(&self, bt: &Backtrack) -> Vec<TResult>;
+    fn check(&self, bt: &Backtrack) -> Vec<Self::Item>;
 }
 
 impl Backtrack {
@@ -20,17 +22,13 @@ impl Backtrack {
         }
     }
 
-    pub fn run<TResult>(&mut self, strategy: &impl BacktrackStrategy<TResult>) -> Vec<TResult> {
+    pub fn run<T>(&mut self, strategy: &impl BacktrackStrategy<Item = T>) -> Vec<T> {
         let mut results = vec![];
         self.go(strategy, &mut results);
         results
     }
 
-    pub fn go<TResult>(
-        &mut self,
-        strategy: &impl BacktrackStrategy<TResult>,
-        results: &mut Vec<TResult>,
-    ) {
+    pub fn go<T>(&mut self, strategy: &impl BacktrackStrategy<Item = T>, results: &mut Vec<T>) {
         if self.remaining == 0 {
             results.append(&mut strategy.check(self));
             return;

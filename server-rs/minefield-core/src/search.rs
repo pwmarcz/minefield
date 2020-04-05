@@ -6,7 +6,9 @@ use crate::tiles::{Tile, TileSet};
 
 struct NormalSearch(Tile);
 
-impl BacktrackStrategy<Hand> for NormalSearch {
+impl BacktrackStrategy for NormalSearch {
+    type Item = Hand;
+
     fn generate(&self, bt: &Backtrack) -> Vec<Vec<Tile>> {
         // println!("{:?} {:?}", bt.stack, bt.remaining);
 

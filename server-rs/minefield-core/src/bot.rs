@@ -14,7 +14,9 @@ enum BotSearch {
     Kokushi,
 }
 
-impl BacktrackStrategy<Vec<Tile>> for BotSearch {
+impl BacktrackStrategy for BotSearch {
+    type Item = Vec<Tile>;
+
     fn generate(&self, bt: &Backtrack) -> Vec<Vec<Tile>> {
         use BotSearch::*;
         match self {
