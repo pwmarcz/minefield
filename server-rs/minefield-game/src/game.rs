@@ -166,7 +166,7 @@ impl Game {
     }
 
     fn is_phase2(&self) -> bool {
-        self.players[0].phase2.is_some() && self.players[1].phase2.is_some()
+        !self.players[0].hand.is_empty() && !self.players[1].hand.is_empty()
     }
 
     fn abort(&mut self, culprit: usize, description: &str) {
@@ -224,10 +224,6 @@ struct Player {
     tiles: Vec<Tile>,
     is_east: bool,
     deadline: Option<usize>,
-    phase2: Option<Phase2>,
-}
-
-struct Phase2 {
     hand: Vec<Tile>,
     discards: Vec<Tile>,
     furiten: bool,
@@ -240,12 +236,15 @@ impl Player {
             tiles: tiles.to_vec(),
             is_east,
             deadline: None,
-            phase2: None,
+            hand: vec![],
+            discards: vec![],
+            furiten: false,
+            waits: vec![],
         }
     }
 
     fn set_hand(&mut self, hand: &[Tile]) -> Result<(), &'static str> {
-        if !self.deadline.is_some() || self.phase2.is_some() {
+        if !self.deadline.is_some() || !self.hand.is_empty() {
             return Err("not expecting a hand");
         }
         if hand.len() != 13 {
@@ -257,18 +256,10 @@ impl Player {
         }
         let waits = find_all_waits(hand);
 
-        self.phase2 = Some(Phase2 {
-            hand: hand.to_vec(),
-            discards: vec![],
-            waits,
-            furiten: false,
-        });
+        self.hand = hand.to_vec();
+        self.waits = waits;
 
         Ok(())
-    }
-
-    fn phase2(&mut self) -> Result<&mut Phase2, &'static str> {
-        self.phase2.as_mut().ok_or("expected to be in phase 2")
     }
 
     fn find_choice(&self, tile: Tile) -> Result<usize, &'static str> {
@@ -279,26 +270,21 @@ impl Player {
     }
 
     fn discard(&mut self, tile: Tile) -> Result<(), &'static str> {
-        if !self.deadline.is_some() {
+        if !self.deadline.is_some() || self.hand.is_empty() {
             return Err("not expecting a discard");
         }
         let idx = self.find_choice(tile)?;
         self.tiles.remove(idx);
-        let phase2 = self.phase2()?;
-        assert!(phase2.discards.len() < DISCARDS);
-        phase2.discards.push(tile);
-        if phase2.waits.contains(&tile) {
-            phase2.furiten = true;
+        assert!(self.discards.len() < DISCARDS);
+        self.discards.push(tile);
+        if self.waits.contains(&tile) {
+            self.furiten = true;
         }
         Ok(())
     }
 
     fn finished(&self) -> bool {
-        if let Some(ref phase2) = self.phase2 {
-            phase2.discards.len() == DISCARDS
-        } else {
-            false
-        }
+        self.discards.len() == DISCARDS
     }
 
     fn check_ron(
@@ -308,25 +294,22 @@ impl Player {
         dora_ind: Tile,
         uradora_ind: Tile,
     ) -> Option<Msg> {
-        let phase2 = self.phase2.as_mut().unwrap();
-        if !phase2.waits.contains(&tile) {
+        if !self.waits.contains(&tile) {
             return None;
         }
-
-        println!("checking {:?}", tile);
 
         let player_wind = if self.is_east { Tile::X1 } else { Tile::X3 };
         let dora = dora_ind.next_wrap();
         let uradora = uradora_ind.next_wrap();
         let turn = if self.is_east {
-            phase2.discards.len() - 1
+            self.discards.len() - 1
         } else {
-            phase2.discards.len()
+            self.discards.len()
         };
 
-        let mut tiles = phase2.hand.clone();
-        tiles.push(tile);
-        let hands = search(&tiles, tile);
+        let mut full_hand = self.hand.clone();
+        full_hand.push(tile);
+        let hands = search(&full_hand, tile);
         let scored_hands = hands.iter().filter_map(|hand| {
             let mut special = vec![Yaku::Riichi];
             if turn == 0 {
@@ -337,8 +320,11 @@ impl Player {
             }
             let yaku = yaku::yaku(hand, player_wind, &special);
 
-            let dora_count: usize = tiles.iter().map(|tile| (*tile == dora) as usize).sum();
-            let uradora_count: usize = tiles.iter().map(|tile| (*tile == uradora) as usize).sum();
+            let dora_count: usize = full_hand.iter().map(|tile| (*tile == dora) as usize).sum();
+            let uradora_count: usize = full_hand
+                .iter()
+                .map(|tile| (*tile == uradora) as usize)
+                .sum();
 
             let fu = fu::fu(&hand, player_wind);
             let fan = yaku.iter().map(|y| y.fan()).sum();
@@ -357,7 +343,7 @@ impl Player {
             let limit = std::cmp::min(fan, 5);
             Some(Msg::Ron {
                 player: i,
-                hand: phase2.hand.clone(),
+                hand: self.hand.clone(),
                 tile,
                 yaku,
                 dora: dora_count,
@@ -366,7 +352,7 @@ impl Player {
                 points: score,
             })
         } else {
-            phase2.furiten = true;
+            self.furiten = true;
             None
         }
     }
@@ -521,7 +507,7 @@ mod test {
         // P1's winning tile - no ron, furiten
         discard(&mut game, 0, S4);
         assert_eq!(game.finished, false);
-        assert_eq!(game.players[1].phase2.as_ref().unwrap().furiten, true);
+        assert_eq!(game.players[1].furiten, true);
 
         // Rising Sun!
         discard(&mut game, 1, P1);
