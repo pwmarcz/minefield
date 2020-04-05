@@ -5,7 +5,7 @@ use websocket::{Message, OwnedMessage};
 
 use log::info;
 
-use crate::protocol::Msg;
+use minefield_game::protocol::Msg;
 
 #[derive(Debug, Fail)]
 pub enum CommError {

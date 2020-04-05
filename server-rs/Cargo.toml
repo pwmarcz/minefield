@@ -3,6 +3,7 @@
 members = [
     "minefield-core",
     "minefield-bot",
+    "minefield-game",
 ]
 
 [profile.test]

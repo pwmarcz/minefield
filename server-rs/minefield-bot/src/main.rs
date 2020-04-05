@@ -3,12 +3,13 @@ extern crate env_logger;
 extern crate failure;
 extern crate failure_derive;
 extern crate log;
-extern crate minefield_core;
 extern crate serde_json;
+
+extern crate minefield_core;
+extern crate minefield_game;
 
 mod bot;
 mod comm;
-mod protocol;
 
 use clap::{App, Arg};
 

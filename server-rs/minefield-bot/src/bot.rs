@@ -6,9 +6,9 @@ use websocket::ClientBuilder;
 
 use minefield_core::bot::Bot;
 use minefield_core::tiles::Tile;
+use minefield_game::protocol::{MoveType, Msg};
 
 use crate::comm;
-use crate::protocol::{MoveType, Msg};
 
 type Client =
     websocket::client::sync::Client<Box<dyn websocket::sync::stream::NetworkStream + Send>>;

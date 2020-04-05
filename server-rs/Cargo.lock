@@ -423,6 +423,7 @@ dependencies = [
  "failure_derive",
  "log 0.4.8",
  "minefield-core",
+ "minefield-game",
  "serde",
  "serde_json",
  "websocket",
@@ -434,6 +435,16 @@ version = "0.1.0"
 dependencies = [
  "env_logger",
  "log 0.4.8",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "minefield-game"
+version = "0.1.0"
+dependencies = [
+ "minefield-core",
+ "rand 0.6.5",
  "serde",
  "serde_json",
 ]

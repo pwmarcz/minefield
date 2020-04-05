@@ -1,5 +1,5 @@
 [package]
-name = "minefield-bot"
+name = "minefield-game"
 version = "0.1.0"
 authors = ["Paweł Marczewski <pwmarcz@gmail.com>"]
 edition = "2018"
@@ -8,12 +8,6 @@ edition = "2018"
 
 [dependencies]
 minefield-core = { path = "../minefield-core" }
-minefield-game = { path = "../minefield-game" }
-websocket = "*"
 serde = { version = "1.0", features = ["derive"]}
 serde_json = "1.0"
-failure = "*"
-failure_derive = "*"
-log = "*"
-env_logger = "*"
-clap = "*"
+rand = "*"

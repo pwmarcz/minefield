@@ -65,6 +65,7 @@ pub enum Msg {
     },
     Draw,
     Abort {
+        culprit: usize,
         description: String,
     },
 }
