@@ -31,7 +31,7 @@ pub enum Msg {
 
     // server messages
     Games {
-        games: Vec<Game>,
+        games: Vec<PGame>,
     },
     Room {
         you: usize,
@@ -80,11 +80,11 @@ pub enum MoveType {
 }
 
 #[derive(Serialize, Deserialize, Debug, PartialEq, Eq, Clone)]
-pub struct Game {
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub nick: String,
-    pub key: String,
+#[serde(tag = "type")]
+#[serde(rename_all = "snake_case")]
+pub enum PGame {
+    Player { nick: String, key: String },
+    Game { nicks: [String; 2] },
 }
 
 #[cfg(test)]
@@ -101,8 +101,7 @@ mod test {
         check(Msg::GetGames, r#"{"type":"get_games"}"#);
         check(
             Msg::Games {
-                games: vec![Game {
-                    type_: String::from("player"),
+                games: vec![PGame::Player {
                     nick: String::from("bot"),
                     key: String::from("xxx"),
                 }],
