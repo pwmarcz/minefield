@@ -1,6 +1,6 @@
 use rand::seq::SliceRandom;
 
-use minefield_core::fu;
+use minefield_core::score::Score;
 use minefield_core::search::{find_all_waits, search};
 use minefield_core::tiles::Tile;
 use minefield_core::yaku;
@@ -318,38 +318,29 @@ impl Player {
             if turn == DISCARDS - 1 {
                 special.push(Yaku::Hotei);
             }
-            let yaku = yaku::yaku(hand, player_wind, &special);
-
-            let dora_count: usize = full_hand.iter().map(|tile| (*tile == dora) as usize).sum();
-            let uradora_count: usize = full_hand
-                .iter()
-                .map(|tile| (*tile == uradora) as usize)
-                .sum();
-
-            let fu = fu::fu(&hand, player_wind);
-            let fan = yaku.iter().map(|y| y.fan()).sum();
+            let mut score = Score::from_hand(hand, player_wind, &special);
 
             // Check if mangan (with dora)
-            if yaku::score(fan, fu, dora_count).0 == 0 {
+            score.add_dora(dora);
+            if score.limit() == 0 {
                 return None;
             }
 
             // Return score (with dora and uradora)
-            let (score, limit) = yaku::score(fan, fu, dora_count + uradora_count);
-            Some((score, limit, yaku, dora_count + uradora_count))
+            score.add_dora(uradora);
+            Some(score)
         });
 
-        if let Some((score, fan, yaku, dora_count)) = scored_hands.max() {
-            let limit = std::cmp::min(fan, 5);
+        if let Some(score) = scored_hands.max_by_key(|score| score.limit()) {
             Some(Msg::Ron {
                 player: i,
                 hand: self.hand.clone(),
                 tile,
-                yaku,
-                dora: dora_count,
+                yaku: score.yaku.clone(),
+                dora: score.dora_count,
                 uradora_ind,
-                limit,
-                points: score,
+                limit: score.limit(),
+                points: score.points(),
             })
         } else {
             self.furiten = true;

@@ -3,9 +3,10 @@ use std::collections::HashSet;
 use log::{info, warn};
 
 use crate::backtrack::{Backtrack, BacktrackStrategy};
+use crate::score::Score;
 use crate::search::{find_all_waits, search};
 use crate::tiles::{Tile, TileSet};
-use crate::yaku::score_hand;
+use crate::yaku::Yaku;
 
 enum BotSearch {
     Normal4,
@@ -163,7 +164,11 @@ impl Bot {
             let hands = search(&tiles, wait);
             let max_score = hands
                 .iter()
-                .map(|hand| score_hand(hand, self.player_wind, self.dora).0)
+                .map(|hand| {
+                    Score::from_hand(hand, self.player_wind, &[Yaku::Riichi])
+                        .with_dora(self.dora)
+                        .limit()
+                })
                 .max()
                 .unwrap_or(0);
 
