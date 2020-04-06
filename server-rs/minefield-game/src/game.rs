@@ -297,6 +297,9 @@ impl Player {
         if !self.waits.contains(&tile) {
             return None;
         }
+        if self.furiten {
+            return None;
+        }
 
         let player_wind = if self.is_east { Tile::X1 } else { Tile::X3 };
         let dora = dora_ind.next_wrap();
@@ -356,6 +359,14 @@ mod test {
 
     fn game() -> Game {
         Game::fixed(&all_tiles(), 0)
+    }
+
+    fn assert_aborted(game: &mut Game, culprit: usize, description: &str) {
+        let abort = Msg::Abort {
+            culprit,
+            description: description.to_owned(),
+        };
+        assert_eq!(game.messages(), vec![(0, abort.clone()), (1, abort)]);
     }
 
     #[test]
@@ -516,5 +527,83 @@ mod test {
         assert_eq!(game.finished, true);
     }
 
-    // TODO rest of tests
+    #[test]
+    fn test_furiten() {
+        // P0: junk
+        // P1: riichi tanyao sanshoku on S5, but only riichi tanyao on S8
+        let mut game = start_game(
+            &[M2, M9, P1, P9, S1, S9, X1, X2, X3, X4, X5, X6, X7],
+            &[M6, M7, M8, P6, P7, P8, S2, S3, S4, S5, S6, S7, S8],
+        );
+
+        // P1's winning tile - no ron, furiten
+        discard(&mut game, 0, S8);
+        assert_eq!(game.finished, false);
+        assert_eq!(game.players[1].furiten, true);
+
+        discard(&mut game, 1, P1);
+
+        // P1 would win now, but she's in furiten
+        discard(&mut game, 0, S5);
+        assert_eq!(game.finished, false);
+    }
+
+    #[test]
+    fn test_short_hand() {
+        let mut game = game();
+        game.on_start();
+        game.messages();
+        game.on_message(
+            1,
+            Msg::Hand {
+                hand: vec![M1, M2, M3],
+            },
+        );
+        assert_aborted(&mut game, 1, "len != 13");
+    }
+
+    #[test]
+    fn test_tiles_outside_initial() {
+        let mut game = game();
+        game.on_start();
+        game.messages();
+        game.on_message(
+            1,
+            Msg::Hand {
+                hand: vec![M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1, M1],
+            },
+        );
+        assert_aborted(&mut game, 1, "tile not found in choices");
+    }
+
+    #[test]
+    fn test_hand_time_limit() {
+        let mut game = game();
+        game.on_start();
+        game.messages();
+        game.on_message(
+            0,
+            Msg::Hand {
+                hand: vec![M2, M9, P1, P9, S1, S9, X1, X2, X3, X4, X5, X6, X7],
+            },
+        );
+        game.messages();
+        for _ in 0..HAND_TIME_LIMIT + EXTRA_TIME {
+            game.beat();
+        }
+        assert_aborted(&mut game, 1, "time limit exceeded");
+    }
+
+    #[test]
+    fn test_discard_time_limit() {
+        let mut game = start_game(
+            &[M1, M2, M3, M4, M5, M6, M7, M8, M9, P1, P2, P3, P4],
+            &[M1, M2, M3, M4, M5, M6, M7, M8, M9, P1, P2, P3, P4],
+        );
+        game.messages();
+        for _ in 0..DISCARD_TIME_LIMIT + EXTRA_TIME {
+            game.beat();
+        }
+        assert_aborted(&mut game, 0, "time limit exceeded");
+    }
 }
