@@ -19,7 +19,7 @@ pub struct Game {
     players: [Player; 2],
     dora_ind: Tile,
     uradora_ind: Tile,
-    finished: bool,
+    pub finished: bool,
     time: usize,
     messages: Vec<(usize, Msg)>,
 }
