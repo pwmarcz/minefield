@@ -4,6 +4,7 @@ members = [
     "minefield-core",
     "minefield-bot",
     "minefield-game",
+    "minefield-server",
 ]
 
 [profile.test]
