@@ -75,11 +75,26 @@ impl Room {
 
         assert!(self.user_ids[0] != self.user_ids[1]);
 
+        let mut messages = vec![];
+        for i in 0..2 {
+            if let Some(user_id) = self.user_ids[i] {
+                messages.push((
+                    user_id,
+                    Msg::Room {
+                        you: i,
+                        nicks: self.nicks.clone(),
+                        key: self.player_keys[i].clone(),
+                    },
+                ));
+            }
+        }
+
         let mut game = Game::new(&mut rand::thread_rng());
         game.on_start();
         self.game = Some(game);
 
-        Ok(self.messages())
+        messages.append(&mut self.messages());
+        Ok(messages)
     }
 
     pub fn disconnect(&mut self, user_id: usize) {
@@ -152,12 +167,14 @@ mod tests {
             })
         );
 
-        assert_eq!(messages.len(), 4);
+        assert_eq!(messages.len(), 6);
         // println!("{:?}", messages);
-        assert!(matches!(messages[0], (33, Msg::PhaseOne { .. })));
-        assert!(matches!(messages[1], (33, Msg::StartMove { .. })));
-        assert!(matches!(messages[2], (55, Msg::PhaseOne { .. })));
-        assert!(matches!(messages[3], (55, Msg::StartMove { .. })));
+        assert!(matches!(messages[0], (33, Msg::Room { .. })));
+        assert!(matches!(messages[1], (55, Msg::Room { .. })));
+        assert!(matches!(messages[2], (33, Msg::PhaseOne { .. })));
+        assert!(matches!(messages[3], (33, Msg::StartMove { .. })));
+        assert!(matches!(messages[4], (55, Msg::PhaseOne { .. })));
+        assert!(matches!(messages[5], (55, Msg::StartMove { .. })));
     }
 
     #[test]
@@ -165,7 +182,7 @@ mod tests {
         let mut room = Room::new(33, "Akagi".to_owned());
         let messages = room.connect(55, "Washizu".to_owned()).unwrap();
 
-        let hand = match messages[0].1 {
+        let hand = match messages[2].1 {
             Msg::PhaseOne { ref tiles, .. } => tiles[0..13].to_vec(),
             _ => unreachable!("wrong message"),
         };
