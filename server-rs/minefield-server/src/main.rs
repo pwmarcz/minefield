@@ -1,9 +1,12 @@
+extern crate base64;
 extern crate env_logger;
 extern crate failure;
 extern crate hyper;
 extern crate hyper_staticfile;
 extern crate log;
+extern crate sha1;
 extern crate tokio;
+extern crate tokio_tungstenite;
 
 use clap::{App, Arg};
 use std::net::SocketAddr;
