@@ -61,7 +61,7 @@ impl Room {
         match self.game.as_mut() {
             Some(game) if !game.finished => {
                 game.beat();
-                game.messages()
+                self.messages()
             }
             _ => vec![],
         }
