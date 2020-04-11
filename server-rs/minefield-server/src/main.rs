@@ -11,6 +11,7 @@ extern crate tokio_tungstenite;
 use clap::{App, Arg};
 use std::net::SocketAddr;
 
+mod game_server;
 mod server;
 
 #[tokio::main]

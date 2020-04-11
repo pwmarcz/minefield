@@ -57,6 +57,16 @@ impl Room {
         }
     }
 
+    pub fn beat(&mut self) -> Vec<(usize, Msg)> {
+        match self.game.as_mut() {
+            Some(game) if !game.finished => {
+                game.beat();
+                game.messages()
+            }
+            _ => vec![],
+        }
+    }
+
     pub fn finished(&self) -> bool {
         let game_finished = match self.game.as_ref() {
             Some(game) => game.finished,

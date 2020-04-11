@@ -1,26 +1,37 @@
+use std::convert::Infallible;
+use std::net::SocketAddr;
+
 use failure::Error;
+use futures::StreamExt;
 use hyper::server::conn::AddrStream;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
 use log::{error, info};
-use std::convert::Infallible;
-use std::net::SocketAddr;
+use tokio_tungstenite::WebSocketStream;
+
+use crate::game_server::GameServer;
 
 struct ServerParams {
     static_path: Option<String>,
+    game_server: GameServer,
 }
 
 impl Clone for ServerParams {
     fn clone(&self) -> Self {
         ServerParams {
             static_path: self.static_path.clone(),
+            game_server: self.game_server.clone(),
         }
     }
 }
 
 pub async fn start_server(addr: &SocketAddr, static_path: &Option<&str>) {
+    let game_server = GameServer::new();
+    game_server.start_beat();
+
     let params = ServerParams {
         static_path: static_path.map(|s| s.to_owned()),
+        game_server,
     };
 
     let make_svc = make_service_fn(|socket: &AddrStream| {
@@ -72,7 +83,7 @@ async fn serve_request(req: Request<Body>, params: &ServerParams) -> Result<Resp
             *response.body_mut() = Body::from("Hello");
         }
         (_, "/ws") => {
-            upgrade_websocket(req, &mut response).await?;
+            upgrade_websocket(req, &mut response, params.game_server.clone()).await?;
         }
         _ => {
             if let Some(ref static_path) = params.static_path {
@@ -88,7 +99,11 @@ async fn serve_request(req: Request<Body>, params: &ServerParams) -> Result<Resp
     Ok(response)
 }
 
-async fn upgrade_websocket(req: Request<Body>, response: &mut Response<Body>) -> Result<(), Error> {
+async fn upgrade_websocket(
+    req: Request<Body>,
+    response: &mut Response<Body>,
+    game_server: GameServer,
+) -> Result<(), Error> {
     use hyper::http::header::*;
     use hyper::http::HeaderValue;
 
@@ -107,7 +122,7 @@ async fn upgrade_websocket(req: Request<Body>, response: &mut Response<Body>) ->
     m.update("258EAFA5-E914-47DA-95CA-C5AB0DC85B11".as_bytes());
     let sec_websocket_accept = base64::encode(m.digest().bytes());
 
-    tokio::task::spawn(connect_websocket(req));
+    tokio::task::spawn(connect_websocket(req, game_server));
 
     *response.status_mut() = StatusCode::SWITCHING_PROTOCOLS;
     let headers = response.headers_mut();
@@ -120,22 +135,23 @@ async fn upgrade_websocket(req: Request<Body>, response: &mut Response<Body>) ->
     Ok(())
 }
 
-async fn connect_websocket(req: Request<Body>) {
-    use futures::StreamExt;
-    use tokio_tungstenite::WebSocketStream;
-
-    let upgraded = req.into_body().on_upgrade().await.unwrap();
-    let mut ws_stream = WebSocketStream::from_raw_socket(
+async fn connect_websocket(req: Request<Body>, game_server: GameServer) {
+    let upgraded = match req.into_body().on_upgrade().await {
+        Ok(upgraded) => upgraded,
+        Err(e) => {
+            error!("error upgrading: {}", e);
+            return;
+        }
+    };
+    let ws_stream = WebSocketStream::from_raw_socket(
         upgraded,
         tokio_tungstenite::tungstenite::protocol::Role::Server,
         None,
     )
     .await;
 
-    info!("Next");
-    while let Some(msg) = ws_stream.next().await {
-        info!("Received: {:?}", msg);
-    }
+    let (writer, reader) = ws_stream.split();
+    game_server.connect(reader, writer);
 }
 
 async fn shutdown_signal(_params: &ServerParams) {
