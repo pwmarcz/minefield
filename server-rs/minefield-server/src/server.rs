@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 
 use failure::Error;
 use futures::StreamExt;
+use hyper::http::{header, HeaderValue};
 use hyper::server::conn::AddrStream;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Method, Request, Response, Server, StatusCode};
@@ -82,6 +83,14 @@ async fn serve_request(req: Request<Body>, params: &ServerParams) -> Result<Resp
         (&Method::GET, "/hello") => {
             *response.body_mut() = Body::from("Hello");
         }
+        (&Method::GET, "/debug") => {
+            let dump = params.game_server.debug_dump();
+            response.headers_mut().insert(
+                header::CONTENT_TYPE,
+                HeaderValue::from_str("application/json").unwrap(),
+            );
+            *response.body_mut() = Body::from(dump);
+        }
         (_, "/ws") => {
             upgrade_websocket(req, &mut response, params.game_server.clone()).await?;
         }
@@ -105,7 +114,6 @@ async fn upgrade_websocket(
     game_server: GameServer,
 ) -> Result<(), Error> {
     use hyper::http::header::*;
-    use hyper::http::HeaderValue;
 
     let req_headers = req.headers();
     if !(req_headers.get(UPGRADE) == Some(&HeaderValue::from_static("websocket"))

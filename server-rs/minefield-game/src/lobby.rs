@@ -56,6 +56,14 @@ impl Lobby {
         messages
     }
 
+    pub fn debug_dump(&self) -> String {
+        use serde_json::value::Map;
+        let mut dump = Map::new();
+        dump.insert("players".to_owned(), self.user_to_room.len().into());
+        dump.insert("rooms".to_owned(), self.rooms.len().into());
+        serde_json::to_string(&dump).unwrap()
+    }
+
     fn check_finished(&mut self, room_id: usize) {
         let room = self.rooms.get(&room_id).unwrap();
         if room.finished() {

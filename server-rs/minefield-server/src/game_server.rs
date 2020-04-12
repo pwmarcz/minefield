@@ -56,6 +56,10 @@ impl GameServer {
         tokio::task::spawn(self.clone().run_beat());
     }
 
+    pub fn debug_dump(&self) -> String {
+        self.lobby().debug_dump()
+    }
+
     fn lobby(&self) -> std::sync::MutexGuard<'_, Lobby> {
         self.lobby.lock().unwrap()
     }
