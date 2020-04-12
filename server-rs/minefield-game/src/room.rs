@@ -1,4 +1,5 @@
 use failure::{Error, Fail};
+use serde::{Deserialize, Serialize};
 
 use crate::game::Game;
 use crate::protocol::{Msg, PGame};
@@ -13,6 +14,7 @@ pub enum RoomError {
     GameFinished,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Room {
     game: Option<Game>,
     user_ids: [Option<usize>; 2],

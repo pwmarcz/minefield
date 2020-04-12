@@ -1,4 +1,5 @@
 use rand::seq::SliceRandom;
+use serde::{Deserialize, Serialize};
 
 use minefield_core::score::Score;
 use minefield_core::search::{find_all_waits, search};
@@ -14,6 +15,7 @@ const DISCARD_TIME_LIMIT: usize = 15;
 const HAND_TIME_LIMIT: usize = 3 * 60;
 const EXTRA_TIME: usize = 10;
 
+#[derive(Serialize, Deserialize)]
 pub struct Game {
     east: usize,
     players: [Player; 2],
@@ -220,6 +222,7 @@ fn all_tiles() -> Vec<Tile> {
     result
 }
 
+#[derive(Serialize, Deserialize)]
 struct Player {
     tiles: Vec<Tile>,
     is_east: bool,

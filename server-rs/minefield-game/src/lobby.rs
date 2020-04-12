@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use failure::{Error, Fail};
@@ -17,7 +18,7 @@ pub enum LobbyError {
     WrongKey,
 }
 
-#[derive(Default)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct Lobby {
     next_room_id: usize,
     next_user_id: usize,
@@ -57,11 +58,7 @@ impl Lobby {
     }
 
     pub fn debug_dump(&self) -> String {
-        use serde_json::value::Map;
-        let mut dump = Map::new();
-        dump.insert("players".to_owned(), self.user_to_room.len().into());
-        dump.insert("rooms".to_owned(), self.rooms.len().into());
-        serde_json::to_string(&dump).unwrap()
+        serde_json::to_string(self).unwrap()
     }
 
     fn check_finished(&mut self, room_id: usize) {
