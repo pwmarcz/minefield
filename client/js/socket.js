@@ -48,6 +48,11 @@ export class Socket {
   }
 
   handle(msg) {
+    if (msg.type == 'replay') {
+      msg = msg.msg;
+      msg.replay = true;
+    }
+
     if (this.handlers[msg.type]) {
       this.handlers[msg.type].forEach(handler => handler(msg.type, msg));
     }

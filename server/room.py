@@ -55,10 +55,7 @@ class Room(object):
 
             logger.info('[room %s] replay to %d: %s %r', self.id, idx, msg_type, msg)
 
-            msg = msg.copy()
-            msg['replay'] = True
-
-            self.players[idx].send(msg_type, **msg)
+            self.players[idx].send('replay', msg={'type': msg_type, **msg})
         self.game.send_move(idx)
 
     def send_to_game(self, idx, msg_type, **msg):
@@ -163,8 +160,8 @@ class RoomTest(unittest.TestCase):
         player0 = self.MockPlayer()
         room.add_player(0, player0, n_received=1)
         self.assertEquals(len(player0.messages), 2)
-        self.assertEquals(player0.messages[0][0], 'b')
-        self.assertEquals(player0.messages[1][0], 'e')
+        self.assertEquals(player0.messages[0], ('replay', {'msg': {'type': 'b'}}))
+        self.assertEquals(player0.messages[1], ('replay', {'msg': {'type': 'e'}}))
 
     def test_send_to_game(self):
         player0 = self.MockPlayer()
