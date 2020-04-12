@@ -1,4 +1,10 @@
 
+REMOTE ?= pwmarcz.pl:_minefield/
+
+TO_SYNC = client/static \
+	server-rs/target/release/minefield-bot \
+	server-rs/target/release/minefield-server
+
 .PHONY: all
 all: env node static
 
@@ -39,3 +45,17 @@ serve:
 .PHONY: serve_prod
 serve_prod:
 	server/env/bin/python server/server.py --host 127.0.0.1 --port 8080
+
+.PHONY: rust_prod
+rust_prod:
+	cd server-rs && cargo build --release
+
+	cp server-rs/target/release/minefield-bot build/
+	cp server-rs/target/release/minefield-server build/
+
+.PHONY: deploy
+deploy: static rust_prod sync
+
+.PHONY: sync
+sync:
+	rsync -rva $(TO_SYNC) $(REMOTE)
