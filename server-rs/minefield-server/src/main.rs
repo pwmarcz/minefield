@@ -31,7 +31,7 @@ async fn main() {
             Arg::with_name("port")
                 .long("port")
                 .takes_value(true)
-                .default_value("8000"),
+                .default_value("8080"),
         )
         .arg(
             Arg::with_name("static_path")
