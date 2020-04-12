@@ -340,7 +340,7 @@ impl Player {
         if let Some(score) = scored_hands.max_by_key(|score| score.limit()) {
             Some(Msg::Ron {
                 player: i,
-                hand: self.hand.clone(),
+                hand: full_hand,
                 tile,
                 yaku: score.yaku.clone(),
                 dora: score.dora_count,
@@ -519,7 +519,7 @@ mod test {
         let ron = Msg::Ron {
             player: 0,
             yaku: vec![Yaku::Kokushi],
-            hand: vec![M1, M9, P1, P9, S1, S9, X1, X2, X3, X4, X5, X6, X7],
+            hand: vec![M1, M9, P1, P9, S1, S9, X1, X2, X3, X4, X5, X6, X7, P1],
             points: 32000,
             limit: 5,
             dora: 0,
