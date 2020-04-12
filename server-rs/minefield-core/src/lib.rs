@@ -2,6 +2,7 @@
 
 extern crate env_logger;
 extern crate log;
+extern crate rand;
 
 pub mod backtrack;
 pub mod bot;

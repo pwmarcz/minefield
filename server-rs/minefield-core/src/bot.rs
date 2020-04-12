@@ -206,6 +206,8 @@ impl Bot {
     }
 
     fn find_discard(&self) -> Tile {
+        use rand::seq::SliceRandom;
+
         // safe tile, if any
         let remaining_set = self.tile_set.as_hash_set();
         let mut safe = remaining_set.intersection(&self.safe_tiles);
@@ -216,6 +218,7 @@ impl Bot {
 
         // most common (but not in our waits)
         let mut most_common: Vec<Tile> = self.tile_set.distinct().collect();
+        most_common.shuffle(&mut rand::thread_rng());
         most_common.sort_by_key(|t| self.tile_set.get(*t));
         for tile in most_common.iter() {
             if !self.waits.contains(tile) {
