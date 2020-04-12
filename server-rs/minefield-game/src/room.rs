@@ -21,6 +21,7 @@ pub struct Room {
     nicks: [String; 2],
     pub room_key: String,
     pub player_keys: [String; 2],
+    messages: [Vec<Msg>; 2],
 }
 
 impl Room {
@@ -31,6 +32,7 @@ impl Room {
             nicks: [nick, "".to_owned()],
             room_key: Self::gen_key(),
             player_keys: [Self::gen_key(), Self::gen_key()],
+            messages: [vec![], vec![]],
         }
     }
 
@@ -90,14 +92,13 @@ impl Room {
         let mut messages = vec![];
         for i in 0..2 {
             if let Some(user_id) = self.user_ids[i] {
-                messages.push((
-                    user_id,
-                    Msg::Room {
-                        you: i,
-                        nicks: self.nicks.clone(),
-                        key: self.player_keys[i].clone(),
-                    },
-                ));
+                let msg = Msg::Room {
+                    you: i,
+                    nicks: self.nicks.clone(),
+                    key: self.player_keys[i].clone(),
+                };
+                self.messages[i].push(msg.clone());
+                messages.push((user_id, msg));
             }
         }
 
@@ -107,6 +108,37 @@ impl Room {
 
         messages.append(&mut self.messages());
         Ok(messages)
+    }
+
+    pub fn rejoin(&mut self, user_id: usize, i: usize) -> Result<Vec<(usize, Msg)>, Error> {
+        if self.user_ids[i].is_some() {
+            return Err(RoomError::AlreadyJoined.into());
+        }
+
+        self.user_ids[i] = Some(user_id);
+        assert!(self.user_ids[0] != self.user_ids[1]);
+
+        let mut replayed: Vec<(usize, Msg)> = self.messages[i]
+            .iter()
+            .map(|msg| {
+                (
+                    user_id,
+                    Msg::Replay {
+                        msg: Box::new(msg.clone()),
+                    },
+                )
+            })
+            .collect();
+
+        if let Some(ref game) = self.game {
+            if !game.finished {
+                if let Some(msg) = game.rejoin_msg(i) {
+                    replayed.push((user_id, Msg::Replay { msg: Box::new(msg) }))
+                }
+            }
+        }
+
+        Ok(replayed)
     }
 
     pub fn disconnect(&mut self, user_id: usize) {
@@ -137,15 +169,18 @@ impl Room {
     }
 
     fn messages(&mut self) -> Vec<(usize, Msg)> {
+        let mut result = vec![];
         let game = self.game.as_mut().unwrap();
-        let messages = game.messages();
-        messages
-            .into_iter()
-            .filter_map(|(i, msg)| match self.user_ids[i] {
-                Some(user_id) => Some((user_id, msg)),
-                None => None,
-            })
-            .collect()
+        for (i, msg) in game.messages().into_iter() {
+            // Add messsage for replaying
+            self.messages[i].push(msg.clone());
+
+            // Return if there's user connected
+            if let Some(user_id) = self.user_ids[i] {
+                result.push((user_id, msg));
+            }
+        }
+        result
     }
 }
 
@@ -187,6 +222,35 @@ mod tests {
         assert!(matches!(messages[3], (33, Msg::StartMove { .. })));
         assert!(matches!(messages[4], (55, Msg::PhaseOne { .. })));
         assert!(matches!(messages[5], (55, Msg::StartMove { .. })));
+    }
+
+    fn replayed(msg: &Msg) -> Option<&Msg> {
+        match msg {
+            Msg::Replay { msg } => Some(msg),
+            _ => None,
+        }
+    }
+
+    #[test]
+    fn test_rejoin() {
+        let mut room = Room::new(33, "Akagi".to_owned());
+        room.connect(55, "Washizu".to_owned()).unwrap();
+        room.disconnect(55);
+
+        assert_eq!(room.user_ids[1], None);
+        let messages = room.rejoin(55, 1).unwrap();
+        assert_eq!(room.user_ids[1], Some(55));
+        assert_eq!(messages.len(), 4);
+        assert!(matches!(messages[0], (55, Msg::Replay { .. })));
+        assert!(matches!(replayed(&messages[0].1).unwrap(), Msg::Room {..}));
+        assert!(matches!(messages[1], (55, Msg::Replay { .. })));
+        assert!(matches!(replayed(&messages[1].1).unwrap(), Msg::PhaseOne {..}));
+        assert!(matches!(messages[2], (55, Msg::Replay { .. })));
+        assert!(matches!(replayed(&messages[2].1).unwrap(), Msg::StartMove {..}));
+
+        // another StartMove with right time
+        assert!(matches!(messages[3], (55, Msg::Replay { .. })));
+        assert!(matches!(replayed(&messages[3].1).unwrap(), Msg::StartMove {..}));
     }
 
     #[test]

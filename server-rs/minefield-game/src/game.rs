@@ -137,6 +137,20 @@ impl Game {
         )
     }
 
+    pub fn rejoin_msg(&self, i: usize) -> Option<Msg> {
+        assert!(!self.finished);
+        if self.players[i].deadline.is_some() {
+            let move_type = self.players[i].current_move_type();
+            let time_limit = self.players[i].current_time_limit(self.time);
+            Some(Msg::StartMove {
+                move_type,
+                time_limit,
+            })
+        } else {
+            None
+        }
+    }
+
     fn end_move(&mut self, i: usize) {
         assert!(self.players[i].deadline.is_some());
         self.players[i].deadline = None;
@@ -288,6 +302,29 @@ impl Player {
 
     fn finished(&self) -> bool {
         self.discards.len() == DISCARDS
+    }
+
+    fn current_move_type(&self) -> MoveType {
+        assert!(self.deadline.is_some());
+        if self.hand.is_empty() {
+            MoveType::Hand
+        } else {
+            MoveType::Discard
+        }
+    }
+
+    fn current_time_limit(&self, time: usize) -> usize {
+        match self.deadline {
+            Some(deadline) => {
+                if time + EXTRA_TIME < deadline {
+                    deadline - time - EXTRA_TIME
+                } else {
+                    0
+                }
+            }
+
+            None => unreachable!(),
+        }
     }
 
     fn check_ron(

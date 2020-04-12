@@ -9,6 +9,11 @@ use minefield_core::yaku::Yaku;
 #[serde(tag = "type")]
 #[serde(rename_all = "snake_case")]
 pub enum Msg {
+    // replaying
+    Replay {
+        msg: Box<Msg>,
+    },
+
     // client messages
     GetGames,
     NewGame {

@@ -74,6 +74,7 @@ impl Lobby {
             Msg::NewGame { nick } => self.new_game(user_id, nick),
             Msg::CancelNewGame => self.cancel_new_game(user_id),
             Msg::Join { nick, key } => self.join(user_id, nick, key),
+            Msg::Rejoin { key } => self.rejoin(user_id, key),
             Msg::Hand { .. } | Msg::Discard { .. } => self.on_room_message(user_id, msg),
             _ => Err(LobbyError::UnrecognizedMessage.into()),
         }
@@ -118,6 +119,24 @@ impl Lobby {
         let found = self.rooms.iter_mut().find(|(_, room)| room.room_key == key);
         if let Some((room_id, room)) = found {
             let result = room.connect(user_id, nick)?;
+            self.user_to_room.insert(user_id, *room_id);
+            Ok(result)
+        } else {
+            Err(LobbyError::WrongKey.into())
+        }
+    }
+
+    fn rejoin(&mut self, user_id: usize, key: String) -> Result<Vec<(usize, Msg)>, Error> {
+        let found = self.rooms.iter_mut().find_map(|(room_id, room)| {
+            for i in 0..2 {
+                if room.player_keys[i] == key {
+                    return Some((room_id, i, room));
+                }
+            }
+            None
+        });
+        if let Some((room_id, i, room)) = found {
+            let result = room.rejoin(user_id, i)?;
             self.user_to_room.insert(user_id, *room_id);
             Ok(result)
         } else {
@@ -206,5 +225,19 @@ mod tests {
         assert!(matches!(messages[3], (55, Msg::StartMove { .. })));
         assert!(matches!(messages[4], (56, Msg::PhaseOne { .. })));
         assert!(matches!(messages[5], (56, Msg::StartMove { .. })));
+
+        let key = match &messages[1].1 {
+            Msg::Room { key, .. } => key.clone(),
+            _ => unreachable!(),
+        };
+
+        lobby.disconnect(56);
+        assert_eq!(lobby.connect(), 57);
+        let messages = lobby.on_message(57, Msg::Rejoin { key }).unwrap();
+        assert_eq!(messages.len(), 4);
+        assert!(matches!(messages[0], (57, Msg::Replay { .. })));
+        assert!(matches!(messages[1], (57, Msg::Replay { .. })));
+        assert!(matches!(messages[2], (57, Msg::Replay { .. })));
+        assert!(matches!(messages[3], (57, Msg::Replay { .. })));
     }
 }
