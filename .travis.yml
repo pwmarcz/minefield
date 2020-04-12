@@ -3,7 +3,7 @@ jobs:
     - name: "Server (Python)"
       language: python
       python: "3.8"
-      install: make env_py
+      install: make env
       script: make test_py
 
     - name: "Client (JS)"
