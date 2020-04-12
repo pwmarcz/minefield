@@ -39,12 +39,12 @@ pub enum CommError {
 }
 
 impl GameServer {
-    pub fn new() -> Self {
-        let lobby = Lobby::new();
-        GameServer {
+    pub fn open(db_path: &str) -> Result<Self, Error> {
+        let lobby = Lobby::open(db_path)?;
+        Ok(GameServer {
             lobby: Arc::new(Mutex::new(lobby)),
             senders: Arc::new(Mutex::new(HashMap::new())),
-        }
+        })
     }
 
     pub fn connect(&self, reader: Reader, writer: Writer) {

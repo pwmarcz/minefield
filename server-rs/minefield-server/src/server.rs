@@ -26,8 +26,8 @@ impl Clone for ServerParams {
     }
 }
 
-pub async fn start_server(addr: &SocketAddr, static_path: &Option<&str>) {
-    let game_server = GameServer::new();
+pub async fn start_server(addr: &SocketAddr, static_path: &Option<&str>, db_path: &str) {
+    let game_server = GameServer::open(db_path).unwrap();
     game_server.start_beat();
 
     let params = ServerParams {

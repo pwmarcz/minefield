@@ -1,8 +1,8 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use failure::{Error, Fail};
 
+use crate::db::Database;
 use crate::protocol::Msg;
 use crate::room::Room;
 
@@ -18,9 +18,8 @@ pub enum LobbyError {
     WrongKey,
 }
 
-#[derive(Serialize, Deserialize, Default)]
 pub struct Lobby {
-    next_room_id: usize,
+    database: Database,
     next_user_id: usize,
     rooms: HashMap<usize, Room>,
     user_to_room: HashMap<usize, usize>,
@@ -28,7 +27,18 @@ pub struct Lobby {
 
 impl Lobby {
     pub fn new() -> Self {
-        Default::default()
+        Self::open(":memory:").unwrap()
+    }
+
+    pub fn open(db_path: &str) -> Result<Self, Error> {
+        let mut database = Database::open(db_path)?;
+        let rooms = database.load_rooms()?;
+        Ok(Lobby {
+            database,
+            next_user_id: 0,
+            rooms,
+            user_to_room: HashMap::new(),
+        })
     }
 
     pub fn connect(&mut self) -> usize {
@@ -42,7 +52,7 @@ impl Lobby {
             let room = self.rooms.get_mut(&room_id).unwrap();
             room.disconnect(user_id);
             self.user_to_room.remove(&user_id);
-            self.check_finished(room_id);
+            self.update_room(room_id);
         }
     }
 
@@ -52,17 +62,24 @@ impl Lobby {
         for room_id in room_ids.iter() {
             let room = self.rooms.get_mut(room_id).unwrap();
             messages.append(&mut room.beat());
-            self.check_finished(*room_id);
+            self.update_room(*room_id);
         }
         messages
     }
 
     pub fn debug_dump(&self) -> String {
-        serde_json::to_string(self).unwrap()
+        serde_json::to_string(&self.rooms).unwrap()
     }
 
-    fn check_finished(&mut self, room_id: usize) {
+    fn update_room(&mut self, room_id: usize) {
         let room = self.rooms.get(&room_id).unwrap();
+
+        if room.started() {
+            self.database.save_room(room_id, &room).unwrap();
+        } else if room.finished() {
+            self.database.delete_room(room_id).unwrap();
+        }
+
         if room.finished() {
             self.rooms.remove(&room_id);
         }
@@ -95,9 +112,9 @@ impl Lobby {
 
     fn new_game(&mut self, user_id: usize, nick: String) -> Result<Vec<(usize, Msg)>, Error> {
         self.ensure_no_room(user_id)?;
-        let room_id = self.next_room_id;
-        self.next_room_id += 1;
-        self.rooms.insert(room_id, Room::new(user_id, nick));
+        let room = Room::new(user_id, nick);
+        let room_id = self.database.new_room(&room).unwrap();
+        self.rooms.insert(room_id, room);
         self.user_to_room.insert(user_id, room_id);
         Ok(self.describe_games(user_id))
     }
@@ -106,7 +123,7 @@ impl Lobby {
         let (room_id, room) = self.ensure_room_mut(user_id)?;
         room.disconnect(user_id);
         self.user_to_room.remove(&user_id);
-        self.check_finished(room_id);
+        self.update_room(room_id);
         Ok(self.describe_games(user_id))
     }
 
@@ -147,7 +164,7 @@ impl Lobby {
     fn on_room_message(&mut self, user_id: usize, msg: Msg) -> Result<Vec<(usize, Msg)>, Error> {
         let (room_id, room) = self.ensure_room_mut(user_id)?;
         let result = room.on_message(user_id, msg)?;
-        self.check_finished(room_id);
+        self.update_room(room_id);
         Ok(result)
     }
 

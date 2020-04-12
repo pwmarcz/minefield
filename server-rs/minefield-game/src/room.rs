@@ -17,6 +17,7 @@ pub enum RoomError {
 #[derive(Serialize, Deserialize)]
 pub struct Room {
     game: Option<Game>,
+    #[serde(skip)]
     user_ids: [Option<usize>; 2],
     nicks: [String; 2],
     pub room_key: String,
@@ -69,6 +70,10 @@ impl Room {
             }
             _ => vec![],
         }
+    }
+
+    pub fn started(&self) -> bool {
+        self.game.is_some()
     }
 
     pub fn finished(&self) -> bool {

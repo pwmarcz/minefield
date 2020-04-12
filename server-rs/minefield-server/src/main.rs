@@ -38,6 +38,12 @@ async fn main() {
                 .long("static-path")
                 .takes_value(true),
         )
+        .arg(
+            Arg::with_name("db_path")
+                .long("db-path")
+                .takes_value(true)
+                .default_value("minefield.db"),
+        )
         .get_matches();
 
     let host = matches
@@ -53,6 +59,7 @@ async fn main() {
     let addr = SocketAddr::new(host, port);
 
     let static_path = matches.value_of("static_path");
+    let db_path = matches.value_of("db_path").unwrap();
 
-    server::start_server(&addr, &static_path).await;
+    server::start_server(&addr, &static_path, &db_path).await;
 }
