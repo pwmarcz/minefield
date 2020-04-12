@@ -41,7 +41,7 @@ pub fn connect(url: &str, nick: &str) -> Result<(Client, Bot, usize), Error> {
 
     loop {
         match comm::recv_msg(&mut client)? {
-            Msg::Room { .. } => (),
+            Msg::Room { .. } | Msg::Games { .. } => (),
 
             Msg::PhaseOne {
                 tiles,
