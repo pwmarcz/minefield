@@ -70,45 +70,43 @@ impl Lobby {
 
     pub fn on_message(&mut self, user_id: usize, msg: Msg) -> Result<Vec<(usize, Msg)>, Error> {
         match msg {
-            Msg::GetGames => Ok(vec![(
-                user_id,
-                Msg::Games {
-                    games: self
-                        .rooms
-                        .values()
-                        .filter_map(|room| room.describe())
-                        .collect(),
-                },
-            )]),
-            Msg::NewGame { nick } => {
-                self.new_game(user_id, nick)?;
-                Ok(vec![])
-            }
-            Msg::CancelNewGame => {
-                self.cancel_new_game(user_id)?;
-                Ok(vec![])
-            }
+            Msg::GetGames => Ok(self.describe_games(user_id)),
+            Msg::NewGame { nick } => self.new_game(user_id, nick),
+            Msg::CancelNewGame => self.cancel_new_game(user_id),
             Msg::Join { nick, key } => self.join(user_id, nick, key),
             Msg::Hand { .. } | Msg::Discard { .. } => self.on_room_message(user_id, msg),
             _ => Err(LobbyError::UnrecognizedMessage.into()),
         }
     }
 
-    fn new_game(&mut self, user_id: usize, nick: String) -> Result<(), Error> {
+    fn describe_games(&self, user_id: usize) -> Vec<(usize, Msg)> {
+        vec![(
+            user_id,
+            Msg::Games {
+                games: self
+                    .rooms
+                    .values()
+                    .filter_map(|room| room.describe())
+                    .collect(),
+            },
+        )]
+    }
+
+    fn new_game(&mut self, user_id: usize, nick: String) -> Result<Vec<(usize, Msg)>, Error> {
         self.ensure_no_room(user_id)?;
         let room_id = self.next_room_id;
         self.next_room_id += 1;
         self.rooms.insert(room_id, Room::new(user_id, nick));
         self.user_to_room.insert(user_id, room_id);
-        Ok(())
+        Ok(self.describe_games(user_id))
     }
 
-    fn cancel_new_game(&mut self, user_id: usize) -> Result<(), Error> {
+    fn cancel_new_game(&mut self, user_id: usize) -> Result<Vec<(usize, Msg)>, Error> {
         let (room_id, room) = self.ensure_room_mut(user_id)?;
         room.disconnect(user_id);
         self.user_to_room.remove(&user_id);
         self.check_finished(room_id);
-        Ok(())
+        Ok(self.describe_games(user_id))
     }
 
     fn join(
@@ -171,7 +169,8 @@ mod tests {
                 },
             )
             .unwrap();
-        assert_eq!(messages, vec![]);
+        assert_eq!(messages.len(), 1);
+        assert!(matches!(messages[0], (55, Msg::Games { .. })));
 
         assert_eq!(lobby.connect(), 56);
         let messages = lobby.on_message(56, Msg::GetGames).unwrap();
