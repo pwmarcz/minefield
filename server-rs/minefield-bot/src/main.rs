@@ -3,6 +3,8 @@ extern crate env_logger;
 extern crate failure;
 extern crate failure_derive;
 extern crate log;
+extern crate rand;
+extern crate rand_distr;
 extern crate serde_json;
 
 extern crate minefield_core;

@@ -2,6 +2,7 @@ use std::thread;
 
 use failure::Error;
 use log::{error, info};
+use rand_distr::{Distribution, Normal};
 use websocket::ClientBuilder;
 
 use minefield_core::bot::Bot;
@@ -61,6 +62,8 @@ pub fn connect(url: &str, nick: &str) -> Result<(Client, Bot, usize), Error> {
 }
 
 fn play(mut client: Client, mut bot: Bot, you: usize) -> Result<(), Error> {
+    let mut rng = rand::thread_rng();
+
     loop {
         match comm::recv_msg(&mut client)? {
             Msg::StartMove { move_type, .. } => match move_type {
@@ -71,6 +74,10 @@ fn play(mut client: Client, mut bot: Bot, you: usize) -> Result<(), Error> {
                 }
 
                 MoveType::Discard => {
+                    let delay_s: f32 = Normal::new(2.0, 1.0).unwrap().sample(&mut rng);
+                    let delay_ms: u64 = (delay_s.max(0.0).min(8.0) * 1000.0) as u64;
+                    std::thread::sleep(std::time::Duration::from_millis(delay_ms));
+
                     let tile = bot.choose_discard();
                     comm::send_msg(&mut client, &Msg::Discard { tile })?;
                 }
