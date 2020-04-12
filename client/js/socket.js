@@ -27,7 +27,7 @@ export class Socket {
   }
 
   onClose() {
-    this.handle({ type: 'connect'});
+    this.handle({ type: 'disconnect'});
   }
 
   on(type, handler) {
