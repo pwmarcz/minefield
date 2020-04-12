@@ -6,13 +6,9 @@ TO_SYNC = client/static \
 	server-rs/target/release/minefield-server
 
 .PHONY: all
-all: env node static
+all: node static rust
 
-.PHONY: env
-env:
-	[ -e server/env/bin/python ] || virtualenv --python=python3 server/env/
-	[ -e server/env/bin/pip-sync ] || server/env/bin/pip install -q -r server/requirements.txt
-	server/env/bin/pip-sync server/requirements.txt
+## Client (JS)
 
 .PHONY: node
 node:
@@ -22,36 +18,53 @@ node:
 static:
 	cd client && node_modules/.bin/webpack
 
-.PHONY: test
-test:
-	server/env/bin/pytest server/*.py -v
+.PHONY: watch
+watch:
+	cd client && ./node_modules/.bin/webpack --watch
 
 .PHONY: test_js
 test_js:
 	cd client && node_modules/.bin/mocha js/test.js --require @babel/register --ui tdd
 
-.PHONY: watch_test_js
-watch_test_js:
-	cd client && node_modules/.bin/mocha js/test.js --require @babel/register --ui tdd --watch
+## Server (Rust)
 
-.PHONY: watch
-watch:
-	cd client && ./node_modules/.bin/webpack --watch
-
-.PHONY: serve
-serve:
-	server/env/bin/python server/server.py --debug --host 0.0.0.0 --port 8080
-
-.PHONY: serve_prod
-serve_prod:
-	server/env/bin/python server/server.py --host 127.0.0.1 --port 8080
+.PHONY: rust
+rust:
+	cd server-rs && cargo build
 
 .PHONY: rust_prod
 rust_prod:
 	cd server-rs && cargo build --release
 
-	cp server-rs/target/release/minefield-bot build/
-	cp server-rs/target/release/minefield-server build/
+.PHONY: serve
+serve:
+	cd server-rs/minefield-server && cargo run -- --static-path ../../client/static
+
+.PHONY: bot
+bot:
+	cd server-rs/minefield-bot && cargo run -- --spawn
+
+.PHONY:
+test:
+	cd server-rs/ && cargo test
+
+## Server (Python)
+
+.PHONY: env
+env:
+	[ -e server-py/env/bin/python ] || virtualenv --python=python3 server-py/env/
+	[ -e server-py/env/bin/pip-sync ] || server-py/env/bin/pip install -q -r server-py/requirements.txt
+	server-py/env/bin/pip-sync server-py/requirements.txt
+
+.PHONY: test_py
+test_py:
+	server-py/env/bin/pytest server-py/*.py -v
+
+.PHONY: serve_py
+serve_py:
+	server-py/env/bin/python server-py/server.py --debug --host 0.0.0.0 --port 8080
+
+## Deploy
 
 .PHONY: deploy
 deploy: static rust_prod sync

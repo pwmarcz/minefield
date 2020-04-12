@@ -4,4 +4,4 @@
 *.db-journal
 *.log
 node_modules/
-server/env
+server-py/env

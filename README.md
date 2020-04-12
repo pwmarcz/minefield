@@ -13,15 +13,9 @@ The project is available under MIT license. See COPYING for more details.
 
 ## Install
 
-Required packages (as of Ubuntu 14.04):
+For frontend, node.js and yarn is required.
 
-    python-dev
-    libevent-dev
-    libpcre3-dev
-    nodejs
-    npm
-
-You also need a recent Node.js version.
+For backend, Rust and Cargo.
 
 Install libraries:
 
@@ -29,11 +23,10 @@ Install libraries:
 
 Make targets are:
 
-  - `make env` - update virtualenv
   - `make static` - recompile static assets
   - `make watch` - recompile static assets on each change
   - `make serve` - serve the website in development mode
-  - `make serve_prod` - serve the website in production mode
+  - `make bot` - run bot
 
 ## Run (in developer mode)
 
@@ -44,16 +37,23 @@ then browse to `localhost:8080`.
 
 ## Test
 
-  - `make test` - run Python (server) tests
+  - `make test` - run server tests
   - `make test_js` - run JavaScript tests
   - `make watch_test_js` - run JavaScript tests on each change
+
+## Old server (Python)
+
+  - `make env` - build virtualenv
+  - `make test_py` - run tests
+  - `make serve_py`- serve the website in development mode
 
 ## Deploy
 
 Minefield is currently a static web page plus a WebSocket server.
 To deploy Minefield, you need to:
 
-  - run `make serve_prod`, which serves the WebSocket part on port 8080,
+  - copy files (see `make sync`),
+  - run `minefield-server` (and possibly `minefield-bot`)
   - serve the static files under a given location, for instance `/minefield/`,
   - serve the WebSocket under the `ws` path, for instance `/minefield/ws`.
 

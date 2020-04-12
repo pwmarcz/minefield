@@ -49,7 +49,7 @@ export function Lobby({
 
   return (
     <div className="lobby popup">
-      <h2>Minefield <sup className="note">beta</sup></h2>
+      <h2>Minefield</h2>
       <div className="games">
         <div className="scroll">
           <table>
