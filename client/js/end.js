@@ -71,8 +71,10 @@ export function EndRonPopup({ player, doraInd, ron, onReset }) {
       <TileList tiles={tiles} />
       <p>Dora:</p>
       <TileList tiles={[doraInd, ron.uradora_ind]} />
-      <p>Yaku:</p>
-      <ul>{ron.yaku.map(item => <li>{item}</li>)}</ul>
+      <ul>
+        {ron.yaku.map(item => <li>{item}</li>)}
+        {ron.dora > 0 && <li>dora {ron.dora}</li>}
+      </ul>
       <p>
         Score: {ron.points} points (<b>{limitDesc}</b>)
       </p>
