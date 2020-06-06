@@ -374,7 +374,7 @@ impl Player {
             Some(score)
         });
 
-        if let Some(score) = scored_hands.max_by_key(|score| score.limit()) {
+        if let Some(score) = scored_hands.max_by_key(|score| (score.points(), score.fan())) {
             Some(Msg::Ron {
                 player: i,
                 hand: full_hand,
@@ -645,5 +645,21 @@ mod test {
             game.beat();
         }
         assert_aborted(&mut game, 0, "time limit exceeded");
+    }
+
+    #[test]
+    fn test_ron_select_yaku() {
+        // chiitoitsu / ryanpeiko
+        let tiles = vec![S1, S1, S2, S2, S3, S3, S5, S5, S6, S6, S7, S7, X2];
+        let mut player = Player::new(&tiles, false);
+        player.deadline = Some(0);
+        player.set_hand(&tiles).unwrap();
+        player.discards.push(X3); // not ippatsu
+        let msg = player.check_ron(0, X2, X3, X3);
+        if let Some(Msg::Ron { yaku, .. }) = msg {
+            assert_eq!(yaku, vec![Yaku::Riichi, Yaku::Ryanpeiko, Yaku::Honitsu]);
+        } else {
+            panic!("expecting Ron");
+        }
     }
 }
