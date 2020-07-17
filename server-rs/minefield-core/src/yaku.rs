@@ -66,7 +66,11 @@ pub fn yaku(hand: &Hand, player_wind: Tile, special: &[Yaku]) -> Vec<Yaku> {
     let suits = hand.suits();
     let tiles = hand.tiles();
 
-    if let Some(yaku) = pure_yaku(suits, &tiles) {
+    if let Some(yaku) = pure_yaku(&tiles) {
+        result.push(yaku);
+    }
+
+    if let Some(yaku) = suit_yaku(suits) {
         result.push(yaku);
     }
 
@@ -100,17 +104,21 @@ pub fn yaku(hand: &Hand, player_wind: Tile, special: &[Yaku]) -> Vec<Yaku> {
     result
 }
 
-fn pure_yaku(suits: u8, tiles: &[Tile]) -> Option<Yaku> {
+fn pure_yaku(tiles: &[Tile]) -> Option<Yaku> {
     if tiles.iter().all(|t| !t.is_yaochu()) {
-        return Some(Yaku::Tanyao);
+        Some(Yaku::Tanyao)
     } else if tiles.iter().all(|t| t.is_terminal()) {
-        return Some(Yaku::Chinroto);
+        Some(Yaku::Chinroto)
     } else if tiles.iter().all(|t| t.is_honor()) {
-        return Some(Yaku::Tsuuiiso);
+        Some(Yaku::Tsuuiiso)
     } else if tiles.iter().all(|t| t.is_yaochu()) {
-        return Some(Yaku::Honroto);
+        Some(Yaku::Honroto)
+    } else {
+        None
     }
+}
 
+fn suit_yaku(suits: u8) -> Option<Yaku> {
     match suits {
         2 | 4 | 8 => Some(Yaku::Chinitsu),
         3 | 5 | 9 => Some(Yaku::Honitsu),
@@ -456,6 +464,11 @@ mod tests {
             &[M1, M1, M9, M9, P1, P1, P9, P9, S1, S1, X3, X3, X5, X5],
             X3,
             vec![vec![Chitoitsu, Honroto]],
+        );
+        assert_yaku(
+            &[M1, M1, M9, M9, X1, X1, X2, X2, X3, X3, X4, X4, X5, X5],
+            X3,
+            vec![vec![Chitoitsu, Honroto, Honitsu]],
         );
     }
 
