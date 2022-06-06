@@ -17,7 +17,7 @@ failure_derive = "*"
 log = "*"
 env_logger = "*"
 clap = "*"
-hyper = "0.13"
+hyper = "0.14"
 tokio = { version = "0.2", features = ["full"] }
 futures = "0.3"
 hyper-staticfile = "*"
