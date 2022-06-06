@@ -18,7 +18,7 @@ log = "*"
 env_logger = "*"
 clap = "*"
 hyper = "0.13"
-tokio = { version = "0.2", features = ["full"] }
+tokio = { version = "1.8", features = ["full"] }
 futures = "0.3"
 hyper-staticfile = "*"
 tokio-tungstenite = "*"
